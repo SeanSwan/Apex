@@ -1,0 +1,50 @@
+{
+  "name": "defense",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run start-frontend\" \"npm run start-backend\"",
+    "start-frontend": "cd frontend && npm run dev",
+    "start-backend": "cd backend && npm run dev",
+    "install-all": "npm run install-frontend && npm run install-backend",
+    "install-frontend": "cd frontend && npm install",
+    "install-backend": "cd backend && npm install"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@storybook/react": "^8.5.3",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "concurrently": "^8.2.2",
+    "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.66.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "axios": "^1.7.2",
+    "compression": "^1.7.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.0.0",
+    "jspdf-autotable": "^3.8.4",
+    "leaflet": "^1.9.4",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.11.5",
+    "pg-hstore": "^2.3.4",
+    "react-helmet": "^6.1.0",
+    "react-hook-form": "^7.54.2",
+    "react-icons": "^5.2.1",
+    "react-leaflet": "^4.2.1",
+    "react-router-dom": "^6.23.0",
+    "recharts": "^2.12.6",
+    "sequelize": "^6.37.3",
+    "socket.io-client": "^4.7.5",
+    "styled-components": "^6.1.12",
+    "zod": "^3.24.1"
+  }
+}
