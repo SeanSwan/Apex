@@ -4,7 +4,7 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import UserList from '../components/UserList/UserList.component.jsx';
 import PermissionEditor from '../components/PermissionEditor/PermissionEditor.jsx';
-import AnalyticsDashboard from './AdminDashboard.component.jsx';
+import AnalyticsDashboard from './AdminDashboard.component.js';
 
 const PageContainer = styled.div`
   display: grid;

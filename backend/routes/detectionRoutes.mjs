@@ -1,5 +1,5 @@
 import express from 'express';
-import { io } from '../server.mjs'; // Import the Socket.IO instance
+import { getIO, emitSocketEvent } from '../src/socket.js'; // Import from the new socket implementation
 import pkg from 'pg';
 const { Pool } = pkg;
 import dotenv from 'dotenv';
@@ -14,7 +14,7 @@ const pool = new Pool({
   host: process.env.PG_HOST, // PostgreSQL host
   database: process.env.PG_DB, // PostgreSQL database name
   password: process.env.PG_PASSWORD, // PostgreSQL password
-  port: process.env.PG_PORT, // PostgreSQL port
+  port: Number(process.env.PG_PORT), // PostgreSQL port - convert to number for type safety
 });
 
 // POST /api/detections - Add a new detection
@@ -36,7 +36,12 @@ router.post('/', async (req, res) => {
     res.status(201).json(detection);
 
     // Emit a WebSocket event for new detection
-    io.emit('new-detection', detection);
+    // Option 1: Using emitSocketEvent helper function (recommended)
+    emitSocketEvent('new-detection', detection);
+    
+    // Option 2: Using getIO() to get the Socket.IO instance
+    // const io = getIO();
+    // io.emit('new-detection', detection);
   } catch (err) {
     console.error('Error inserting detection:', err);
     res.status(500).json({ error: 'Internal Server Error' });

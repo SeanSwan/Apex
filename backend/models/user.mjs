@@ -1,58 +1,57 @@
-import { Model, DataTypes } from 'sequelize';
-import bcrypt from 'bcryptjs';
+// models/User.mjs
+import { DataTypes } from 'sequelize';
+import sequelize from '../database.mjs';
 
-export default (sequelize) => {
-  class User extends Model {
-    // associations can be defined here
-
-    // Method to compare passwords
-    validPassword(password) {
-      return bcrypt.compareSync(password, this.password);
+const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  username: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true,
+    validate: {
+      isEmail: true
     }
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  role: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'user',
+    validate: {
+      isIn: [['admin', 'manager', 'user', 'guard']]
+    }
+  },
+  lastLogin: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   }
+}, {
+  tableName: 'users',
+  timestamps: true
+});
 
-  User.init(
-    {
-      username: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-      },
-      ID: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        primaryKey: true,
-      },
-      password: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      role: {
-        type: DataTypes.ENUM(
-          'guard',
-          'regional_manager',
-          'dispatch',
-          'operations_manager',
-          'admin'
-        ),
-        allowNull: false,
-      },
-    },
-    {
-      sequelize,
-      modelName: 'User',
-      hooks: {
-        beforeCreate: async (user) => {
-          user.password = await bcrypt.hash(user.password, 10);
-        },
-        beforeUpdate: async (user) => {
-          if (user.changed('password')) {
-            user.password = await bcrypt.hash(user.password, 10);
-          }
-        },
-      },
-    }
-  );
-
-  return User;
-};
+export default User;

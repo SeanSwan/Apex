@@ -1,0 +1,40 @@
+{
+    "compilerOptions": {
+      "target": "es2020",
+      "module": "esnext",
+      "moduleResolution": "node",
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "allowJs": true,
+      "checkJs": false,
+      "resolveJsonModule": true,
+      "declaration": false,
+      "strict": true,
+      "forceConsistentCasingInFileNames": true,
+      "noFallthroughCasesInSwitch": true,
+      "isolatedModules": true,
+      "outDir": "dist",
+      "skipLibCheck": true
+    },
+    "ts-node": {
+      "esm": true,
+      "experimentalSpecifierResolution": "node"
+    },
+    "include": [
+      "**/*.ts", 
+      "**/*.mts",
+      "**/*.js",
+      "**/*.mjs", 
+      "**/*.cjs",
+      "models/**/*",
+      "utils/**/*",
+      "routes/**/*",
+      "middleware/**/*",
+      "src/**/*",
+      "config/**/*"
+    ],
+    "exclude": [
+      "node_modules",
+      "dist"
+    ]
+  }

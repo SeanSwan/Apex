@@ -11,18 +11,18 @@ import Header from "./components/Header/header.component"; // Header component
 import ErrorBoundary from "./components/ErrorBoundary/error-boundry.component.jsx"; // ErrorBoundary for fallback UI
 
 // Pages and Components
-import HomePage from "./pages/HomePage.component.jsx";
-import UnauthorizedPage from "./pages/UnauthorizedPage.component.jsx";
-import Dashboard from "./pages/DashboardPage.component.jsx";
-import SchedulePage from "./pages/SchedulePage.component.jsx";
-import Dispatch from "./pages/DispatchPage.component.jsx";
-import PropertyGuardSearchPage from "./pages/PropertyGuardSearchPage.jsx";
-import TimeClockPage from "./pages/TimeClockPage.component.jsx";
-import PayrollPage from "./pages/PayrollPage.component.jsx";
-import ReportsPage from "./pages/ReportsPage.component.tsx";
-import AdminDashboard from "./pages/AdminDashboard.component.jsx";
-import UserManagement from "./pages/UserManagement.component.jsx";
-import DetailedReportPage from "./pages/DetailedReportPage.jsx";
+import HomePage from "./pages/HomePage.component.tsx";
+import UnauthorizedPage from "./pages/UnauthorizedPage.component.tsx";
+import Dashboard from "./pages/DashboardPage.component.tsx";
+import SchedulePage from "./pages/SchedulePage.component.tsx";
+import Dispatch from "./pages/DispatchPage.component.tsx";
+import PropertyGuardSearchPage from "./pages/PropertyGuardSearchPage.tsx";
+import TimeClockPage from "./pages/TimeClockPage.component.tsx";
+import PayrollPage from "./pages/PayrollPage.component.tsx";
+import ReportsPage from "./pages/DetailedReportPage";
+import AdminDashboard from "./pages/AdminDashboard.component.tsx";
+import UserManagement from "./pages/UserManagement.component.tsx";
+import DetailedReportPage from "./pages/DetailedReportPage.tsx";
 
 // Replace LoginPage with UniversalAuthForm
 import UniversalAuthForm from "./components/UniversalAuthForm/UniversalAuthForm.component"; // UniversalAuthForm component
@@ -50,7 +50,7 @@ function App() {
                 <Route path="/payroll" element={<PayrollPage />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/reports" element={<ReportsPage />} />
-                <Route path="/reports/:id" element={<DetailedReportPage />} />
+                {/* <Route path="/reports/:id" element={<DetailedReportPage />} /> */}
                 <Route path="/admin-dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/user-management" element={<UserManagement />} />
 

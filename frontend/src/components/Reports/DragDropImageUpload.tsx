@@ -4,13 +4,14 @@ import React, { useState, DragEvent, ChangeEvent } from 'react';
 import styled from 'styled-components';
 
 // Styled drop zone with dynamic border based on drag state.
-const DropZone = styled.div<{ isDragOver: boolean }>`
-  border: 2px dashed ${(props) => (props.isDragOver ? '#007bff' : '#ccc')};
+// Using $isDragOver instead of isDragOver to prevent the prop from leaking to the DOM
+const DropZone = styled.div<{ $isDragOver: boolean }>`
+  border: 2px dashed ${(props) => (props.$isDragOver ? '#007bff' : '#ccc')};
   padding: 1rem;
   text-align: center;
   border-radius: 8px;
   margin-bottom: 1rem;
-  background-color: ${(props) => (props.isDragOver ? '#f0f8ff' : 'transparent')};
+  background-color: ${(props) => (props.$isDragOver ? '#f0f8ff' : 'transparent')};
 `;
 
 // Preview image style.
@@ -84,7 +85,7 @@ const DragDropImageUpload: React.FC<DragDropImageUploadProps> = ({
     <div>
       <label>{label}</label>
       <DropZone
-        isDragOver={isDragOver}
+        $isDragOver={isDragOver}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}

@@ -1,12 +1,18 @@
 import express from 'express';
 import Guard from '../models/guard.mjs';
 import { checkInGuard } from '../services/groupme.mjs';
-import { io } from '../server.mjs'; // Correct import for io instance
+import { emitSocketEvent } from '../src/socket.js'; // Use the safer emitSocketEvent function
 
 const router = express.Router();
 
 router.post('/checkin', async (req, res) => {
   const { groupId, guardName, botId } = req.body;
+  
+  // Validate required fields
+  if (!groupId || !guardName) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  
   try {
     const guard = await Guard.findOne({ where: { groupId, name: guardName } });
     if (guard) {
@@ -15,16 +21,24 @@ router.post('/checkin', async (req, res) => {
     } else {
       await Guard.create({ groupId, name: guardName, checkInTime: new Date() });
     }
-    // Send a notification to the GroupMe group
-    await checkInGuard(groupId, guardName, botId);
     
-    // Emit a WebSocket event for guard check-in
-    io.emit('guard-update', { groupId, guardName, checkInTime: new Date() });
+    // Send a notification to the GroupMe group
+    if (botId) {
+      await checkInGuard(groupId, guardName, botId);
+    }
+    
+    // Emit a WebSocket event for guard check-in using the safer function
+    emitSocketEvent('guard-update', { 
+      groupId, 
+      guardName, 
+      checkInTime: new Date(),
+      status: 'checked-in'
+    });
 
-    res.status(200).send({ message: 'Check-in recorded.' });
+    res.status(200).json({ message: 'Check-in recorded successfully' });
   } catch (error) {
     console.error('Error during check-in:', error);
-    res.status(500).send({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 

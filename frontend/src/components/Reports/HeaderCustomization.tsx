@@ -46,11 +46,12 @@ const BackgroundSelection = styled.div`
 `;
 
 // Button for selecting a theme.
-const ThemeButton = styled.button<{ active: boolean }>`
+// Using $active instead of active to prevent the prop from leaking to the DOM
+const ThemeButton = styled.button<{ $active: boolean }>`
   margin-right: 0.5rem;
   padding: 0.5rem 1rem;
-  border: ${(props) => (props.active ? '2px solid #007bff' : '1px solid #ccc')};
-  background: ${(props) => (props.active ? '#e6f0ff' : '#fff')};
+  border: ${(props) => (props.$active ? '2px solid #007bff' : '1px solid #ccc')};
+  background: ${(props) => (props.$active ? '#e6f0ff' : '#fff')};
   border-radius: 4px;
   cursor: pointer;
   transition: background 0.2s ease;
@@ -170,7 +171,7 @@ const HeaderCustomization: React.FC<HeaderCustomizationProps> = ({
           {presetThemes.map((theme) => (
             <ThemeButton
               key={theme.value}
-              active={backgroundTheme === theme.value}
+              $active={backgroundTheme === theme.value}
               onClick={() => setBackgroundTheme(theme.value)}
             >
               {theme.name}

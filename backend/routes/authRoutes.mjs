@@ -1,7 +1,8 @@
+// backend/routes/authRoutes.mjs
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import User from '../models/User.mjs'; // Sequelize User model
+import User from '../models/User.mjs';
+import { signToken, verifyToken } from '../utils/jwt.mjs';
 
 const router = express.Router();
 
@@ -20,8 +21,18 @@ router.post('/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ username, password: hashedPassword, email });
-    res.status(201).json({ message: 'User registered successfully.', user: newUser });
+    const newUser = await User.create({ 
+      username, 
+      password: hashedPassword, 
+      email,
+      role: 'user' // Default role
+    });
+    
+    // Remove password from response
+    const userResponse = { ...newUser.get() };
+    delete userResponse.password;
+    
+    res.status(201).json({ message: 'User registered successfully.', user: userResponse });
   } catch (error) {
     console.error('Error registering user:', error);
     res.status(500).json({ message: 'Server error.' });
@@ -43,11 +54,21 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials.' });
     }
 
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN || '1h',
+    // Create JWT token with consistent payload
+    const token = signToken({ 
+      userId: user.id, 
+      role: user.role 
     });
 
-    res.status(200).json({ token, user });
+    // Remove password from response
+    const userResponse = { ...user.get() };
+    delete userResponse.password;
+
+    res.status(200).json({ 
+      token, 
+      user: userResponse,
+      expiresIn: process.env.JWT_EXPIRES_IN || '3h'
+    });
   } catch (error) {
     console.error('Error logging in user:', error);
     res.status(500).json({ message: 'Server error.' });
@@ -62,12 +83,24 @@ router.get('/validate-token', async (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findByPk(decoded.id);
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return res.status(401).json({ message: 'Invalid token.' });
+    }
+    
+    // Handle both id and userId fields for compatibility
+    const userId = decoded.userId || decoded.id;
+    
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
     }
-    res.status(200).json({ user });
+    
+    // Remove password from response
+    const userResponse = { ...user.get() };
+    delete userResponse.password;
+    
+    res.status(200).json({ user: userResponse });
   } catch (error) {
     console.error('Error validating token:', error);
     res.status(401).json({ message: 'Invalid token.' });
