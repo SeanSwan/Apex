@@ -1,8 +1,8 @@
 // File: frontend/src/types/reports.ts
 
-/**
- * Represents a client contact person
- */
+export type DailyReportStatus = 'Completed' | 'In progress' | 'Pending';
+export type SecurityCode = 'Code 1' | 'Code 2' | 'Code 3' | 'Code 4' | 'Code 5';
+
 export interface ClientContact {
   name: string;
   email: string;
@@ -10,13 +10,10 @@ export interface ClientContact {
   isPrimary: boolean;
 }
 
-/**
- * Represents client data
- */
 export interface ClientData {
   id: string;
   name: string;
-  siteName: string;
+  siteName?: string;      // Added to match your mock data
   location: string;
   city: string;
   state: string;
@@ -26,88 +23,141 @@ export interface ClientData {
   cameras: number;
   lastReportDate: string;
   isActive: boolean;
-  isVIP?: boolean;
-  isNew?: boolean;
+  isVIP?: boolean;        // Optional flag
+  isNew?: boolean;        // Optional flag
   contacts: ClientContact[];
+  cameraDetails?: string; // Optional detailed information
 }
 
-/**
- * Daily metrics data structure
- */
-export type DailyMetrics = {
-  Monday: number;
-  Tuesday: number;
-  Wednesday: number;
-  Thursday: number;
-  Friday: number;
-  Saturday: number;
-  Sunday: number;
-};
+export interface DailyActivity {
+  time: string;
+  description: string;
+}
 
-/**
- * Represents metrics data for a client
- */
+export interface Incident {
+  time: string;
+  type: string;
+  description: string;
+}
+
+export interface DailyReport {
+  day: string;
+  content: string;
+  status: DailyReportStatus;
+  securityCode: SecurityCode;
+}
+
 export interface MetricsData {
-  humanIntrusions: DailyMetrics;
-  vehicleIntrusions: DailyMetrics;
+  humanIntrusions: Record<string, number>;
+  vehicleIntrusions: Record<string, number>;
   aiAccuracy: number;
   responseTime: number;
-  proactiveAlerts: number;
-  potentialThreats: number;
+  proactiveAlerts: number;    // Added to match your mock data
+  potentialThreats: number;   // Added to match your mock data
   operationalUptime: number;
   totalMonitoringHours: number;
   totalCameras: number;
   camerasOnline: number;
 }
 
-/**
- * Report status types
- */
-export type ReportStatus = 'draft' | 'sent' | 'archived';
-
-/**
- * Represents a report data object
- */
-export interface ReportData {
-  id?: string;
-  clientId: string;
-  title?: string;
-  summary?: string;
-  metrics?: MetricsData;
-  createdAt?: string;
-  updatedAt?: string;
-  status?: ReportStatus;
-  author?: string;
-  recipients?: string[];
-  attachments?: string[];
-  reportUrl?: string;
+export interface ThemeSettings {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  logoUrl?: string;
+  fontFamily?: string;
+  darkMode?: boolean;
 }
 
-/**
- * Delivery options for sending a report
- */
+export interface AIOptions {
+  enabled: boolean;
+  suggestImprovements: boolean;
+  analyzeThreats: boolean;
+  highlightPatterns: boolean;
+}
+
 export interface DeliveryOptions {
-  email?: boolean;
-  sms?: boolean;
-  recipients: string[];
+  email: boolean;
+  sms: boolean;
+  emailRecipients: string[];
+  smsRecipients: string[];
+  scheduleDelivery: boolean;
+  deliveryDate: Date;
+  includeFullData: boolean;
+  includeCharts: boolean;
 }
 
-/**
- * Options for sending a report
- */
-export interface SendReportOptions {
+export interface ReportData {
+  id: string;
   clientId: string;
-  reportUrl: string;
-  deliveryOptions: DeliveryOptions;
-  subject: string;
-  message: string;
+  title: string;
+  summary: string;
+  recipients: string[];
+  status: 'draft' | 'sent' | 'archived';
+  reportUrl?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-/**
- * Response from sending a report
- */
-export interface SendReportResponse {
-  success: boolean;
-  messageId?: string;
-  error?: string;
+// Additional types for PDF generation
+export interface PropertyDataItem {
+  type: string;
+  count: number | string;
+}
+
+export interface PDFOptions {
+  backgroundImage?: string;
+  backgroundTheme?: string;
+  returnBlob?: boolean;
+}
+
+// Types for jsPDF autotable
+export interface HeadStyles {
+  fillColor: string | number[];
+  textColor?: string | number[];
+  fontStyle?: string;
+  fontSize?: number;
+  halign?: 'left' | 'center' | 'right';
+  valign?: 'top' | 'middle' | 'bottom';
+  lineWidth?: number;
+  lineColor?: string | number[];
+}
+
+export interface TableMargins {
+  top: number;
+  right?: number;
+  bottom?: number;
+  left?: number;
+}
+
+export interface AutoTableOptions {
+  startY: number;
+  head: string[][];
+  body: (string | number)[][];
+  theme: string;
+  headStyles: HeadStyles;
+  margin: TableMargins;
+  foot?: string[][];
+  footStyles?: Record<string, unknown>;
+  bodyStyles?: Record<string, unknown>;
+  alternateRowStyles?: Record<string, unknown>;
+  columnStyles?: Record<string, unknown>;
+  didDrawCell?: (data: Record<string, unknown>) => void;
+  didParseCell?: (data: Record<string, unknown>) => void;
+  willDrawCell?: (data: Record<string, unknown>) => void;
+  styles?: {
+    cellPadding?: number;
+    fontSize?: number;
+    font?: string;
+    lineColor?: string | number[];
+    lineWidth?: number;
+    overflow?: 'ellipsize' | 'visible' | 'hidden';
+    fillColor?: string | number[];
+    textColor?: string | number[];
+    halign?: 'left' | 'center' | 'right';
+    valign?: 'top' | 'middle' | 'bottom';
+    fontStyle?: string;
+    minCellHeight?: number;
+    minCellWidth?: number;
+  };
 }

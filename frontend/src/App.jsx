@@ -1,67 +1,150 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import "./App.scss";
+// File: frontend/src/App.jsx
 
-// Context Providers
-import { AuthProvider } from "./context/AuthContext"; // Authentication context provider
-import { ToastProvider } from "@/context/ToastContext"; // Toast context provider
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import './App.scss';
+
+// Pages
+import HomePage from './pages/HomePage.component';
+import LoginPage from './pages/LoginPage.component';
+import DashboardPage from './pages/DashboardPage.component';
+import AdminDashboard from './pages/AdminDashboard.component';
+import DispatchPage from './pages/DispatchPage.component';
+import UnauthorizedPage from './pages/UnauthorizedPage.component';
+import SchedulePage from './pages/SchedulePage.component';
+import TimeClockPage from './pages/TimeClockPage.component';
+import PropertyGuardSearchPage from './pages/PropertyGuardSearchPage';
+import UserManagement from './pages/UserManagement.component';
+import PayrollPage from './pages/PayrollPage.component';
+import DetailedReportPage from './pages/DetailedReportPage';
+import ReportBuilder from './pages/ReportBuilder';
 
 // Components
-import Header from "./components/Header/header.component"; // Header component
-import ErrorBoundary from "./components/ErrorBoundary/error-boundry.component.jsx"; // ErrorBoundary for fallback UI
+import Header from './components/Header/header.component';
+import ProtectedRoute from './components/ProtectedRoutes/protected-routes.component';
+import ErrorBoundary from './components/ErrorBoundary/error-boundry.component';
 
-// Pages and Components
-import HomePage from "./pages/HomePage.component.tsx";
-import UnauthorizedPage from "./pages/UnauthorizedPage.component.tsx";
-import Dashboard from "./pages/DashboardPage.component.tsx";
-import SchedulePage from "./pages/SchedulePage.component.tsx";
-import Dispatch from "./pages/DispatchPage.component.tsx";
-import PropertyGuardSearchPage from "./pages/PropertyGuardSearchPage.tsx";
-import TimeClockPage from "./pages/TimeClockPage.component.tsx";
-import PayrollPage from "./pages/PayrollPage.component.tsx";
-import ReportsPage from "./pages/DetailedReportPage";
-import AdminDashboard from "./pages/AdminDashboard.component.tsx";
-import UserManagement from "./pages/UserManagement.component.tsx";
-import DetailedReportPage from "./pages/DetailedReportPage.tsx";
-
-// Replace LoginPage with UniversalAuthForm
-import UniversalAuthForm from "./components/UniversalAuthForm/UniversalAuthForm.component"; // UniversalAuthForm component
-
-// Other Components
-import ObjectDetection from "./components/ObjectDetection/ObjectDetection.component.jsx"; // Object detection component
+// Context
+import { AuthProvider } from './context/AuthContext';
+import { Toaster } from './components/ui/toaster';
 
 function App() {
   return (
-    <AuthProvider>
-      <ToastProvider> {/* ToastProvider wraps the entire app */}
+    <ErrorBoundary>
+      <AuthProvider>
         <Router>
-          <ErrorBoundary>
-            <div className="App">
-              <Header />
+          <div className="app-container">
+            <Header />
+            <div className="content-container">
               <Routes>
-                {/* Public routes that do not require authentication */}
+                {/* Public routes */}
                 <Route path="/" element={<HomePage />} />
-                <Route path="/login" element={<UniversalAuthForm />} /> {/* Login/Signup Route */}
-                <Route path="/object-detection" element={<ObjectDetection />} />
+                <Route path="/login" element={<LoginPage />} />
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
-                <Route path="/dispatch" element={<Dispatch />} />
-                <Route path="/schedule" element={<SchedulePage />} />
-                <Route path="/property-search" element={<PropertyGuardSearchPage />} />
-                <Route path="/payroll" element={<PayrollPage />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/reports" element={<ReportsPage />} />
-                {/* <Route path="/reports/:id" element={<DetailedReportPage />} /> */}
-                <Route path="/admin-dashboard" element={<AdminDashboard />} />
-                <Route path="/admin/user-management" element={<UserManagement />} />
 
-                {/* Catch-all route for undefined paths */}
-                <Route path="*" element={<UnauthorizedPage />} />
+                {/* Protected routes */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                {/* Reports Routes */}
+                <Route
+                  path="/reports/new"
+                  element={
+                    <ProtectedRoute>
+                      <ReportBuilder />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/reports/:id"
+                  element={
+                    <ProtectedRoute>
+                      <DetailedReportPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/reports"
+                  element={
+                    <ProtectedRoute>
+                      <Navigate to="/reports/new" replace />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                {/* Admin Routes */}
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute requiredRole={['admin_ceo', 'admin_cto', 'admin_cfo', 'super_admin']}>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dispatch"
+                  element={
+                    <ProtectedRoute requiredRole="dispatcher">
+                      <DispatchPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/schedule"
+                  element={
+                    <ProtectedRoute>
+                      <SchedulePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/timeclock"
+                  element={
+                    <ProtectedRoute>
+                      <TimeClockPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/property-guard-search"
+                  element={
+                    <ProtectedRoute requiredRole={['admin_ceo', 'admin_cto', 'admin_cfo', 'super_admin']}>
+                      <PropertyGuardSearchPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/users"
+                  element={
+                    <ProtectedRoute requiredRole={['admin_ceo', 'admin_cto', 'admin_cfo', 'super_admin']}>
+                      <UserManagement />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/payroll"
+                  element={
+                    <ProtectedRoute requiredRole={['admin_ceo', 'admin_cto', 'admin_cfo', 'super_admin']}>
+                      <PayrollPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Redirect unknown routes to home */}
+                <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </div>
-          </ErrorBoundary>
+            <Toaster />
+          </div>
         </Router>
-      </ToastProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

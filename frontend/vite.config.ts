@@ -1,4 +1,4 @@
-// File: frontend/vite.config.ts
+// frontend/vite.config.ts
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -18,7 +18,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    port: 5173, // Changed to match your VITE_APP_PORT in .env
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
@@ -30,12 +30,6 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    // Reduce chunk size warnings
     chunkSizeWarningLimit: 1600,
-  },
-  // Properly handle environment variables
-  define: {
-    // Remove 'process.env' in client code
-    'process.env': {},
   }
 });

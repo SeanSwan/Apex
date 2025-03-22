@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
-import { loadModel, detectObjects } from './objectDetection';
-// import detectionSound from './assets/detection.mp3'; // Make sure this path is correct
+import { loadModel, detectObjects, getDetectionSound } from './objectDetection';
 import moment from 'moment'; // For timestamp formatting
+
+// Get a detection sound
+const detectionSound = getDetectionSound();
 
 const colors = {
   gold: '#FFD700',
@@ -13,7 +15,7 @@ const colors = {
   text: '#FFD700',
 };
 
-// Styled Components (including LoadingSpinner)
+// Styled Components
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -205,8 +207,12 @@ const ObjectDetection = () => {
   };
 
   const playDetectionSound = () => {
-    const audio = new Audio(detectionSound);
-    audio.play();
+    try {
+      const audio = new Audio(detectionSound);
+      audio.play().catch(e => console.error('Error playing detection sound:', e));
+    } catch (err) {
+      console.error('Error creating audio:', err);
+    }
   };
 
   useEffect(() => {
@@ -260,12 +266,12 @@ const ObjectDetection = () => {
 
         // Send detections to backend
         try {
-          await axios.post('http://localhost:5000/api/detections', {
+          await axios.post('/api/detections', {
             objects: predictions,
           });
         } catch (error) {
           console.error('Error sending detections to backend:', error);
-          setError('Failed to send detections to backend');
+          // Don't set error here as it might disrupt the UI constantly
         }
       };
 
@@ -344,7 +350,7 @@ const ObjectDetection = () => {
           {logs.length > 0 && (
             <LogsContainer>
               <h2>Detection Logs</h2>
-              {logs.map((log, index) => (
+              {logs.slice(0, 10).map((log, index) => (
                 <LogItem key={index}>
                   [{log.timestamp}] Detected: {log.object}
                 </LogItem>
@@ -355,7 +361,7 @@ const ObjectDetection = () => {
           {gallery.length > 0 && (
             <GalleryContainer>
               <h2>Screenshot Gallery</h2>
-              {gallery.map((image, index) => (
+              {gallery.slice(0, 5).map((image, index) => (
                 <Screenshot
                   key={index}
                   src={image}

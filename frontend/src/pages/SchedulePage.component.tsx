@@ -32,22 +32,65 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
+// Define types for our data
+interface Region {
+  id: string;
+  name: string;
+}
+
+interface Manager {
+  id: string;
+  name: string;
+  regionId: string;
+}
+
+interface Property {
+  id: string;
+  name: string;
+  regionId: string;
+}
+
+interface Guard {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  avatar: string;
+  regionId: string;
+}
+
+interface Shift {
+  id: number;
+  propertyId: string | null;
+  guardId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  calledOff: boolean;
+}
+
+interface Alert {
+  id: number;
+  message: string;
+  sender: string;
+}
+
 // Mock data for regions, managers, properties, and guards
-const regions = [
+const regions: Region[] = [
   { id: 'r1', name: 'Orange County' },
   { id: 'r2', name: 'Los Angeles' },
   { id: 'r3', name: 'San Diego' },
   { id: 'r4', name: 'Northern California' },
 ]
 
-const managers = [
+const managers: Manager[] = [
   { id: 'm1', name: 'Oliver', regionId: 'r1' },
   { id: 'm2', name: 'Rafael', regionId: 'r2' },
   { id: 'm3', name: 'Paul', regionId: 'r3' },
   { id: 'm4', name: 'Kevin', regionId: 'r4' },
 ]
 
-const properties = [
+const properties: Property[] = [
   { id: 'prop1', name: 'Sonesta Redondo Beach', regionId: 'r1' },
   { id: 'prop2', name: 'Llewellyn', regionId: 'r1' },
   { id: 'prop3', name: 'Tustin Plaza', regionId: 'r1' },
@@ -80,7 +123,7 @@ const properties = [
   { id: 'prop30', name: 'CC Tan', regionId: 'r2' },
 ];
 
-const guards = [
+const guards: Guard[] = [
   {
     id: 'guard1',
     name: 'John Doe',
@@ -116,7 +159,7 @@ const guards = [
 ]
 
 // Mock schedule data
-const initialSchedule = [
+const initialSchedule: Shift[] = [
   {
     id: 1,
     propertyId: 'prop1',
@@ -155,29 +198,29 @@ const initialSchedule = [
   },
 ]
 
-export default function EnhancedMonthlySchedulePage() {
-  const [selectedRegion, setSelectedRegion] = useState(regions[0].id)
-  const [selectedProperty, setSelectedProperty] = useState(null)
-  const [schedule, setSchedule] = useState(initialSchedule)
-  const [alerts, setAlerts] = useState([])
-  const [newAlert, setNewAlert] = useState('')
-  const [currentDate, setCurrentDate] = useState(new Date())
+export default function EnhancedMonthlySchedulePage(): JSX.Element {
+  const [selectedRegion, setSelectedRegion] = useState<string>(regions[0].id)
+  const [selectedProperty, setSelectedProperty] = useState<string | null>(null)
+  const [schedule, setSchedule] = useState<Shift[]>(initialSchedule)
+  const [alerts, setAlerts] = useState<Alert[]>([])
+  const [newAlert, setNewAlert] = useState<string>('')
+  const [currentDate, setCurrentDate] = useState<Date>(new Date())
 
-  const filteredProperties = useMemo(
+  const filteredProperties = useMemo<Property[]>(
     () => properties.filter((prop) => prop.regionId === selectedRegion),
     [selectedRegion]
   )
-  const filteredGuards = useMemo(
+  const filteredGuards = useMemo<Guard[]>(
     () => guards.filter((guard) => guard.regionId === selectedRegion),
     [selectedRegion]
   )
-  const currentManager = useMemo(
+  const currentManager = useMemo<Manager | undefined>(
     () => managers.find((manager) => manager.regionId === selectedRegion),
     [selectedRegion]
   )
 
-  const addShift = (date) => {
-    const newShift = {
+  const addShift = (date: Date): void => {
+    const newShift: Shift = {
       id: Date.now(),
       propertyId: selectedProperty,
       guardId: '',
@@ -189,13 +232,13 @@ export default function EnhancedMonthlySchedulePage() {
     setSchedule((prevSchedule) => [...prevSchedule, newShift])
   }
 
-  const removeShift = (shiftId) => {
+  const removeShift = (shiftId: number): void => {
     setSchedule((prevSchedule) =>
       prevSchedule.filter((shift) => shift.id !== shiftId)
     )
   }
 
-  const updateShift = (shiftId, field, value) => {
+  const updateShift = (shiftId: number, field: keyof Shift, value: string | boolean): void => {
     setSchedule((prevSchedule) =>
       prevSchedule.map((shift) =>
         shift.id === shiftId ? { ...shift, [field]: value } : shift
@@ -203,7 +246,7 @@ export default function EnhancedMonthlySchedulePage() {
     )
   }
 
-  const toggleCallOff = (shiftId) => {
+  const toggleCallOff = (shiftId: number): void => {
     setSchedule((prevSchedule) =>
       prevSchedule.map((shift) =>
         shift.id === shiftId ? { ...shift, calledOff: !shift.calledOff } : shift
@@ -211,15 +254,15 @@ export default function EnhancedMonthlySchedulePage() {
     )
   }
 
-  const handleDragStart = (e, shiftId) => {
-    e.dataTransfer.setData('text/plain', shiftId)
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, shiftId: number): void => {
+    e.dataTransfer.setData('text/plain', shiftId.toString())
   }
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>): void => {
     e.preventDefault()
   }
 
-  const handleDrop = (e, date) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, date: Date): void => {
     e.preventDefault()
     const shiftId = e.dataTransfer.getData('text/plain')
     const shiftIdNumber = parseInt(shiftId)
@@ -232,8 +275,8 @@ export default function EnhancedMonthlySchedulePage() {
     )
   }
 
-  const sendAlert = () => {
-    if (newAlert.trim()) {
+  const sendAlert = (): void => {
+    if (newAlert.trim() && currentManager) {
       setAlerts((prevAlerts) => [
         ...prevAlerts,
         { id: Date.now(), message: newAlert, sender: currentManager.name },
@@ -242,21 +285,21 @@ export default function EnhancedMonthlySchedulePage() {
     }
   }
 
-  const filteredSchedule = useMemo(
+  const filteredSchedule = useMemo<Shift[]>(
     () => schedule.filter((shift) => shift.propertyId === selectedProperty),
     [schedule, selectedProperty]
   )
 
-  const getDaysInMonth = (year, month) => {
+  const getDaysInMonth = (year: number, month: number): number => {
     return new Date(year, month + 1, 0).getDate()
   }
 
-  const getMonthData = () => {
+  const getMonthData = (): (Date | null)[] => {
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
     const daysInMonth = getDaysInMonth(year, month)
     const firstDayOfMonth = new Date(year, month, 1).getDay()
-    const monthData = []
+    const monthData: (Date | null)[] = []
 
     for (let i = 0; i < firstDayOfMonth; i++) {
       monthData.push(null)
@@ -269,11 +312,11 @@ export default function EnhancedMonthlySchedulePage() {
     return monthData
   }
 
-  const monthData = useMemo(getMonthData, [currentDate])
+  const monthData = useMemo<(Date | null)[]>(getMonthData, [currentDate])
 
-  const formatTime = (time) => {
+  const formatTime = (time: string): string => {
     const [hours, minutes] = time.split(':')
-    const date = new Date(2023, 0, 1, hours, minutes)
+    const date = new Date(2023, 0, 1, parseInt(hours), parseInt(minutes))
     return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
   }
 
@@ -287,7 +330,7 @@ export default function EnhancedMonthlySchedulePage() {
         <CardContent className="flex flex-wrap gap-4">
           <Select
             value={selectedRegion}
-            onValueChange={(value) => {
+            onValueChange={(value: string) => {
               setSelectedRegion(value)
               setSelectedProperty(null) // Reset selected property when region changes
             }}
@@ -303,7 +346,10 @@ export default function EnhancedMonthlySchedulePage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={selectedProperty} onValueChange={setSelectedProperty}>
+          <Select 
+            value={selectedProperty || undefined} 
+            onValueChange={(value: string) => setSelectedProperty(value)}
+          >
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Select property" />
             </SelectTrigger>

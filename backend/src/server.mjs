@@ -39,16 +39,31 @@ const startServer = async () => {
   try {
     const app = express();
     const server = http.createServer(app);
-    const port = process.env.BACKEND_PORT || 5000;
+    const port = process.env.PORT || process.env.BACKEND_PORT || 5000;
 
-    // Define the allowed origin
-    const allowedOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
-    console.log(`CORS allowed origin: ${allowedOrigin}`);
+    // Define allowed origins for CORS
+    const allowedOrigins = [
+      'http://localhost:5173',  // Vite default
+      'http://localhost:3000',  // Alternative port (your Vite config)
+      process.env.FRONTEND_ORIGIN, // From .env if specified
+    ].filter(Boolean); // Remove undefined/null values
+    
+    console.log(`CORS allowed origins: ${allowedOrigins.join(', ')}`);
 
-    // Configure CORS options
+    // Configure CORS options to accept multiple origins
     const corsOptions = {
-      origin: allowedOrigin,
+      origin: function(origin, callback) {
+        // Allow requests with no origin (mobile apps, Postman, etc)
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+          callback(null, true);
+        } else {
+          console.log(`CORS blocked origin: ${origin}`);
+          callback(null, false);
+        }
+      },
       credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization']
     };
 
     // Use CORS middleware with the options
@@ -56,6 +71,12 @@ const startServer = async () => {
 
     // Use express.json middleware
     app.use(express.json());
+    
+    // Add request logging middleware
+    app.use((req, res, next) => {
+      console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+      next();
+    });
 
     // Create a new PostgreSQL connection pool with fallbacks
     const pool = new Pool({
@@ -94,11 +115,16 @@ const startServer = async () => {
     }
 
     // Initialize Socket.io before importing routes
-    initializeSocketIO(server, allowedOrigin);
+    initializeSocketIO(server, allowedOrigins);
 
     // Simple health check route
     app.get('/api/health', (req, res) => {
-      res.json({ status: 'Server is running' });
+      res.json({ 
+        status: 'Server is running',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        corsOrigins: allowedOrigins
+      });
     });
 
     // Add JWT validation test route
@@ -165,6 +191,8 @@ const startServer = async () => {
         } catch (detectionError) {
           console.error('Error importing detection routes', detectionError);
         }
+        
+        // Additional protected routes can be imported here
       } else {
         console.error('Auth middleware failed to load');
       }
@@ -172,6 +200,23 @@ const startServer = async () => {
       console.error('Error importing route files', importError);
       // Don't throw here - we'll continue with partial functionality
     }
+
+    // Catch-all 404 handler
+    app.use((req, res) => {
+      res.status(404).json({ 
+        error: 'Not Found',
+        message: `The requested resource at ${req.url} was not found`
+      });
+    });
+
+    // Global error handler
+    app.use((err, req, res, next) => {
+      console.error('Unhandled error:', err);
+      res.status(500).json({
+        error: 'Internal Server Error',
+        message: err.message
+      });
+    });
 
     // Start the server
     server.listen(port, () => {

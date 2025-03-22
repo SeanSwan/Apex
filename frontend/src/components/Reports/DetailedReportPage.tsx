@@ -1,3 +1,5 @@
+// just a heasds up i have two of these pages one in my pages folder and one in my reports folder 
+
 // File: frontend/src/components/Reports/DetailedReportPage.tsx
 /**
  * DetailedReportPage.tsx

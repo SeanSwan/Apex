@@ -32,7 +32,7 @@
       "middleware/**/*",
       "src/**/*",
       "config/**/*"
-    ],
+, "../check-env-location.mjs"    ],
     "exclude": [
       "node_modules",
       "dist"

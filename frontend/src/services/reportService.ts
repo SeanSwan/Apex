@@ -1,7 +1,7 @@
 // File: frontend/src/services/reportService.ts
 
 import axios from 'axios';
-import { ReportData, ClientData, MetricsData } from '../types/reports';
+import { ReportData, ClientData, MetricsData, DeliveryOptions, SendReportResponse } from '../types/reports';
 
 // Using Vite environment variables with fallbacks
 // This provides type safety while still having sensible defaults
@@ -145,18 +145,21 @@ export const uploadReportToCDN = async (pdfBlob: Blob): Promise<string> => {
   }
 };
 
+// Updated type for the sendData parameter
+interface SendReportData {
+  clientId: string;
+  reportUrl: string;
+  deliveryOptions: DeliveryOptions;
+  subject: string;
+  message: string;
+}
+
 /**
  * Send report to recipients
  * @param sendData Data needed to send the report
  * @returns Success status
  */
-export const sendReport = async (sendData: {
-  clientId: string;
-  reportUrl: string;
-  deliveryOptions: any;
-  subject: string;
-  message: string;
-}): Promise<{ success: boolean; messageId?: string }> => {
+export const sendReport = async (sendData: SendReportData): Promise<SendReportResponse> => {
   // In development, simulate a successful send
   if (IS_DEV && !USE_API) {
     await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
