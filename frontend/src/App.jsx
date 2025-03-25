@@ -19,6 +19,16 @@ import PayrollPage from './pages/PayrollPage.component';
 import DetailedReportPage from './pages/DetailedReportPage';
 import ReportBuilder from './pages/ReportBuilder';
 
+// Import placeholder pages for routes that don't have components yet
+// You'll need to create these basic components
+const ObjectDetectionPage = () => <div className="page-container"><h1>Object Detection</h1><p>This feature is coming soon.</p></div>;
+const SystemSettingsPage = () => <div className="page-container"><h1>System Settings</h1><p>System configuration options will be available here.</p></div>;
+const PatrolsPage = () => <div className="page-container"><h1>Patrols</h1><p>Patrol management features are coming soon.</p></div>;
+const PropertyInfoPage = () => <div className="page-container"><h1>Property Information</h1><p>Property details will be displayed here.</p></div>;
+const ClientReportsPage = () => <div className="page-container"><h1>Client Reports</h1><p>Client-specific reports will be available here.</p></div>;
+const CommunicationPage = () => <div className="page-container"><h1>Communication</h1><p>Messaging features will be available here.</p></div>;
+const PropertySearchPage = () => <div className="page-container"><h1>Property Search</h1><p>Search properties and related information.</p></div>;
+
 // Components
 import Header from './components/Header/header.component';
 import ProtectedRoute from './components/ProtectedRoutes/protected-routes.component';
@@ -42,7 +52,10 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-                {/* Protected routes */}
+                {/* Object Detection - Added as public route */}
+                <Route path="/object-detection" element={<ObjectDetectionPage />} />
+
+                {/* User Dashboard */}
                 <Route
                   path="/dashboard"
                   element={
@@ -52,7 +65,72 @@ function App() {
                   }
                 />
                 
-                {/* Reports Routes */}
+                {/* Admin Routes */}
+                <Route
+                  path="/admin-dashboard"
+                  element={
+                    <ProtectedRoute requiredRole={['super_admin', 'admin_ceo', 'admin_cto', 'admin_cfo']}>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                <Route
+                  path="/admin/user-management"
+                  element={
+                    <ProtectedRoute requiredRole={['super_admin', 'admin_ceo', 'admin_cto', 'admin_cfo']}>
+                      <UserManagement />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                <Route
+                  path="/admin/system-settings"
+                  element={
+                    <ProtectedRoute requiredRole={['super_admin', 'admin_ceo', 'admin_cto', 'admin_cfo']}>
+                      <SystemSettingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                {/* Operations Routes */}
+                <Route
+                  path="/dispatch"
+                  element={
+                    <ProtectedRoute requiredRole={['super_admin', 'admin_ceo', 'admin_cto', 'admin_cfo', 'dispatcher', 'manager']}>
+                      <DispatchPage />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                <Route
+                  path="/schedule"
+                  element={
+                    <ProtectedRoute>
+                      <SchedulePage />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                <Route
+                  path="/time-clock"
+                  element={
+                    <ProtectedRoute>
+                      <TimeClockPage />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                <Route
+                  path="/patrols"
+                  element={
+                    <ProtectedRoute>
+                      <PatrolsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                {/* Report Routes */}
                 <Route
                   path="/reports/new"
                   element={
@@ -61,6 +139,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                
                 <Route
                   path="/reports/:id"
                   element={
@@ -69,6 +148,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                
                 <Route
                   path="/reports"
                   element={
@@ -78,60 +158,68 @@ function App() {
                   }
                 />
                 
-                {/* Admin Routes */}
                 <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute requiredRole={['admin_ceo', 'admin_cto', 'admin_cfo', 'super_admin']}>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/dispatch"
-                  element={
-                    <ProtectedRoute requiredRole="dispatcher">
-                      <DispatchPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/schedule"
+                  path="/daily-reports"
                   element={
                     <ProtectedRoute>
-                      <SchedulePage />
+                      <Navigate to="/reports" replace />
                     </ProtectedRoute>
                   }
                 />
+                
                 <Route
-                  path="/timeclock"
+                  path="/client-reports"
                   element={
                     <ProtectedRoute>
-                      <TimeClockPage />
+                      <ClientReportsPage />
                     </ProtectedRoute>
                   }
                 />
+                
+                {/* Property Management */}
                 <Route
                   path="/property-guard-search"
                   element={
-                    <ProtectedRoute requiredRole={['admin_ceo', 'admin_cto', 'admin_cfo', 'super_admin']}>
+                    <ProtectedRoute requiredRole={['super_admin', 'admin_ceo', 'admin_cto', 'admin_cfo', 'manager']}>
                       <PropertyGuardSearchPage />
                     </ProtectedRoute>
                   }
                 />
+                
                 <Route
-                  path="/users"
+                  path="/property-search"
                   element={
-                    <ProtectedRoute requiredRole={['admin_ceo', 'admin_cto', 'admin_cfo', 'super_admin']}>
-                      <UserManagement />
+                    <ProtectedRoute>
+                      <PropertySearchPage />
                     </ProtectedRoute>
                   }
                 />
+                
+                <Route
+                  path="/property-info"
+                  element={
+                    <ProtectedRoute>
+                      <PropertyInfoPage />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                {/* Finance Routes */}
                 <Route
                   path="/payroll"
                   element={
-                    <ProtectedRoute requiredRole={['admin_ceo', 'admin_cto', 'admin_cfo', 'super_admin']}>
+                    <ProtectedRoute requiredRole={['super_admin', 'admin_ceo', 'admin_cto', 'admin_cfo', 'payroll']}>
                       <PayrollPage />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                {/* Communication */}
+                <Route
+                  path="/communication"
+                  element={
+                    <ProtectedRoute>
+                      <CommunicationPage />
                     </ProtectedRoute>
                   }
                 />

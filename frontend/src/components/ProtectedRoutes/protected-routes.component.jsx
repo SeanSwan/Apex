@@ -1,8 +1,8 @@
 // File: frontend/src/components/ProtectedRoutes/protected-routes.component.jsx
-
 import React, { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import config from '../../../config';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
   const { user, loading } = useContext(AuthContext);
@@ -14,6 +14,11 @@ const ProtectedRoute = ({ children, requiredRole }) => {
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
+  }
+
+  // If protection is disabled via config, just render the component
+  if (!config.useProtectedRoutes) {
+    return children;
   }
 
   // If no user is logged in, redirect to login
