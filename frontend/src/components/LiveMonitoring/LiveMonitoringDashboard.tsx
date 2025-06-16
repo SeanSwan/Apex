@@ -33,6 +33,15 @@ import { io, Socket } from 'socket.io-client';
 import { useToast } from '../../hooks/use-toast';
 import { Button } from '../ui/button';
 
+// Import enhanced AI dispatch system
+import { useEnhancedAIDispatchSystem } from './EnhancedAIDispatchSystem';
+
+// Add missing state setters for enhanced system integration
+interface AlertState {
+  setAlerts: React.Dispatch<React.SetStateAction<AIAlert[]>>;
+  setGuards: React.Dispatch<React.SetStateAction<GuardStatus[]>>;
+}
+
 // Types for AI monitoring
 interface AIDetection {
   detection_id: string;
@@ -569,6 +578,15 @@ const LiveMonitoringDashboard: React.FC = () => {
   const { toast } = useToast();
   const socketRef = useRef<Socket | null>(null);
   
+  // Enhanced AI dispatch system
+  const {
+    handleEnhancedAcknowledgeAlert,
+    handleEnhancedDispatchGuard,
+    handleEnhancedDigitalZoom,
+    handleEnhancedAIVoiceResponse,
+    processingStates
+  } = useEnhancedAIDispatchSystem();
+  
   // State management
   const [cameraStreams, setCameraStreams] = useState<CameraStream[]>([]);
   const [alerts, setAlerts] = useState<AIAlert[]>([]);
@@ -671,22 +689,26 @@ const LiveMonitoringDashboard: React.FC = () => {
     ]);
   }, []);
 
-  // WebSocket connection
+  // WebSocket connection with enhanced AI dispatch integration
   useEffect(() => {
     const connectToAIServer = () => {
       socketRef.current = io('http://localhost:5001');
       
+      // Make socket available globally for enhanced dispatch system
+      (window as any).socketConnection = socketRef.current;
+      
       socketRef.current.on('connect', () => {
         setConnectionStatus('connected');
         toast({
-          title: "AI System Connected",
-          description: "Live monitoring is now active.",
+          title: "🛡️ AI System Connected",
+          description: "Enhanced live monitoring with AI dispatch is now active.",
           variant: "default"
         });
       });
 
       socketRef.current.on('disconnect', () => {
         setConnectionStatus('disconnected');
+        (window as any).socketConnection = null;
       });
 
       socketRef.current.on('ai_detection', (detection: AIDetection) => {
@@ -721,76 +743,84 @@ const LiveMonitoringDashboard: React.FC = () => {
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
+        (window as any).socketConnection = null;
       }
     };
   }, [toast]);
 
-  // Event handlers
-  const handleAcknowledgeAlert = useCallback((alertId: string) => {
-    setAlerts(prev => prev.map(alert => 
-      alert.alert_id === alertId 
-        ? { ...alert, status: 'acknowledged' }
-        : alert
-    ));
+  // Event handlers - Enhanced versions with full functionality
+  const handleAcknowledgeAlert = useCallback(async (alertId: string) => {
+    const operatorId = localStorage.getItem('user_id') || 'operator_001';
+    const result = await handleEnhancedAcknowledgeAlert(alertId, operatorId);
     
-    toast({
-      title: "Alert Acknowledged",
-      description: "Alert has been acknowledged by operator.",
-      variant: "default"
-    });
-  }, [toast]);
-
-  const handleDispatchGuard = useCallback((alertId: string, guardId: string) => {
-    setAlerts(prev => prev.map(alert => 
-      alert.alert_id === alertId 
-        ? { ...alert, status: 'dispatched', assigned_guard: guardId }
-        : alert
-    ));
-    
-    setGuards(prev => prev.map(guard => 
-      guard.guard_id === guardId 
-        ? { ...guard, status: 'responding', active_alerts: guard.active_alerts + 1 }
-        : guard
-    ));
-    
-    toast({
-      title: "Guard Dispatched",
-      description: "Guard has been dispatched to investigate alert.",
-      variant: "default"
-    });
-  }, [toast]);
-
-  const handleDigitalZoom = useCallback((cameraId: string, detection: AIDetection) => {
-    // Simulate digital zoom request
-    if (socketRef.current) {
-      socketRef.current.emit('request_digital_zoom', {
-        camera_id: cameraId,
-        bounding_box: detection.bounding_box
-      });
+    if (result.success) {
+      // Update local state on successful acknowledgment
+      setAlerts(prev => prev.map(alert => 
+        alert.alert_id === alertId 
+          ? { 
+              ...alert, 
+              status: 'acknowledged',
+              acknowledged_by: operatorId,
+              acknowledged_at: new Date().toISOString()
+            }
+          : alert
+      ));
     }
-    
-    toast({
-      title: "Digital Zoom Activated",
-      description: "Enhanced view of detected object requested.",
-      variant: "default"
-    });
-  }, [toast]);
+  }, [handleEnhancedAcknowledgeAlert]);
 
-  const handleAIVoiceResponse = useCallback((cameraId: string, message: string) => {
-    // Simulate AI voice response
-    if (socketRef.current) {
-      socketRef.current.emit('trigger_voice_response', {
-        camera_id: cameraId,
-        message: message
+  const handleDispatchGuard = useCallback(async (alertId: string, guardId?: string) => {
+    const targetGuardId = guardId || guards.find(g => g.status === 'on_duty')?.guard_id;
+    if (!targetGuardId) {
+      toast({
+        title: "❌ No Available Guards",
+        description: "No guards are currently available for dispatch.",
+        variant: "destructive"
       });
+      return;
     }
-    
-    toast({
-      title: "AI Voice Response Sent",
-      description: `Sent: "${message}"`,
-      variant: "default"
+
+    const result = await handleEnhancedDispatchGuard(alertId, targetGuardId, {
+      priority: alerts.find(a => a.alert_id === alertId)?.priority === 'critical' ? 'emergency' : 'normal',
+      route_optimization: true,
+      backup_required: alerts.find(a => a.alert_id === alertId)?.priority === 'critical'
     });
-  }, [toast]);
+    
+    if (result.success) {
+      // Update local state on successful dispatch
+      setAlerts(prev => prev.map(alert => 
+        alert.alert_id === alertId 
+          ? { ...alert, status: 'dispatched', assigned_guard: targetGuardId }
+          : alert
+      ));
+      
+      setGuards(prev => prev.map(guard => 
+        guard.guard_id === targetGuardId 
+          ? { ...guard, status: 'responding', active_alerts: guard.active_alerts + 1 }
+          : guard
+      ));
+    }
+  }, [handleEnhancedDispatchGuard, guards, alerts, toast]);
+
+  const handleDigitalZoom = useCallback(async (cameraId: string, detection?: AIDetection) => {
+    if (!detection) {
+      toast({
+        title: "❌ Zoom Not Available",
+        description: "No detection data available for zoom operation.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    await handleEnhancedDigitalZoom(cameraId, detection, 3); // 3x zoom level
+  }, [handleEnhancedDigitalZoom, toast]);
+
+  const handleAIVoiceResponse = useCallback(async (cameraId: string, message: string) => {
+    await handleEnhancedAIVoiceResponse(cameraId, message, {
+      voice_type: 'warning',
+      repeat_count: 2,
+      volume_level: 85
+    });
+  }, [handleEnhancedAIVoiceResponse]);
 
   // Memoized computed values
   const onlineStreams = useMemo(() => 
@@ -866,16 +896,28 @@ const LiveMonitoringDashboard: React.FC = () => {
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => handleDigitalZoom(stream.camera_id, alerts[0]?.detection_details)}
+                          onClick={() => handleDigitalZoom(stream.camera_id, alerts.find(a => a.camera_id === stream.camera_id)?.detection_details)}
+                          disabled={processingStates[`zoom_${stream.camera_id}`]}
+                          title="AI-Enhanced Digital Zoom"
                         >
-                          <Maximize2 size={14} />
+                          {processingStates[`zoom_${stream.camera_id}`] ? (
+                            <div className="animate-spin w-3 h-3 border border-cyan-500 rounded-full border-t-transparent" />
+                          ) : (
+                            <Maximize2 size={14} />
+                          )}
                         </Button>
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => handleAIVoiceResponse(stream.camera_id, "This area is under surveillance. Please identify yourself.")}
+                          onClick={() => handleAIVoiceResponse(stream.camera_id, "🚨 SECURITY ALERT: This area is under surveillance. Please identify yourself immediately or leave the premises.")}
+                          disabled={processingStates[`voice_${stream.camera_id}`]}
+                          title="AI Voice Warning System"
                         >
-                          <Volume2 size={14} />
+                          {processingStates[`voice_${stream.camera_id}`] ? (
+                            <div className="animate-spin w-3 h-3 border border-cyan-500 rounded-full border-t-transparent" />
+                          ) : (
+                            <Volume2 size={14} />
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -965,22 +1007,40 @@ const LiveMonitoringDashboard: React.FC = () => {
                           <ActionButton 
                             variant="primary"
                             onClick={() => handleAcknowledgeAlert(alert.alert_id)}
+                            disabled={processingStates[alert.alert_id]}
+                            title="Acknowledge with full database sync"
                           >
-                            <Eye size={12} />
+                            {processingStates[alert.alert_id] ? (
+                              <div className="animate-spin w-3 h-3 border border-black rounded-full border-t-transparent" />
+                            ) : (
+                              <Eye size={12} />
+                            )}
                             Acknowledge
                           </ActionButton>
                           <ActionButton 
                             variant="secondary"
-                            onClick={() => handleDispatchGuard(alert.alert_id, guards[0]?.guard_id)}
+                            onClick={() => handleDispatchGuard(alert.alert_id)}
+                            disabled={processingStates[`dispatch_${alert.alert_id}`]}
+                            title="Enhanced dispatch with GPS coordination"
                           >
-                            <Navigation size={12} />
+                            {processingStates[`dispatch_${alert.alert_id}`] ? (
+                              <div className="animate-spin w-3 h-3 border border-white rounded-full border-t-transparent" />
+                            ) : (
+                              <Navigation size={12} />
+                            )}
                             Dispatch
                           </ActionButton>
                           <ActionButton 
                             variant="secondary"
                             onClick={() => handleDigitalZoom(alert.camera_id, alert.detection_details)}
+                            disabled={processingStates[`zoom_${alert.camera_id}`]}
+                            title="AI-guided camera zoom"
                           >
-                            <Target size={12} />
+                            {processingStates[`zoom_${alert.camera_id}`] ? (
+                              <div className="animate-spin w-3 h-3 border border-white rounded-full border-t-transparent" />
+                            ) : (
+                              <Target size={12} />
+                            )}
                             Zoom
                           </ActionButton>
                         </>
@@ -989,9 +1049,15 @@ const LiveMonitoringDashboard: React.FC = () => {
                       {alert.status === 'acknowledged' && (
                         <ActionButton 
                           variant="secondary"
-                          onClick={() => handleDispatchGuard(alert.alert_id, guards[0]?.guard_id)}
+                          onClick={() => handleDispatchGuard(alert.alert_id)}
+                          disabled={processingStates[`dispatch_${alert.alert_id}`]}
+                          title="Enhanced guard dispatch system"
                         >
-                          <Radio size={12} />
+                          {processingStates[`dispatch_${alert.alert_id}`] ? (
+                            <div className="animate-spin w-3 h-3 border border-white rounded-full border-t-transparent" />
+                          ) : (
+                            <Radio size={12} />
+                          )}
                           Dispatch Guard
                         </ActionButton>
                       )}

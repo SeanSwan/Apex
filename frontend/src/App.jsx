@@ -1,6 +1,6 @@
 // APEX AI SECURITY PLATFORM - MAIN APPLICATION ROUTER
 // Master Prompt v29.1-APEX Implementation
-// Updated App.jsx with Full Platform Architecture
+// CLEAN JAVASCRIPT VERSION - NO TYPESCRIPT
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -8,13 +8,13 @@ import './App.scss';
 
 // Enhanced Report Builder (Phase 1 - COMPLETED)
 import EnhancedReportBuilder from './components/Reports/EnhancedReportBuilder';
-import ReportBuilder from './pages/ReportBuilder'; // Legacy fallback
+import ReportBuilder from './pages/ReportBuilder';
 import DetailedReportPage from './pages/DetailedReportPage';
 
 // AI Infrastructure & Live Monitoring (Phase 2A)
 import LiveMonitoringDashboard from './components/LiveMonitoring/LiveMonitoringDashboard';
 
-// Guard Operations & Dispatch (Phase 2B)
+// Guard Operations & Dispatch (Phase 2B)  
 import GuardOperationsDashboard from './components/GuardOperations/GuardOperationsDashboard';
 
 // Company Admin Dashboard (Phase 2B)
@@ -34,7 +34,7 @@ import { AuthProvider } from './context/AuthContext';
 import { Toaster } from './components/ui/toaster';
 
 // Platform Landing Page Component
-const PlatformLanding: React.FC = () => {
+function PlatformLanding() {
   return (
     <div style={{
       minHeight: '100vh',
@@ -47,7 +47,7 @@ const PlatformLanding: React.FC = () => {
       padding: '2rem',
       fontFamily: 'Inter, sans-serif'
     }}>
-      {/* Header */}
+      {/* Header Section */}
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
         <div style={{ 
           display: 'flex', 
@@ -141,10 +141,10 @@ const PlatformLanding: React.FC = () => {
         {/* Guard Mobile App */}
         <ModuleCard
           title="📱 Guard Mobile App"
-          description="Mobile interface for standing guards with AI alerts and incident reporting"
+          description="Mobile app for standing guards with AI alerts and incident reporting"
           features={["Time clock", "AI alert reception", "Incident reporting", "Dispatch communication"]}
           href="/guard-mobile"
-          status="Phase 2C - Mobile Interface"
+          status="Phase 2C - Mobile App"
           priority="medium"
         />
 
@@ -171,27 +171,13 @@ const PlatformLanding: React.FC = () => {
       </div>
     </div>
   );
-};
-
-// Module Card Component
-interface ModuleCardProps {
-  title: string;
-  description: string;
-  features: string[];
-  href: string;
-  status: string;
-  priority: 'ready' | 'high' | 'medium' | 'future';
 }
 
-const ModuleCard: React.FC<ModuleCardProps> = ({ 
-  title, 
-  description, 
-  features, 
-  href, 
-  status, 
-  priority 
-}) => {
-  const getPriorityColor = () => {
+// Module Card Component  
+function ModuleCard(props) {
+  const { title, description, features, href, status, priority } = props;
+  
+  function getPriorityColor() {
     switch(priority) {
       case 'ready': return '#22C55E';
       case 'high': return '#EF4444';
@@ -199,9 +185,33 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
       case 'future': return '#6B7280';
       default: return '#3B82F6';
     }
-  };
+  }
 
   const isClickable = priority !== 'future';
+
+  function handleClick() {
+    if (isClickable) {
+      window.location.href = href;
+    }
+  }
+
+  function handleMouseEnter(e) {
+    if (isClickable) {
+      e.currentTarget.style.transform = 'translateY(-4px)';
+      e.currentTarget.style.boxShadow = `0 8px 25px rgba(${
+        priority === 'ready' ? '34, 197, 94' :
+        priority === 'high' ? '239, 68, 68' :
+        priority === 'medium' ? '245, 158, 11' : '59, 130, 246'
+      }, 0.3)`;
+    }
+  }
+
+  function handleMouseLeave(e) {
+    if (isClickable) {
+      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.boxShadow = 'none';
+    }
+  }
 
   return (
     <div
@@ -214,27 +224,9 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
         transition: 'all 0.3s ease',
         opacity: priority === 'future' ? 0.7 : 1
       }}
-      onClick={() => {
-        if (isClickable) {
-          window.location.href = href;
-        }
-      }}
-      onMouseEnter={(e) => {
-        if (isClickable) {
-          e.currentTarget.style.transform = 'translateY(-4px)';
-          e.currentTarget.style.boxShadow = `0 8px 25px rgba(${
-            priority === 'ready' ? '34, 197, 94' :
-            priority === 'high' ? '239, 68, 68' :
-            priority === 'medium' ? '245, 158, 11' : '59, 130, 246'
-          }, 0.3)`;
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (isClickable) {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = 'none';
-        }
-      }}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <div style={{ marginBottom: '1rem' }}>
         <h3 style={{ 
@@ -301,7 +293,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
       )}
     </div>
   );
-};
+}
 
 function App() {
   return (
@@ -326,7 +318,7 @@ function App() {
                 <Route path="/admin" element={<CompanyAdminDashboard />} />
                 <Route path="/admin/*" element={<CompanyAdminDashboard />} />
                 
-                {/* Phase 2C: Guard Mobile App Interface */}
+                {/* Phase 2C: Guard Mobile App */}
                 <Route path="/guard-mobile" element={<GuardMobileApp />} />
                 
                 {/* === REPORT BUILDER ROUTES (Phase 1 - COMPLETED) === */}
@@ -369,7 +361,7 @@ function App() {
                     <div>
                       <h1 style={{ color: '#FFD700', marginBottom: '1rem' }}>🤖 AI Training Console</h1>
                       <p style={{ color: '#B0B0B0', marginBottom: '2rem' }}>
-                        Advanced AI model training and system management interface
+                        Advanced AI model training and system management
                       </p>
                       <p style={{ color: '#666' }}>
                         This module will be available in Phase 3 - Advanced AI Features

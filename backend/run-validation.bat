@@ -1,0 +1,1 @@
+cd C:\Users\ogpsw\Desktop\defense\backend && node validate-security-setup.mjs

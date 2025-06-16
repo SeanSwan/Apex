@@ -1,29 +1,17 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "description": "Backend API for security management system",
+  "name": "apex-ai-security-platform-backend", 
+  "version": "2.0.0",
+  "description": "APEX AI Security Platform - Production Backend with External Services",
   "main": "src/server.mjs",
   "type": "module",
   "scripts": {
     "start": "node src/server.mjs",
-    "build": "tsc",
-    "dev:ts": "node --loader ts-node/esm src/server.ts",
-    "migrate": "sequelize-cli db:migrate",
-    "seed": "sequelize-cli db:seed:all",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "dev": "nodemon src/server.mjs",
+    "test": "node test-apex-ai-apis.mjs",
+    "test:security": "node test-security-enhancements.mjs",
+    "validate": "node validate-security-setup.mjs",
+    "setup": "node setup-external-services.mjs"
   },
-  "keywords": [
-    "express",
-    "api",
-    "typescript",
-    "security"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@sendgrid/mail": "^8.1.4",
     "apn": "^2.2.0",
@@ -36,7 +24,7 @@
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
     "express-validator": "^7.2.1",
-    "firebase-admin": "^13.4.0",
+    "firebase-admin": "^12.7.0",
     "fs-extra": "^11.3.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
