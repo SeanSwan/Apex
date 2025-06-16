@@ -1,3 +1,4 @@
+// File: defense/backend/migrations/20250310000001-create-users.cjs
 'use strict';
 
 /** @type {import('sequelize-cli').Migration} */
@@ -8,12 +9,12 @@ module.exports = {
       "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public' AND tablename = 'users'",
       { type: queryInterface.sequelize.QueryTypes.SELECT }
     );
-    
+
     // Only create table if it doesn't exist
     if (tables.length === 0) {
       await queryInterface.createTable('users', {
         id: {
-          type: Sequelize.INTEGER,
+          type: Sequelize.INTEGER, // Assuming INTEGER PK for users based on this file
           autoIncrement: true,
           primaryKey: true
         },
@@ -172,15 +173,15 @@ module.exports = {
     const createIndexIfNotExists = async (tableName, columns, options = {}) => {
       try {
         // Create an index name that matches what Sequelize would generate
-        const indexName = options.name || 
+        const indexName = options.name ||
           `${tableName}_${Array.isArray(columns) ? columns.join('_') : columns}${options.unique ? '_unique' : ''}`;
-        
+
         // Check if index already exists
         const indexes = await queryInterface.sequelize.query(
           `SELECT indexname FROM pg_indexes WHERE indexname = '${indexName}' AND tablename = '${tableName}'`,
           { type: queryInterface.sequelize.QueryTypes.SELECT }
         );
-        
+
         if (indexes.length === 0) {
           await queryInterface.addIndex(tableName, columns, options);
           console.log(`Created index ${indexName}`);
@@ -189,13 +190,15 @@ module.exports = {
         }
       } catch (error) {
         console.error(`Error with index on ${columns}:`, error.message);
+        // Decide if you want to throw the error or just log it
+        // throw error;
       }
     };
 
     // Add each index with a safety check
-    await createIndexIfNotExists('users', ['username'], { name: 'users_username', unique: true });
-    await createIndexIfNotExists('users', ['email'], { name: 'users_email', unique: true });
-    await createIndexIfNotExists('users', ['employee_id'], { name: 'users_employee_id', unique: true });
+    await createIndexIfNotExists('users', ['username'], { name: 'users_username_unique', unique: true }); // Explicitly named unique index
+    await createIndexIfNotExists('users', ['email'], { name: 'users_email_unique', unique: true }); // Explicitly named unique index
+    await createIndexIfNotExists('users', ['employee_id'], { name: 'users_employee_id_unique', unique: true }); // Explicitly named unique index
     await createIndexIfNotExists('users', ['role'], { name: 'users_role' });
     await createIndexIfNotExists('users', ['status'], { name: 'users_status' });
     await createIndexIfNotExists('users', ['is_active'], { name: 'users_is_active' });
@@ -204,6 +207,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('users');
+    // Modified line: Added { cascade: true }
+    await queryInterface.dropTable('users', { cascade: true });
   }
 };

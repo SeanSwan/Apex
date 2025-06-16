@@ -1,13 +1,13 @@
 {
-    "compilerOptions": {
-      "target": "ES2020",
-      "module": "ESNext",
-      "moduleResolution": "node",
-      "esModuleInterop": true,
-      "forceConsistentCasingInFileNames": true,
-      "strict": true,
-      "skipLibCheck": true
-    },
-    "include": [],
-    "files": ["package.json"]
-  }
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["frontend/src/**/*.ts", "frontend/src/**/*.tsx"],
+  "files": ["package.json"]
+}

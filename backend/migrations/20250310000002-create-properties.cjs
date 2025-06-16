@@ -1,3 +1,4 @@
+// File: defense/backend/migrations/20250310000002-create-properties.cjs
 'use strict';
 
 /** @type {import('sequelize-cli').Migration} */
@@ -8,7 +9,7 @@ module.exports = {
       "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public' AND tablename = 'properties'",
       { type: queryInterface.sequelize.QueryTypes.SELECT }
     );
-    
+
     // Only create table if it doesn't exist
     if (tables.length === 0) {
       await queryInterface.createTable('properties', {
@@ -61,9 +62,9 @@ module.exports = {
         },
         // Client information
         client_id: {
-          type: Sequelize.INTEGER,
+          type: Sequelize.INTEGER, // Verify this matches the users table PK type
           references: {
-            model: 'users',
+            model: 'users', // Ensure 'users' table exists before this migration runs
             key: 'id'
           },
           onUpdate: 'CASCADE',
@@ -195,7 +196,7 @@ module.exports = {
         },
         created_at: {
           type: Sequelize.DATE,
-          defaultValue: Sequelize.NOW
+          defaultValue: Sequelize.NOW // Sequelize.NOW is generally preferred over literal
         },
         updated_at: {
           type: Sequelize.DATE,
@@ -210,15 +211,15 @@ module.exports = {
     const createIndexIfNotExists = async (tableName, columns, options = {}) => {
       try {
         // Create an index name that matches what Sequelize would generate
-        const indexName = options.name || 
+        const indexName = options.name ||
           `${tableName}_${Array.isArray(columns) ? columns.join('_') : columns}${options.unique ? '_unique' : ''}`;
-        
+
         // Check if index already exists
         const indexes = await queryInterface.sequelize.query(
           `SELECT indexname FROM pg_indexes WHERE indexname = '${indexName}' AND tablename = '${tableName}'`,
           { type: queryInterface.sequelize.QueryTypes.SELECT }
         );
-        
+
         if (indexes.length === 0) {
           await queryInterface.addIndex(tableName, columns, options);
           console.log(`Created index ${indexName}`);
@@ -227,11 +228,13 @@ module.exports = {
         }
       } catch (error) {
         console.error(`Error with index on ${columns}:`, error.message);
+        // Decide if you want to throw the error or just log it
+        // throw error;
       }
     };
 
     // Add each index with a safety check
-    await createIndexIfNotExists('properties', ['code'], { name: 'properties_code', unique: true });
+    await createIndexIfNotExists('properties', ['code'], { name: 'properties_code_unique', unique: true }); // Explicitly named unique index
     await createIndexIfNotExists('properties', ['client_id'], { name: 'properties_client_id' });
     await createIndexIfNotExists('properties', ['status'], { name: 'properties_status' });
     await createIndexIfNotExists('properties', ['type'], { name: 'properties_type' });
@@ -241,6 +244,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('properties');
+    // Modified line: Added { cascade: true }
+    await queryInterface.dropTable('properties', { cascade: true });
   }
 };

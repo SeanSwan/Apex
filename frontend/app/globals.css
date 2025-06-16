@@ -1,69 +1,152 @@
+/* Tailwind Directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Base Layer Customizations */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 20 14.3% 4.1%;
-    --card: 0 0% 100%;
-    --card-foreground: 20 14.3% 4.1%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 20 14.3% 4.1%;
-    --primary: 24 9.8% 10%;
-    --primary-foreground: 60 9.1% 97.8%;
-    --secondary: 60 4.8% 95.9%;
-    --secondary-foreground: 24 9.8% 10%;
-    --muted: 60 4.8% 95.9%;
-    --muted-foreground: 25 5.3% 44.7%;
-    --accent: 60 4.8% 95.9%;
-    --accent-foreground: 24 9.8% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 60 9.1% 97.8%;
-    --border: 20 5.9% 90%;
-    --input: 20 5.9% 90%;
-    --ring: 20 14.3% 4.1%;
-    --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    /* --- Dark Marble/Gold Theme --- */
+    /* Base Colors (HSL format for Shadcn compatibility) */
+    --background: 220 10% 12%; /* Dark cool gray */
+    --foreground: 210 20% 90%; /* Light gray/off-white */
+
+    /* Card/Surface Colors */
+    --card: 220 10% 17%; /* Slightly lighter dark gray for cards */
+    --card-foreground: 210 20% 90%; /* Text on cards */
+
+    /* Popover Colors */
+    --popover: 220 10% 15%; /* Darker popover background */
+    --popover-foreground: 210 20% 90%; /* Text on popovers */
+
+    /* Primary (Using Gold as requested) */
+    --primary: 51 100% 50%; /* Gold: #FFD700 */
+    --primary-foreground: 220 15% 10%; /* Dark text for contrast on gold */
+
+    /* Secondary */
+    --secondary: 215 10% 25%; /* Mid-dark gray */
+    --secondary-foreground: 210 20% 85%; /* Lighter text on secondary */
+
+    /* Muted */
+    --muted: 215 10% 22%; /* Slightly darker gray */
+    --muted-foreground: 210 15% 60%; /* Dimmed text */
+
+    /* Accent (Also Gold, can be different if needed) */
+    --accent: 51 100% 50%; /* Gold: #FFD700 */
+    --accent-foreground: 220 15% 10%; /* Dark text for contrast on gold */
+
+    /* Destructive */
+    --destructive: 0 65% 45%; /* Darker, less saturated red */
+    --destructive-foreground: 0 0% 95%; /* Light text on destructive */
+
+    /* Border & Input */
+    --border: 215 10% 25%; /* Border matches secondary bg */
+    --input: 215 10% 20%; /* Slightly darker input background */
+    --ring: 51 95% 55%; /* Gold for focus rings, slightly brighter */
+
+    /* Radius (Keep existing setup) */
+    --radius: 0.5rem; /* Or your preferred default radius */
+
+    /* --- Font Setup --- */
+    /* Consider adding your preferred professional font here if not already in tailwind.config.js */
+    /* Example: --font-sans: 'Inter', sans-serif; */
   }
 
   .dark {
-    --background: 20 14.3% 4.1%;
-    --foreground: 60 9.1% 97.8%;
-    --card: 20 14.3% 4.1%;
-    --card-foreground: 60 9.1% 97.8%;
-    --popover: 20 14.3% 4.1%;
-    --popover-foreground: 60 9.1% 97.8%;
-    --primary: 60 9.1% 97.8%;
-    --primary-foreground: 24 9.8% 10%;
-    --secondary: 12 6.5% 15.1%;
-    --secondary-foreground: 60 9.1% 97.8%;
-    --muted: 12 6.5% 15.1%;
-    --muted-foreground: 24 5.4% 63.9%;
-    --accent: 12 6.5% 15.1%;
-    --accent-foreground: 60 9.1% 97.8%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 60 9.1% 97.8%;
-    --border: 12 6.5% 15.1%;
-    --input: 12 6.5% 15.1%;
-    --ring: 24 5.7% 82.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    /* If you plan a light/dark mode toggle, define dark mode overrides here */
+    /* For now, we are setting the dark theme directly in :root */
+    /* Example:
+    --background: 220 10% 12%;
+    --foreground: 210 20% 90%;
+    ... etc ...
+    */
+  }
+
+  /* Apply base styles */
+  body {
+    @apply bg-background text-foreground;
+    min-height: 100vh;
+    font-feature-settings: "rlig" 1, "calt" 1; /* Enable common ligatures */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Marble Background Texture */
+    background-image: linear-gradient(rgba(18, 20, 25, 0.85), rgba(18, 20, 25, 0.92)), url('/src/assets/marble-texture.jpg'); /* Adjust rgba darkness/color and path */
+    background-size: cover; /* Or 'auto' if tiling is desired */
+    background-position: center center;
+    background-repeat: no-repeat; /* Or 'repeat' if tiling */
+    background-attachment: fixed; /* Keep background fixed during scroll */
+  }
+
+  /* Basic Resets (Keep your existing resets) */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+  }
+
+  body, button, input, textarea, select {
+    font-family: var(--font-sans, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif); /* Use CSS var if defined */
+    font-size: 16px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-size: inherit;
+    font-weight: inherit; /* Let Tailwind handle weights */
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  ul, ol {
+    list-style: none;
+  }
+
+  img, svg, video, canvas, audio, iframe, embed, object {
+      display: block; /* Remove bottom space */
+      vertical-align: middle;
+  }
+
+  img, video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  /* Adjust root padding if header is fixed */
+  #root {
+    /* padding-top: 60px; /* Only if your header is truly fixed and overlapping */
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+/* Components Layer (Optional: Global component style overrides) */
+@layer components {
+  /* Example: Style all buttons globally if needed */
+  /* .button-global { @apply py-2 px-4 bg-primary text-primary-foreground rounded-md; } */
+}
+
+/* Utilities Layer (Tailwind utilities are automatically included) */
+@layer utilities {
+  /* Add any custom utility classes here */
+  /* .text-balance { text-wrap: balance; } */
 }

@@ -1,116 +1,210 @@
 // File: frontend/src/components/Reports/PropertyInfoPanel.tsx
-
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import styled from 'styled-components';
 import { format } from 'date-fns';
 import { ClientData, MetricsData } from '../../types/reports';
+import { useReportData, updateMetrics } from '../../context/ReportDataContext';
 
-// Styled components
+// --- THEME ASSET ---
+import marbleTexture from '../../assets/marble-texture.png';
+
+// =============== STYLED COMPONENTS (Theme & Color Adjusted) ===============
 const Section = styled.div`
   margin-bottom: 2rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  color: #faf0e6;
+  background-image: url(${marbleTexture});
+  background-size: cover;
+  background-position: center;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 8px;
+    z-index: 1;
+  }
+
+  & > * {
+    position: relative;
+    z-index: 2;
+  }
+`;
+
+const SectionHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 238, 170, 0.2);
+  padding-bottom: 0.75rem;
 `;
 
 const SectionTitle = styled.h3`
   font-size: 1.25rem;
-  margin-bottom: 1rem;
-  color: #333;
+  color: #eee8aa;
   font-weight: 600;
-  border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 0.5rem;
+  margin: 0;
+`;
+
+const EditButton = styled.button`
+  background: none;
+  border: 1px solid rgba(255, 238, 170, 0.5);
+  cursor: pointer;
+  color: #eee8aa;
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    background-color: rgba(238, 232, 170, 0.15);
+    color: #fffacd;
+  }
+`;
+
+const SaveCancelContainer = styled.div`
+  display: flex;
+  gap: 0.5rem;
+`;
+
+const ActionButton = styled.button<{ variant: 'save' | 'cancel' }>`
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+
+  ${({ variant }) =>
+    variant === 'save'
+      ? `
+    background-color: #28a745;
+    color: white;
+    &:hover { background-color: #218838; }
+  `
+      : `
+    background-color: #f8f9fa;
+    color: #dc3545;
+    border: 1px solid #ddd;
+    &:hover { background-color: #e2e6ea; opacity: 0.9; }
+  `}
 `;
 
 const InfoGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
   margin-top: 1rem;
 `;
 
 const MetricCard = styled.div`
-  background: #fff;
-  border-radius: 8px;
+  background: rgba(10, 10, 10, 0.6);
+  border: 1px solid rgba(255, 238, 170, 0.15);
+  border-radius: 6px;
   padding: 1.25rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
-  
+
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    background: rgba(20, 20, 20, 0.7);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 `;
 
 const MetricTitle = styled.h4`
   font-size: 0.875rem;
-  color: #6c757d;
+  color: #eee8aa;
   margin-bottom: 0.5rem;
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 `;
 
 const MetricValue = styled.div<{ size?: 'small' | 'medium' | 'large' }>`
-  font-size: ${props => props.size === 'large' ? '2rem' : props.size === 'medium' ? '1.5rem' : '1.25rem'};
-  font-weight: 700;
-  color: #333;
-`;
-
-const MetricChange = styled.span<{ positive?: boolean }>`
-  font-size: 0.875rem;
-  color: ${props => props.positive ? '#28a745' : '#dc3545'};
-  display: flex;
-  align-items: center;
-  margin-top: 0.25rem;
-  
-  &::before {
-    content: ${props => props.positive ? '"↑"' : '"↓"'};
-    margin-right: 0.25rem;
-  }
+  font-size: ${(props) =>
+    props.size === 'large' ? '2rem' : props.size === 'medium' ? '1.5rem' : '1.25rem'};
+  font-weight: 600;
+  color: #faf0e6;
+  line-height: 1.2;
 `;
 
 const MetricDetail = styled.div`
-  font-size: 0.875rem;
-  color: #6c757d;
+  font-size: 0.8rem;
+  color: #e0e0e0;
   margin-top: 0.5rem;
+  line-height: 1.4;
 `;
 
 const DataTable = styled.table`
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
-  
-  th, td {
-    padding: 0.75rem;
-    border: 1px solid #dee2e6;
+  font-size: 0.9rem;
+  color: #faf0e6;
+
+  th,
+  td {
+    padding: 0.6rem 0.75rem;
+    border: 1px solid rgba(238, 232, 170, 0.2);
     text-align: left;
+    vertical-align: middle;
   }
-  
+
   th {
-    background-color: #f8f9fa;
+    background-color: rgba(0, 0, 0, 0.5);
     font-weight: 600;
+    color: #eee8aa;
   }
-  
+
+  tbody tr {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+
   tbody tr:nth-child(even) {
-    background-color: #f8f9fa;
+    background-color: rgba(0, 0, 0, 0.3);
   }
-  
+
   tbody tr:hover {
-    background-color: #f1f1f1;
+    background-color: rgba(238, 232, 170, 0.08);
+  }
+
+  tfoot {
+    font-weight: 600;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #eee8aa;
   }
 `;
 
 const EditableInput = styled.input`
-  width: 100%;
+  width: calc(100% - 1rem);
   padding: 0.5rem;
-  border: 1px solid #ced4da;
+  border: 1px solid rgba(238, 232, 170, 0.3);
   border-radius: 4px;
   font-size: 0.875rem;
-  
+  box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0.4);
+  color: #faf0e6;
+
   &:focus {
-    border-color: #80bdff;
+    border-color: #eee8aa;
     outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(238, 232, 170, 0.25);
+    background-color: rgba(0, 0, 0, 0.5);
   }
 `;
 
-// Type for the calculated metrics
+// =============== INTERFACES & TYPES ===============
 interface CalculatedMetrics {
   totalHumanIntrusions: number;
   totalVehicleIntrusions: number;
@@ -123,331 +217,359 @@ interface CalculatedMetrics {
 }
 
 interface PropertyInfoPanelProps {
-  clientData: ClientData | null;
-  metrics: MetricsData;
-  dateRange: { start: Date; end: Date };
-  onMetricsChange: (metrics: Partial<MetricsData>) => void;
+  clientData?: ClientData | null;
+  metrics?: MetricsData;
+  dateRange?: { start: Date; end: Date };
+  onMetricsChange?: (metrics: Partial<MetricsData>) => void;
 }
 
+// =============== UTILITY FUNCTIONS ===============
+const createDefaultMetrics = (): MetricsData => ({
+  humanIntrusions: { Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0, Sunday: 0 },
+  vehicleIntrusions: { Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0, Sunday: 0 },
+  potentialThreats: 0,
+  proactiveAlerts: 0,
+  responseTime: 0,
+  aiAccuracy: 0,
+  totalCameras: 0,
+  camerasOnline: 0,
+  totalMonitoringHours: 0,
+  operationalUptime: 0,
+});
+
+// =============== COMPONENT ===============
 const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
-  clientData,
-  metrics,
-  dateRange,
-  onMetricsChange,
+  clientData: propClientData,
+  metrics: propMetrics,
+  dateRange: propDateRange,
+  onMetricsChange: propOnMetricsChange,
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedMetrics, setEditedMetrics] = useState<MetricsData>(metrics);
+  // Use context values but allow prop overrides for flexibility
+  const contextData = useReportData();
   
-  // Update local state when props change
-  React.useEffect(() => {
-    setEditedMetrics(metrics);
+  // Use props if provided, otherwise fall back to context values
+  const client = propClientData || contextData.client;
+  const contextMetrics = contextData.metrics || createDefaultMetrics();
+  const metrics = propMetrics || contextMetrics;
+  const dateRange = propDateRange || contextData.dateRange;
+  const setContextMetrics = contextData.setMetrics;
+  
+  // Create a callback that updates both local state and context
+  const handleMetricsChange = (updatedMetrics: Partial<MetricsData>) => {
+    // If prop callback exists, call it
+    if (propOnMetricsChange) {
+      propOnMetricsChange(updatedMetrics);
+    }
+    
+    // Always update context
+    if (setContextMetrics) {
+      const newMetrics = updateMetrics(metrics, updatedMetrics);
+      setContextMetrics(newMetrics);
+    }
+  };
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedMetrics, setEditedMetrics] = useState<MetricsData>(() => ({
+    ...createDefaultMetrics(),
+    ...metrics,
+  }));
+
+  // Update local state when metrics change
+  useEffect(() => {
+    setEditedMetrics({
+      ...createDefaultMetrics(),
+      ...metrics,
+    });
   }, [metrics]);
 
-  // Calculate derived metrics from either edited or original metrics
-  const calculatedMetrics: CalculatedMetrics = React.useMemo(() => {
+  const calculatedMetrics: CalculatedMetrics = useMemo(() => {
     const data = isEditing ? editedMetrics : metrics;
-    
-    // Sum values
-    const totalHumanIntrusions = Object.values(data.humanIntrusions).reduce((sum, value) => sum + value, 0);
-    const totalVehicleIntrusions = Object.values(data.vehicleIntrusions).reduce((sum, value) => sum + value, 0);
-    
-    // Averages
-    const avgHumanIntrusionsPerDay = totalHumanIntrusions / 7;
-    const avgVehicleIntrusionsPerDay = totalVehicleIntrusions / 7;
-    
-    // Peak days
-    const humanEntries = Object.entries(data.humanIntrusions);
-    const vehicleEntries = Object.entries(data.vehicleIntrusions);
-    
-    const peakHumanDay = humanEntries.reduce((max, [day, count]) => 
-      count > (max[1] || 0) ? [day, count] : max, ['', 0])[0];
-      
-    const peakVehicleDay = vehicleEntries.reduce((max, [day, count]) => 
-      count > (max[1] || 0) ? [day, count] : max, ['', 0])[0];
-    
-    // Additional calculated metrics
-    const cameraUptime = data.camerasOnline / Math.max(data.totalCameras, 1) * 100;
-    const responseEfficiency = 100 - (data.responseTime / 2 * 100); // Normalize 0-2 seconds to 100-0%
-    
+    const safeData = { ...createDefaultMetrics(), ...data };
+    // Cast to ensure TypeScript treats these as records of numbers
+    const humanIntrusions = safeData.humanIntrusions as Record<string, number>;
+    const vehicleIntrusions = safeData.vehicleIntrusions as Record<string, number>;
+
+    const totalHumanIntrusions = (Object.values(humanIntrusions) as number[]).reduce(
+      (sum, value) => sum + value,
+      0
+    );
+    const totalVehicleIntrusions = (Object.values(vehicleIntrusions) as number[]).reduce(
+      (sum, value) => sum + value,
+      0
+    );
+    const numDays = 7;
+    const avgHumanIntrusionsPerDay = numDays > 0 ? totalHumanIntrusions / numDays : 0;
+    const avgVehicleIntrusionsPerDay = numDays > 0 ? totalVehicleIntrusions / numDays : 0;
+    const findPeakDay = (intrusions: Record<string, number>): string => {
+      const entries = Object.entries(intrusions);
+      if (entries.length === 0) return 'N/A';
+      return entries.reduce(
+        (max, [day, count]: [string, number]) => (count > max[1] ? [day, count] : max),
+        ['', 0]
+      )[0] || 'N/A';
+    };
+    const peakHumanDay = findPeakDay(humanIntrusions);
+    const peakVehicleDay = findPeakDay(vehicleIntrusions);
+    const totalCamerasSafe = Number(safeData.totalCameras) || 0;
+    const camerasOnlineSafe = Number(safeData.camerasOnline) || 0;
+    const cameraUptime = totalCamerasSafe > 0 ? (camerasOnlineSafe / totalCamerasSafe) * 100 : 0;
+    const responseTimeSafe = Number(safeData.responseTime) || 0;
+    const responseEfficiency = Math.max(0, 100 - (responseTimeSafe / 2 * 100));
     return {
       totalHumanIntrusions,
       totalVehicleIntrusions,
-      avgHumanIntrusionsPerDay,
-      avgVehicleIntrusionsPerDay,
+      avgHumanIntrusionsPerDay: Number.isNaN(avgHumanIntrusionsPerDay) ? 0 : avgHumanIntrusionsPerDay,
+      avgVehicleIntrusionsPerDay: Number.isNaN(avgVehicleIntrusionsPerDay) ? 0 : avgVehicleIntrusionsPerDay,
       peakHumanDay,
       peakVehicleDay,
-      cameraUptime,
-      responseEfficiency
+      cameraUptime: Number.isNaN(cameraUptime) ? 0 : cameraUptime,
+      responseEfficiency: Number.isNaN(responseEfficiency) ? 0 : responseEfficiency,
     };
-  }, [metrics, editedMetrics, isEditing]);
-  
-  // Handle manual metric changes
-  const handleMetricChange = (key: keyof MetricsData, value: any) => {
-    setEditedMetrics(prev => ({
-      ...prev,
-      [key]: value
-    }));
+  }, [isEditing, editedMetrics, metrics]);
+
+  const handleMetricChange = (key: keyof MetricsData, rawValue: string) => {
+    const isFloat = key === 'aiAccuracy' || key === 'responseTime' || key === 'operationalUptime';
+    const value = isFloat ? parseFloat(rawValue) : parseInt(rawValue, 10);
+    setEditedMetrics((prev) => ({ ...prev, [key]: Number.isNaN(value) ? 0 : value }));
   };
-  
-  // Handle daily metric input
+
   const handleDailyMetricChange = (
     metricType: 'humanIntrusions' | 'vehicleIntrusions',
     day: string,
-    value: number
+    rawValue: string
   ) => {
-    setEditedMetrics(prev => ({
+    const value = parseInt(rawValue, 10);
+    setEditedMetrics((prev) => ({
       ...prev,
-      [metricType]: {
-        ...prev[metricType],
-        [day]: value
-      }
+      [metricType]: { ...(prev[metricType] || {}), [day]: Number.isNaN(value) ? 0 : value },
     }));
   };
-  
-  // Save changes
+
   const handleSaveChanges = () => {
-    onMetricsChange(editedMetrics);
+    // Call the unified metrics update function to update both props and context
+    handleMetricsChange(editedMetrics);
     setIsEditing(false);
   };
   
-  // Cancel changes
   const handleCancelChanges = () => {
-    setEditedMetrics(metrics);
+    setEditedMetrics({ ...createDefaultMetrics(), ...metrics });
     setIsEditing(false);
+  };
+  
+  const getCurrentMetric = (key: keyof MetricsData): number => {
+    if (key === 'humanIntrusions' || key === 'vehicleIntrusions') return 0;
+    const source = isEditing ? editedMetrics : metrics;
+    const value = source[key];
+    const numValue = Number(value);
+    return Number.isNaN(numValue) ? 0 : numValue;
+  };
+  
+  const getCurrentDailyMetric = (type: 'humanIntrusions' | 'vehicleIntrusions', day: string): number => {
+    const source = isEditing ? editedMetrics : metrics;
+    const value = source?.[type]?.[day];
+    const numValue = Number(value);
+    return Number.isNaN(numValue) ? 0 : numValue;
   };
 
   return (
     <div>
-      {!clientData ? (
-        <div>Please select a client to view property information</div>
+      {!client ? (
+        <Section>
+          <p style={{ position: 'relative', zIndex: 2 }}>Please select a client first.</p>
+        </Section>
       ) : (
         <>
+          {/* Section 1: Property & Site Information */}
           <Section>
-            <SectionTitle>Property & Site Information</SectionTitle>
+            <SectionHeader>
+              <SectionTitle>Property & Site Information</SectionTitle>
+            </SectionHeader>
             <InfoGrid>
               <MetricCard>
                 <MetricTitle>Site Name</MetricTitle>
-                <MetricValue>{clientData.siteName || clientData.name}</MetricValue>
+                <MetricValue>{client.siteName || client.name}</MetricValue>
                 <MetricDetail>
                   Monitoring Period: {format(dateRange.start, 'MMM d')} - {format(dateRange.end, 'MMM d, yyyy')}
                 </MetricDetail>
               </MetricCard>
-              
               <MetricCard>
                 <MetricTitle>Location</MetricTitle>
-                <MetricValue size="medium">{clientData.location || 'N/A'}</MetricValue>
+                <MetricValue size="medium">{client.location || 'N/A'}</MetricValue>
                 <MetricDetail>
-                  {clientData.city}, {clientData.state} {clientData.zipCode}
+                  {client.city}, {client.state} {client.zipCode}
                 </MetricDetail>
               </MetricCard>
-              
               <MetricCard>
                 <MetricTitle>Camera Coverage</MetricTitle>
-                {isEditing ? (
-                  <>
-                    <label>Total Cameras: </label>
-                    <EditableInput 
-                      type="number" 
-                      value={editedMetrics.totalCameras} 
-                      onChange={e => handleMetricChange('totalCameras', parseInt(e.target.value))} 
-                    />
-                    <br/>
-                    <label>Cameras Online: </label>
-                    <EditableInput 
-                      type="number" 
-                      value={editedMetrics.camerasOnline} 
-                      onChange={e => handleMetricChange('camerasOnline', parseInt(e.target.value))} 
-                    />
-                  </>
-                ) : (
-                  <>
-                    <MetricValue>{metrics.camerasOnline} / {metrics.totalCameras}</MetricValue>
-                    <MetricDetail>
-                      Camera Uptime: {calculatedMetrics.cameraUptime.toFixed(1)}%
-                    </MetricDetail>
-                  </>
-                )}
+                <MetricValue>
+                  {getCurrentMetric('camerasOnline')} / {getCurrentMetric('totalCameras')}
+                </MetricValue>
+                <MetricDetail>Camera Uptime: {calculatedMetrics.cameraUptime.toFixed(1)}%</MetricDetail>
               </MetricCard>
-              
               <MetricCard>
                 <MetricTitle>Camera Type</MetricTitle>
-                <MetricValue size="medium">{clientData.cameraType || 'Standard IP'}</MetricValue>
-                <MetricDetail>
-                  {clientData.cameraDetails || 'High-definition security cameras with night vision capability'}
-                </MetricDetail>
+                <MetricValue size="medium">{client.cameraType || 'Standard IP'}</MetricValue>
+                <MetricDetail>{client.cameraDetails || 'High-definition cameras'}</MetricDetail>
               </MetricCard>
             </InfoGrid>
           </Section>
-        
+
+          {/* Section 2: AI Insights & Metrics */}
           <Section>
-            <SectionTitle>
-              AI-Driven Insights
+            <SectionHeader>
+              <SectionTitle>AI-Driven Insights & Metrics</SectionTitle>
               {!isEditing ? (
-                <button 
-                  style={{
-                    float: 'right',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: '#0070f3',
-                    fontWeight: 'normal',
-                    fontSize: '0.875rem'
-                  }}
-                  onClick={() => setIsEditing(true)}
-                >
-                  Edit Metrics
-                </button>
+                <EditButton onClick={() => setIsEditing(true)}>Edit Metrics</EditButton>
               ) : (
-                <div style={{ float: 'right' }}>
-                  <button 
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: '#dc3545',
-                      fontWeight: 'normal',
-                      fontSize: '0.875rem',
-                      marginRight: '10px'
-                    }}
-                    onClick={handleCancelChanges}
-                  >
+                <SaveCancelContainer>
+                  <ActionButton variant="cancel" onClick={handleCancelChanges}>
                     Cancel
-                  </button>
-                  <button 
-                    style={{
-                      background: '#0070f3',
-                      border: 'none',
-                      borderRadius: '4px',
-                      padding: '4px 8px',
-                      cursor: 'pointer',
-                      color: 'white',
-                      fontWeight: 'normal',
-                      fontSize: '0.875rem'
-                    }}
-                    onClick={handleSaveChanges}
-                  >
+                  </ActionButton>
+                  <ActionButton variant="save" onClick={handleSaveChanges}>
                     Save Changes
-                  </button>
-                </div>
+                  </ActionButton>
+                </SaveCancelContainer>
               )}
-            </SectionTitle>
-            
+            </SectionHeader>
             <InfoGrid>
               <MetricCard>
                 <MetricTitle>Total Human Intrusions</MetricTitle>
                 <MetricValue size="large">{calculatedMetrics.totalHumanIntrusions}</MetricValue>
                 <MetricDetail>
-                  Avg. {calculatedMetrics.avgHumanIntrusionsPerDay.toFixed(1)} per day
-                  <br />
-                  Peak: {calculatedMetrics.peakHumanDay}
+                  Avg. {calculatedMetrics.avgHumanIntrusionsPerDay.toFixed(1)} / day | Peak:{' '}
+                  {calculatedMetrics.peakHumanDay}
                 </MetricDetail>
               </MetricCard>
-              
               <MetricCard>
                 <MetricTitle>Total Vehicle Intrusions</MetricTitle>
                 <MetricValue size="large">{calculatedMetrics.totalVehicleIntrusions}</MetricValue>
                 <MetricDetail>
-                  Avg. {calculatedMetrics.avgVehicleIntrusionsPerDay.toFixed(1)} per day
-                  <br />
-                  Peak: {calculatedMetrics.peakVehicleDay}
+                  Avg. {calculatedMetrics.avgVehicleIntrusionsPerDay.toFixed(1)} / day | Peak:{' '}
+                  {calculatedMetrics.peakVehicleDay}
                 </MetricDetail>
               </MetricCard>
-              
               <MetricCard>
-                <MetricTitle>Potential Threats Identified</MetricTitle>
-                {isEditing ? (
-                  <EditableInput 
-                    type="number" 
-                    value={editedMetrics.potentialThreats} 
-                    onChange={e => handleMetricChange('potentialThreats', parseInt(e.target.value))} 
-                  />
-                ) : (
-                  <MetricValue size="large">{metrics.potentialThreats}</MetricValue>
-                )}
+                <MetricTitle>Potential Threats</MetricTitle>
+                <MetricValue size="large">{Number(getCurrentMetric('potentialThreats'))}</MetricValue>
               </MetricCard>
-              
               <MetricCard>
-                <MetricTitle>Proactive Alerts Issued</MetricTitle>
-                {isEditing ? (
-                  <EditableInput 
-                    type="number" 
-                    value={editedMetrics.proactiveAlerts} 
-                    onChange={e => handleMetricChange('proactiveAlerts', parseInt(e.target.value))} 
-                  />
-                ) : (
-                  <MetricValue size="large">{metrics.proactiveAlerts}</MetricValue>
-                )}
+                <MetricTitle>Proactive Alerts</MetricTitle>
+                <MetricValue size="large">{Number(getCurrentMetric('proactiveAlerts'))}</MetricValue>
               </MetricCard>
-              
               <MetricCard>
-                <MetricTitle>AI Accuracy (%)</MetricTitle>
-                {isEditing ? (
-                  <EditableInput 
-                    type="number" 
-                    step="0.1"
-                    min="0"
-                    max="100" 
-                    value={editedMetrics.aiAccuracy} 
-                    onChange={e => handleMetricChange('aiAccuracy', parseFloat(e.target.value))} 
-                  />
-                ) : (
-                  <MetricValue>{metrics.aiAccuracy}%</MetricValue>
-                )}
+                <MetricTitle>AI Accuracy</MetricTitle>
+                <MetricValue>{Number(getCurrentMetric('aiAccuracy')).toFixed(1)}%</MetricValue>
               </MetricCard>
-              
               <MetricCard>
-                <MetricTitle>Avg. Response Time (sec)</MetricTitle>
-                {isEditing ? (
-                  <EditableInput 
-                    type="number" 
-                    step="0.1"
-                    min="0" 
-                    value={editedMetrics.responseTime} 
-                    onChange={e => handleMetricChange('responseTime', parseFloat(e.target.value))} 
-                  />
-                ) : (
-                  <MetricValue>{metrics.responseTime} sec</MetricValue>
-                )}
-                <MetricDetail>
-                  Efficiency Rating: {calculatedMetrics.responseEfficiency.toFixed(1)}%
-                </MetricDetail>
+                <MetricTitle>Avg. Response Time</MetricTitle>
+                <MetricValue>{Number(getCurrentMetric('responseTime')).toFixed(1)} sec</MetricValue>
+                <MetricDetail>Efficiency: {calculatedMetrics.responseEfficiency.toFixed(1)}%</MetricDetail>
               </MetricCard>
-              
               <MetricCard>
-                <MetricTitle>Total Monitoring Hours</MetricTitle>
-                {isEditing ? (
-                  <EditableInput 
-                    type="number" 
-                    value={editedMetrics.totalMonitoringHours} 
-                    onChange={e => handleMetricChange('totalMonitoringHours', parseInt(e.target.value))} 
-                  />
-                ) : (
-                  <MetricValue>{metrics.totalMonitoringHours}</MetricValue>
-                )}
+                <MetricTitle>Monitoring Hours</MetricTitle>
+                <MetricValue>{Number(getCurrentMetric('totalMonitoringHours'))}</MetricValue>
               </MetricCard>
-              
               <MetricCard>
                 <MetricTitle>Operational Uptime</MetricTitle>
-                {isEditing ? (
-                  <EditableInput 
+                <MetricValue>{Number(getCurrentMetric('operationalUptime')).toFixed(1)}%</MetricValue>
+              </MetricCard>
+            </InfoGrid>
+
+            {/* Editable Input Grid */}
+            {isEditing && (
+              <InfoGrid
+                style={{
+                  marginTop: '2rem',
+                  background: 'rgba(0,0,0,0.2)',
+                  padding: '1rem',
+                  borderRadius: '6px',
+                  border: '1px dashed rgba(238, 232, 170, 0.4)',
+                }}
+              >
+                <MetricCard>
+                  <MetricTitle>Potential Threats</MetricTitle>
+                  <EditableInput
+                    type="number"
+                    value={getCurrentMetric('potentialThreats')}
+                    onChange={(e) => handleMetricChange('potentialThreats', e.target.value)}
+                  />
+                </MetricCard>
+                <MetricCard>
+                  <MetricTitle>Proactive Alerts</MetricTitle>
+                  <EditableInput
+                    type="number"
+                    value={getCurrentMetric('proactiveAlerts')}
+                    onChange={(e) => handleMetricChange('proactiveAlerts', e.target.value)}
+                  />
+                </MetricCard>
+                <MetricCard>
+                  <MetricTitle>AI Accuracy (%)</MetricTitle>
+                  <EditableInput
                     type="number"
                     step="0.1"
                     min="0"
-                    max="100"  
-                    value={editedMetrics.operationalUptime} 
-                    onChange={e => handleMetricChange('operationalUptime', parseFloat(e.target.value))} 
+                    max="100"
+                    value={getCurrentMetric('aiAccuracy')}
+                    onChange={(e) => handleMetricChange('aiAccuracy', e.target.value)}
                   />
-                ) : (
-                  <MetricValue>{metrics.operationalUptime}%</MetricValue>
-                )}
-              </MetricCard>
-            </InfoGrid>
+                </MetricCard>
+                <MetricCard>
+                  <MetricTitle>Avg. Response Time (sec)</MetricTitle>
+                  <EditableInput
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={getCurrentMetric('responseTime')}
+                    onChange={(e) => handleMetricChange('responseTime', e.target.value)}
+                  />
+                </MetricCard>
+                <MetricCard>
+                  <MetricTitle>Total Cameras</MetricTitle>
+                  <EditableInput
+                    type="number"
+                    min="0"
+                    value={getCurrentMetric('totalCameras')}
+                    onChange={(e) => handleMetricChange('totalCameras', e.target.value)}
+                  />
+                </MetricCard>
+                <MetricCard>
+                  <MetricTitle>Cameras Online</MetricTitle>
+                  <EditableInput
+                    type="number"
+                    min="0"
+                    value={getCurrentMetric('camerasOnline')}
+                    onChange={(e) => handleMetricChange('camerasOnline', e.target.value)}
+                  />
+                </MetricCard>
+                <MetricCard>
+                  <MetricTitle>Total Monitoring Hours</MetricTitle>
+                  <EditableInput
+                    type="number"
+                    min="0"
+                    value={getCurrentMetric('totalMonitoringHours')}
+                    onChange={(e) => handleMetricChange('totalMonitoringHours', e.target.value)}
+                  />
+                </MetricCard>
+                <MetricCard>
+                  <MetricTitle>Operational Uptime (%)</MetricTitle>
+                  <EditableInput
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="100"
+                    value={getCurrentMetric('operationalUptime')}
+                    onChange={(e) => handleMetricChange('operationalUptime', e.target.value)}
+                  />
+                </MetricCard>
+              </InfoGrid>
+            )}
           </Section>
-          
-          {/* Daily data input section */}
+
+          {/* Section 3: Daily Data Table */}
           <Section>
-            <SectionTitle>Daily Intrusion Data</SectionTitle>
-            
+            <SectionHeader>
+              <SectionTitle>Daily Intrusion Data</SectionTitle>
+            </SectionHeader>
             <DataTable>
               <thead>
                 <tr>
@@ -458,34 +580,34 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {Object.keys(metrics.humanIntrusions).map(day => (
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
                   <tr key={day}>
                     <td>{day}</td>
                     <td>
                       {isEditing ? (
-                        <EditableInput 
+                        <EditableInput
                           type="number"
-                          value={editedMetrics.humanIntrusions[day]} 
-                          onChange={e => handleDailyMetricChange('humanIntrusions', day, parseInt(e.target.value))} 
+                          min="0"
+                          value={getCurrentDailyMetric('humanIntrusions', day)}
+                          onChange={(e) => handleDailyMetricChange('humanIntrusions', day, e.target.value)}
                         />
                       ) : (
-                        metrics.humanIntrusions[day]
+                        getCurrentDailyMetric('humanIntrusions', day)
                       )}
                     </td>
                     <td>
                       {isEditing ? (
-                        <EditableInput 
+                        <EditableInput
                           type="number"
-                          value={editedMetrics.vehicleIntrusions[day]} 
-                          onChange={e => handleDailyMetricChange('vehicleIntrusions', day, parseInt(e.target.value))} 
+                          min="0"
+                          value={getCurrentDailyMetric('vehicleIntrusions', day)}
+                          onChange={(e) => handleDailyMetricChange('vehicleIntrusions', day, e.target.value)}
                         />
                       ) : (
-                        metrics.vehicleIntrusions[day]
+                        getCurrentDailyMetric('vehicleIntrusions', day)
                       )}
                     </td>
-                    <td>
-                      {metrics.humanIntrusions[day] + metrics.vehicleIntrusions[day]}
-                    </td>
+                    <td>{getCurrentDailyMetric('humanIntrusions', day) + getCurrentDailyMetric('vehicleIntrusions', day)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -503,6 +625,6 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
       )}
     </div>
   );
-};
+}
 
 export default PropertyInfoPanel;

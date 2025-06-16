@@ -1,8 +1,7 @@
+// Enhanced Toaster Component for Report Builder
 // File: frontend/src/components/ui/toaster.tsx
-"use client"
 
-import * as React from "react";
-import { useToast } from "../../hooks/use-toast";
+import { useToast } from "../../hooks/use-toast"
 import {
   Toast,
   ToastClose,
@@ -10,10 +9,10 @@ import {
   ToastProvider,
   ToastTitle,
   ToastViewport,
-} from "./toast";
+} from "./toast"
 
-export function Toaster(): React.ReactElement {
-  const { toasts } = useToast();
+export function Toaster() {
+  const { toasts } = useToast()
 
   return (
     <ToastProvider>

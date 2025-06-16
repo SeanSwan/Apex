@@ -182,41 +182,41 @@ export const mockDailyReports: DailyReport[] = [
     day: 'Saturday', 
     content: 'Light activity day. Perimeter checks conducted at regular intervals. One contractor escorted to server room for scheduled maintenance. All systems functioning normally.',
     status: 'Completed' as DailyReportStatus, 
-    securityCode: 'Code 5' as SecurityCode 
+    securityCode: 'Code 1' as SecurityCode 
   },
   { 
     day: 'Sunday', 
     content: 'Quiet day with minimal activity. All access points secured. System maintenance performed on camera network. Parking area patrol conducted with no incidents to report.',
     status: 'Completed' as DailyReportStatus, 
-    securityCode: 'Code 5' as SecurityCode 
+    securityCode: 'Code 1' as SecurityCode 
   },
 ];
 
 export const mockClients: ClientData[] = [
   {
     id: '1',
-    name: 'Riverview Apartments',
-    siteName: 'Riverview Apartments',
-    location: '123 Riverside Dr',
-    city: 'Austin',
-    state: 'TX',
-    zipCode: '78701',
-    contactEmail: 'manager@riverview.com',
+    name: 'The Charlie Perris Apartments',
+    siteName: 'The Charlie Perris',
+    location: '2700 N Perris Blvd.',
+    city: 'Perris',
+    state: 'CA',
+    zipCode: '92571',
+    contactEmail: 'thecharlieperrismgr@greystar.com',
     cameraType: 'Hikvision PTZ',
-    cameras: 16,
+    cameras: 30,
     lastReportDate: '2025-03-04',
     isActive: true,
     isVIP: true,
     contacts: [
       {
-        name: 'John Smith',
-        email: 'jsmith@riverview.com',
+        name: 'Karina',
+        email: 'thecharlieperrismgr@greystar.com',
         phone: '512-555-1234',
         isPrimary: true
       },
       {
-        name: 'Sarah Johnson',
-        email: 'sjohnson@riverview.com',
+        name: 'Assistant Manager',
+        email: 'TheCharliePerrisAssistantManager@greystar.com',
         phone: '512-555-5678',
         isPrimary: false
       }
@@ -225,130 +225,84 @@ export const mockClients: ClientData[] = [
   },
   {
     id: '2',
-    name: 'Parkside Plaza',
-    siteName: 'Parkside Commercial Plaza',
-    location: '456 Park Avenue',
-    city: 'San Antonio',
-    state: 'TX',
-    zipCode: '78205',
-    contactEmail: 'security@parkside.com',
+    name: 'Bell Warner Center',
+    siteName: 'Bell Warner Center',
+    location: '21050 Kittridge St',
+    city: 'Canoga Park',
+    state: 'CA',
+    zipCode: '91303',
+    contactEmail: 'cejohnson@bellpartnersinc.com',
     cameraType: 'Axis Fixed Dome',
-    cameras: 24,
+    cameras: 58,
     lastReportDate: '2025-03-01',
     isActive: true,
     isNew: true,
     contacts: [
       {
-        name: 'Michael Brown',
+        name: 'Charles Johnson',
         email: 'mbrown@parkside.com',
         phone: '210-555-9876',
         isPrimary: true
+      },
+      {
+        name: 'Diego Cabrera',
+        email: 'TheCharliePerrisAssistantManager@greystar.com',
+        phone: '805-402-4200',
+        isPrimary: false
       }
     ],
     cameraDetails: 'Fixed dome cameras with 4K resolution and wide-angle lenses'
   },
   {
     id: '3',
-    name: 'Lakeview Condos',
-    siteName: 'Lakeview Condominium Complex',
-    location: '789 Lakeshore Blvd',
-    city: 'Dallas',
-    state: 'TX',
-    zipCode: '75201',
-    contactEmail: 'admin@lakeview.com',
+    name: 'Modera ARGYLE',
+    siteName: 'Modera ARGYLE',
+    location: '6220 Selma Avenue',
+    city: 'Los Angeles',
+    state: 'CA',
+    zipCode: '90028',
+    contactEmail: 'temp_srodas@millcreekplaces.com',
     cameraType: 'Dahua PTZ',
-    cameras: 12,
+    cameras: 44,
     lastReportDate: '2025-02-28',
     isActive: true,
     contacts: [
       {
-        name: 'Lisa Williams',
-        email: 'lwilliams@lakeview.com',
+        name: 'Steven Manager',
+        email: 'it@defenseic.com',
         phone: '214-555-4321',
         isPrimary: true
       },
       {
-        name: 'Robert Davis',
-        email: 'rdavis@lakeview.com',
+        name: 'Steven',
+        email: 'it@defenseic.com',
         phone: '214-555-8765',
         isPrimary: false
       }
     ],
     cameraDetails: 'Mixture of PTZ and fixed cameras with facial recognition capability'
   },
-  {
-    id: '4',
-    name: 'Highland Towers',
-    siteName: 'Highland Luxury Towers',
-    location: '1010 Highland St',
-    city: 'Houston',
-    state: 'TX',
-    zipCode: '77002',
-    contactEmail: 'manager@highland.com',
-    cameraType: 'Sony PTZ',
-    cameras: 32,
-    lastReportDate: '2025-03-02',
-    isActive: true,
-    isVIP: true,
-    contacts: [
-      {
-        name: 'Thomas Wilson',
-        email: 'twilson@highland.com',
-        phone: '713-555-2468',
-        isPrimary: true
-      }
-    ],
-    cameraDetails: 'High-end Sony cameras with advanced motion detection and analytics'
-  },
-  {
-    id: '5',
-    name: 'Sunset Retail Center',
-    siteName: 'Sunset Shopping Plaza',
-    location: '2020 Sunset Blvd',
-    city: 'El Paso',
-    state: 'TX',
-    zipCode: '79901',
-    contactEmail: 'security@sunset.com',
-    cameraType: 'Bosch Fixed',
-    cameras: 28,
-    lastReportDate: '2025-02-25',
-    isActive: false,
-    contacts: [
-      {
-        name: 'Jennifer Martinez',
-        email: 'jmartinez@sunset.com',
-        phone: '915-555-1357',
-        isPrimary: true
-      },
-      {
-        name: 'David Thompson',
-        email: 'dthompson@sunset.com',
-        phone: '915-555-7531',
-        isPrimary: false
-      }
-    ],
-    cameraDetails: 'Fixed cameras installed at all entrances, exits, and high-traffic areas'
-  }
+  
 ];
 
 export const mockMetricsData: MetricsData = {
   humanIntrusions: {
-    Monday: 3,
-    Tuesday: 5,
-    Wednesday: 2,
-    Thursday: 7,
-    Friday: 8,
-    Saturday: 12,
-    Sunday: 4
+    Monday: 2000,
+    Tuesday: 1857,
+    Wednesday: 3087,
+    Thursday: 4078,
+    Friday: 4789,
+    Saturday: 3896,
+    Sunday: 3052
   },
   vehicleIntrusions: {
-    Monday: 1,
-    Tuesday: 2,
-    Wednesday: 0,
-    Thursday: 3,
-    Friday: 4,
-    Saturday: 6,
-    Sunday: 2
+    Monday: 3000,
+    Tuesday: 2857,
+    Wednesday: 5087,
+    Thursday: 6078,
+    Friday: 6789,
+    Saturday: 5896,
+    Sunday: 4052
   },
   aiAccuracy: 97.5,
   responseTime: 0.8,

@@ -1,2 +1,159 @@
+# 🛡️ APEX AI SECURITY PLATFORM - COMPREHENSIVE .gitignore
+# CRITICAL: This file protects secret keys and sensitive data
+
+# ===== ENVIRONMENT & SECRETS =====
+.env
+.env.*
+.env.local
+.env.development
+.env.staging
+.env.production
+.env.test
+.env.backup
+.env.example
+env.txt
+env.txt.backup*
+*.env
+env/
+.secrets
+secrets.json
+config.json
+credentials.json
+
+# ===== API KEYS & TOKENS =====
+api-keys.txt
+token.txt
+keys.txt
+secrets.txt
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+
+# ===== DATABASE CREDENTIALS =====
+database.json
+db.json
+connection.json
+sequelize-config.json
+
+# ===== AWS & CLOUD CREDENTIALS =====
+.aws/
+aws-credentials.json
+gcp-credentials.json
+azure-credentials.json
+
+# ===== NODE.JS & NPM =====
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.npm
+.yarn-integrity
+package-lock.json.backup
+
+# ===== BUILD OUTPUTS =====
 build/
+dist/
+coverage/
+.nyc_output/
+.cache/
+*.tgz
+*.tar.gz
+
+# ===== DEVELOPMENT FILES =====
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ===== LOGS =====
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# ===== TEMPORARY FILES =====
+tmp/
+temp/
+*.tmp
+*.temp
+.temp/
+
+# ===== BACKUP FILES =====
+*.backup
+*.bak
+*.orig
+*.original
+backup_*
+*_backup
+*.DANGEROUS_REMOVED
+
+# ===== AI MODEL FILES =====
+*.model
+*.weights
+*.h5
+*.pkl
+models/
+weights/
+
+# ===== SPECIFIC TO THIS PROJECT =====
+# Environment backups (these contain secrets!)
+env.txt.backup*
+*.DANGEROUS_REMOVED
+
+# Flask AI server secrets
+backend/flask_server/.env
+backend/flask_server/config.py
+backend/flask_server/secrets/
+
+# Database files
+*.sqlite
+*.db
+
+# Test files with potential secrets
+test-*.js
+debug-*.js
+*-test-credentials*
+
+# Stripe/Payment secrets
+stripe-*.json
+payment-config.json
+
+# Email service credentials
+sendgrid-*.json
+nodemailer-config.json
+
+# JWT secrets
+jwt-secret.txt
+jwt.key
+
+# ===== PLATFORM SPECIFIC =====
+# Windows
+Desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+# macOS
+.AppleDouble
+.LSOverride
+Icon
+
+# Linux
+.fuse_hidden*
+.Trash-*
+
+# ===== SECURITY SCAN EXCLUSIONS =====
+# Files that GitHub secret scanning should ignore
+security-test-data/
+test-fixtures/
+mock-data/

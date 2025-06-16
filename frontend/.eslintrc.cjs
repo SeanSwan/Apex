@@ -17,6 +17,7 @@ module.exports = {
     ecmaFeatures: {
       jsx: true
     },
+    tsconfigRootDir: __dirname,
     project: ['./tsconfig.json']
   },
   settings: { 
@@ -27,7 +28,9 @@ module.exports = {
       node: {
         extensions: ['.js', '.jsx', '.ts', '.tsx']
       },
-      typescript: {}
+      typescript: {
+        project: './tsconfig.json'
+      }
     }
   },
   plugins: ['react-refresh', '@typescript-eslint'],
