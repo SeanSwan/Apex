@@ -421,6 +421,29 @@ const ReportBuilder: React.FC = () => {
     }
   }, [metrics, themeSettings, activeTab]);
 
+  // Force context sync when switching to preview tab
+  useEffect(() => {
+    if (activeTab === 'preview') {
+      console.log('Preview tab activated - forcing data sync to context');
+      // Force immediate sync by setting loading state
+      setIsLoading(true);
+      
+      // Use setTimeout to ensure all state updates have been processed
+      setTimeout(() => {
+        console.log('Preview data sync - Current state:', {
+          selectedClient: selectedClient?.name,
+          metricsCount: Object.keys(metrics).length,
+          reportsCount: dailyReports.length,
+          themeKeys: Object.keys(themeSettings),
+          hasBackgroundImage: !!themeSettings.backgroundImage,
+          signature,
+          contactEmail
+        });
+        setIsLoading(false);
+      }, 100);
+    }
+  }, [activeTab, selectedClient, metrics, dailyReports, themeSettings, signature, contactEmail]);
+
   // --- Callback Handlers ---
   const handleSelectClient = useCallback((client: ClientData) => {
     setSelectedClient(client);
@@ -515,6 +538,7 @@ const ReportBuilder: React.FC = () => {
         initialClient={selectedClient} 
         initialMetrics={metrics}
         initialDateRange={dateRange}
+        initialThemeSettings={themeSettings}
       >
         <Container>
           <Title>{themeSettings.reportTitle || 'Report Builder'}</Title>
@@ -717,42 +741,38 @@ const ReportDataUpdater: React.FC<ReportDataUpdaterProps> = ({
     setContactEmail
   } = useReportData();
 
-  // Update context whenever props change
+  // CONSOLIDATED DATA SYNC - All data updates in a single effect to prevent race conditions
   useEffect(() => {
+    console.log('ReportDataUpdater: Syncing ALL data to context:', {
+      clientName: client?.name,
+      hasMetrics: !!metrics,
+      reportCount: dailyReports?.length,
+      hasTheme: !!themeSettings,
+      hasBackgroundImage: !!themeSettings?.backgroundImage,
+      hasHeaderImage: !!themeSettings?.headerImage,
+      hasChart: !!chartDataURL,
+      summaryLength: summaryNotes?.length,
+      signature: signature,
+      contactEmail: contactEmail
+    });
+
+    // Update all context values in batch
     if (client) setClient(client);
-  }, [client, setClient]);
-
-  useEffect(() => {
     setMetrics(metrics);
-  }, [metrics, setMetrics]);
-
-  useEffect(() => {
     setDateRange(dateRange);
-  }, [dateRange, setDateRange]);
-
-  useEffect(() => {
     setDailyReports(dailyReports);
-  }, [dailyReports, setDailyReports]);
-
-  useEffect(() => {
     setSummaryNotes(summaryNotes);
-  }, [summaryNotes, setSummaryNotes]);
-
-  useEffect(() => {
     setSignature(signature);
-  }, [signature, setSignature]);
-
-  useEffect(() => {
     setChartDataURL(chartDataURL);
-  }, [chartDataURL, setChartDataURL]);
-
-  useEffect(() => {
     setThemeSettings(themeSettings);
-  }, [themeSettings, setThemeSettings]);
-
-  useEffect(() => {
     setContactEmail(contactEmail);
-  }, [contactEmail, setContactEmail]);
+
+  }, [
+    client, metrics, dateRange, dailyReports, summaryNotes, 
+    signature, chartDataURL, themeSettings, contactEmail,
+    setClient, setMetrics, setDateRange, setDailyReports,
+    setSummaryNotes, setSignature, setChartDataURL, setThemeSettings, setContactEmail
+  ]);
 
   return null; // This component doesn't render anything
 };

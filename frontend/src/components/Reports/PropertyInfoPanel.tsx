@@ -404,12 +404,24 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
                 <MetricValue>
                   {getCurrentMetric('camerasOnline')} / {getCurrentMetric('totalCameras')}
                 </MetricValue>
-                <MetricDetail>Camera Uptime: {calculatedMetrics.cameraUptime.toFixed(1)}%</MetricDetail>
+                <MetricDetail>
+                  Camera Uptime: {calculatedMetrics.cameraUptime.toFixed(1)}% 
+                  {client?.cameras && getCurrentMetric('totalCameras') === client.cameras && (
+                    <span style={{ color: '#28a745', marginLeft: '0.5rem' }}>✓ Synced from client</span>
+                  )}
+                </MetricDetail>
               </MetricCard>
               <MetricCard>
                 <MetricTitle>Camera Type</MetricTitle>
                 <MetricValue size="medium">{client.cameraType || 'Standard IP'}</MetricValue>
-                <MetricDetail>{client.cameraDetails || 'High-definition cameras'}</MetricDetail>
+                <MetricDetail>
+                  {client.cameraDetails || 'High-definition cameras'}
+                  {client?.cameras && (
+                    <div style={{ color: '#28a745', marginTop: '0.25rem', fontSize: '0.75rem' }}>
+                      📹 {client.cameras} cameras configured
+                    </div>
+                  )}
+                </MetricDetail>
               </MetricCard>
             </InfoGrid>
           </Section>
@@ -563,6 +575,39 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
                 </MetricCard>
               </InfoGrid>
             )}
+          </Section>
+
+          {/* Section 2.5: Contact & Communication Information */}
+          <Section>
+            <SectionHeader>
+              <SectionTitle>Security Contact Information</SectionTitle>
+            </SectionHeader>
+            <InfoGrid>
+              <MetricCard>
+                <MetricTitle>Security Company Contact</MetricTitle>
+                <MetricValue size="medium">it@defenseic.com</MetricValue>
+                <MetricDetail>
+                  Primary contact for all security reports and incidents
+                </MetricDetail>
+              </MetricCard>
+              <MetricCard>
+                <MetricTitle>Client Property Contact</MetricTitle>
+                <MetricValue size="medium">{client.contactEmail || 'N/A'}</MetricValue>
+                <MetricDetail>
+                  Property management contact for {client.name}
+                </MetricDetail>
+              </MetricCard>
+              <MetricCard>
+                <MetricTitle>Emergency Response</MetricTitle>
+                <MetricValue>24/7</MetricValue>
+                <MetricDetail>
+                  Round-the-clock monitoring and incident response
+                  <div style={{ color: '#28a745', marginTop: '0.25rem', fontSize: '0.75rem' }}>
+                    🚨 Emergency protocols active
+                  </div>
+                </MetricDetail>
+              </MetricCard>
+            </InfoGrid>
           </Section>
 
           {/* Section 3: Daily Data Table */}

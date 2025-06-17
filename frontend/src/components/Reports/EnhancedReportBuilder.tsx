@@ -30,6 +30,9 @@ import DataVisualizationPanel from './DataVisualizationPanel';
 import ThemeBuilder from './ThemeBuilder';
 import EnhancedPreviewPanel from './PreviewPanel';
 import DeliveryOptionsPanel from './DeliveryOptionsPanel';
+import ReportDataUpdater from './ReportDataUpdater';
+import BugFixVerification from './BugFixVerification';
+
 import { DatePicker } from '../ui/date-picker';
 
 // Context Providers
@@ -38,11 +41,15 @@ import { ReportDataProvider, useReportData } from '../../context/ReportDataConte
 // Mock Data Import
 import { mockClients, mockMetricsData, mockDailyReports } from '../../data/mockData';
 
+// Import marble texture for theme defaults
+import marbleTexture from '../../assets/marble-texture.png';
+
 // Enhanced Theme Interface
 interface CustomThemeSettings extends ThemeSettings {
   backgroundOpacity: number;
   reportTitle: string;
   headerImage?: string;
+  backgroundImage?: string;
   companyLogo?: string;
   clientLogo?: string;
   textColor?: string;
@@ -189,6 +196,7 @@ const TabContainer = styled.div`
 
 interface TabProps {
   $active: boolean;
+  $isNew?: boolean;
   theme?: CustomThemeSettings;
 }
 
@@ -204,6 +212,7 @@ const Tab = styled.button<TabProps>`
   transition: all 0.3s ease;
   white-space: nowrap;
   flex-shrink: 0;
+  position: relative;
 
   ${({ $active, theme }) => $active && css`
     color: ${theme?.primaryColor || '#FFD700'};
@@ -221,6 +230,29 @@ const Tab = styled.button<TabProps>`
     cursor: not-allowed;
     opacity: 0.6;
   }
+  
+  ${({ $isNew }) => $isNew && css`
+    &::after {
+      content: 'NEW';
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: linear-gradient(45deg, #e74c3c, #c0392b);
+      color: white;
+      font-size: 0.6rem;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+  `}
 `;
 
 const NavigationContainer = styled.div`
@@ -386,9 +418,23 @@ const defaultDeliveryOptions: DeliveryOptions = {
 const defaultThemeSettings: CustomThemeSettings = {
   primaryColor: '#FFD700', secondaryColor: '#222222', accentColor: '#FAF0E6',
   fontFamily: 'Arial, sans-serif', reportTitle: 'AI Live Monitoring Report',
-  backgroundOpacity: 0.7, headerImage: '/src/assets/marble-texture.png',
+  backgroundOpacity: 0.7, 
+  headerImage: marbleTexture, 
+  backgroundImage: marbleTexture,
   companyLogo: '', clientLogo: '', textColor: '#F0E6D2',
 };
+
+// Debug function to check if assets are loading
+const debugAssetPaths = () => {
+  console.log('🖼️ Asset debugging:', {
+    marbleTextureImport: marbleTexture,
+    isValidPath: marbleTexture && marbleTexture.length > 0,
+    pathType: typeof marbleTexture
+  });
+};
+
+// Call debug function
+debugAssetPaths();
 
 // Main Component
 const EnhancedReportBuilder: React.FC = () => {
@@ -471,22 +517,98 @@ const EnhancedReportBuilder: React.FC = () => {
   // Request chart regeneration when data changes
   useEffect(() => {
     if (activeTab === 'viz' || activeTab === 'preview') {
+      console.log('📈 Chart generation requested for tab:', activeTab);
       setIsChartGenerationRequested(true);
     }
   }, [metrics, themeSettings, activeTab]);
+
+  // Force chart generation when switching to preview if no chart exists
+  useEffect(() => {
+    if (activeTab === 'preview' && !chartDataURL) {
+      console.log('⚠️ No chart data found, forcing chart generation...');
+      setIsChartGenerationRequested(true);
+      
+      // Also try to generate immediately if we have metrics
+      if (metrics && chartRef.current) {
+        generateChartWithErrorHandling();
+      }
+    }
+  }, [activeTab, chartDataURL, metrics, generateChartWithErrorHandling]);
+
+  // Enhanced data synchronization - CRITICAL FOR FIXING BUGS
+  useEffect(() => {
+    if (activeTab === 'preview') {
+      console.log('🔄 Preview tab activated - ensuring ALL data sync:', {
+        client: selectedClient?.name,
+        hasMetrics: !!metrics,
+        reportsCount: dailyReports?.length,
+        themeTitle: themeSettings?.reportTitle,
+        hasBackgroundImage: !!themeSettings?.backgroundImage,
+        backgroundImagePath: themeSettings?.backgroundImage,
+        signature: signature || 'Not set',
+        contactEmail: contactEmail || 'Not set',
+        chartDataURL: chartDataURL ? 'Present' : 'Missing'
+      });
+      
+      // Force a small delay to ensure all state updates are complete
+      const syncTimeout = setTimeout(() => {
+        console.log('✅ Preview sync complete - verifying data:', {
+          clientInContext: !!selectedClient,
+          themeInContext: !!themeSettings,
+          metricsInContext: !!metrics
+        });
+      }, 100);
+      
+      return () => clearTimeout(syncTimeout);
+    }
+  }, [activeTab, selectedClient, metrics, dailyReports, themeSettings, signature, contactEmail, chartDataURL]);
+
+  // CRITICAL: Real-time theme synchronization to context
+  useEffect(() => {
+    console.log('🎨 Theme settings changed, syncing to context:', {
+      hasBackgroundImage: !!themeSettings?.backgroundImage,
+      backgroundImagePath: themeSettings?.backgroundImage,
+      reportTitle: themeSettings?.reportTitle
+    });
+  }, [themeSettings]);
 
   // Enhanced callback handlers with error boundaries
   const handleSelectClient = useCallback((client: ClientData) => {
     try {
       setSelectedClient(client);
-      setContactEmail(client.contactEmail || '');
+      
+      // CRITICAL: Keep security company contact, don't override with client email
+      // The contact email should remain as the security company's contact (it@defenseic.com)
+      // NOT the client's contact email
+      const securityCompanyEmail = 'it@defenseic.com';
+      setContactEmail(securityCompanyEmail);
+      
       setDeliveryOptions(prev => ({ 
         ...prev, 
-        emailRecipients: client.contactEmail ? [client.contactEmail] : [] 
+        // For delivery, we still want to send TO the client
+        emailRecipients: client.contactEmail ? [client.contactEmail] : [],
+        // But CC our security company
+        ccEmails: [securityCompanyEmail]
       }));
       
-      // Reset states for new client
-      setMetrics(mockMetricsData);
+      // CRITICAL: Sync client camera data to metrics
+      const updatedMetrics = {
+        ...mockMetricsData,
+        totalCameras: client.cameras || 0,
+        camerasOnline: client.cameras || 0, // Assume all cameras are online by default
+      };
+      setMetrics(updatedMetrics);
+      
+      console.log('🏢 Security company data synced for client:', {
+        clientName: client.name,
+        clientEmail: client.contactEmail,
+        securityContactEmail: securityCompanyEmail,
+        clientCameras: client.cameras,
+        totalCameras: updatedMetrics.totalCameras,
+        camerasOnline: updatedMetrics.camerasOnline
+      });
+      
+      // Reset other states for new client
       setDailyReports(mockDailyReports || []);
       setSummaryNotes('');
       setSignature('');
@@ -496,7 +618,7 @@ const EnhancedReportBuilder: React.FC = () => {
       
       toast({ 
         title: "Client Selected", 
-        description: `Selected ${client.name} successfully.`,
+        description: `Selected ${client.name} with ${client.cameras || 0} cameras. Security contact: ${securityCompanyEmail}`,
         variant: "default"
       });
     } catch (error) {
@@ -688,7 +810,25 @@ const EnhancedReportBuilder: React.FC = () => {
           initialClient={selectedClient} 
           initialMetrics={metrics}
           initialDateRange={dateRange}
+          initialThemeSettings={themeSettings}
+          key={`${selectedClient?.id || 'no-client'}-${themeSettings?.backgroundImage || 'no-bg'}`}
         >
+          {/* CRITICAL: Data synchronizer to keep context updated */}
+          <ReportDataUpdater
+            client={selectedClient}
+            metrics={metrics}
+            themeSettings={themeSettings}
+            dailyReports={dailyReports}
+            dateRange={dateRange}
+            summaryNotes={summaryNotes}
+            signature={signature}
+            contactEmail={contactEmail}
+            chartDataURL={chartDataURL}
+          />
+          
+          {/* Debug verification component */}
+          <BugFixVerification />
+          
           <Container>
             <Title>{themeSettings.reportTitle || 'Enhanced Report Builder'}</Title>
 
@@ -724,6 +864,7 @@ const EnhancedReportBuilder: React.FC = () => {
                 <Tab 
                   key={tab.id} 
                   $active={activeTab === tab.id} 
+                  $isNew={tab.isNew}
                   onClick={() => !tab.disabled && setActiveTab(tab.id)} 
                   disabled={tab.disabled}
                   theme={themeSettings}

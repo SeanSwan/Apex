@@ -7,8 +7,10 @@ import { jsPDF } from 'jspdf';
 import { ClientData, MetricsData, DailyReport, ThemeSettings, MediaFile, VideoLink, DateRange } from '../../types/reports';
 import { useReportData } from '../../context/ReportDataContext';
 
-// Import background texture - using public path for reliable access
-const marbleTexture = '/src/assets/marble-texture.png';
+import marbleTexture from '../../assets/marble-texture.png';
+
+// Import background texture - using proper import for reliable access
+// const marbleTexture = '/src/assets/marble-texture.png'; // OLD - doesn't work in production
 
 // Styled components
 const Section = styled.div`
@@ -849,7 +851,18 @@ const fallbackMetrics: MetricsData = {
   totalMonitoringHours: 0,
   operationalUptime: 0
 };
-const fallbackTheme: ThemeSettings = { fontFamily: 'inherit', backgroundOpacity: 0.7 };
+
+const fallbackTheme: ThemeSettings = { 
+  fontFamily: 'inherit', 
+  backgroundOpacity: 0.7,
+  reportTitle: 'AI Live Monitoring Report',
+  primaryColor: '#FFFFFF',
+  secondaryColor: '#1A1A1A',
+  accentColor: '#FFD700',
+  backgroundImage: marbleTexture,
+  headerImage: marbleTexture
+};
+
 const fallbackDateRange: DateRange = { start: new Date(), end: new Date() };
 
 /**
@@ -865,7 +878,7 @@ const EnhancedPreviewPanel: React.FC<EnhancedPreviewPanelProps> = ({
   leftLogo,
   rightLogo,
 }) => {
-  // Use the shared context data
+  // Use the shared context data with error handling
   const {
     client,
     themeSettings: contextTheme,
@@ -879,6 +892,19 @@ const EnhancedPreviewPanel: React.FC<EnhancedPreviewPanelProps> = ({
     contactEmail
   } = useReportData();
 
+  // Debug log to help track data flow
+  useEffect(() => {
+    console.log('PreviewPanel context data updated:', {
+      client: client?.name,
+      hasMetrics: !!metrics,
+      hasDailyReports: dailyReports?.length,
+      hasTheme: !!contextTheme,
+      hasChartData: !!chartDataURL,
+      themeBackgroundImage: contextTheme?.backgroundImage,
+      themeHeaderImage: contextTheme?.headerImage
+    });
+  }, [client, metrics, dailyReports, contextTheme, chartDataURL]);
+
   const [previewView, setPreviewView] = useState<PreviewViewType>('full');
   const [showPreviewMessage, setShowPreviewMessage] = useState<boolean>(false);
   const [isPDFLoading, setIsPDFLoading] = useState<boolean>(false);
@@ -886,15 +912,39 @@ const EnhancedPreviewPanel: React.FC<EnhancedPreviewPanelProps> = ({
 
   // Use useEffect to update state based on the context
   useEffect(() => {
-    // If we want to show a preview watermark
-    setShowPreviewMessage(true);
+    // Remove preview watermark - user wants it gone
+    setShowPreviewMessage(false);
   }, []);
 
-  // Use fallbacks if context values are not available
+  // Use fallbacks if context values are not available, also consider props
   const effectiveMetrics = metrics || fallbackMetrics;
-  const effectiveTheme = contextTheme || fallbackTheme;
+  const effectiveTheme = {
+    ...fallbackTheme,
+    ...contextTheme,
+    // Ensure backgroundImage takes priority, then headerImage, then backgroundColor prop
+    backgroundImage: contextTheme?.backgroundImage || contextTheme?.headerImage || backgroundColor,
+    // Ensure other important theme properties are preserved
+    reportTitle: contextTheme?.reportTitle || 'AI Live Monitoring Report',
+    backgroundOpacity: contextTheme?.backgroundOpacity ?? 0.7
+  };
   const effectiveDateRange = dateRange || fallbackDateRange;
-  const effectiveContactEmail = contactEmail || client?.contactEmail || '';
+  
+  // CRITICAL FIX: Always use security company email, never client email
+  // Contact email should ALWAYS be the security company's contact (it@defenseic.com)
+  // This is for security reports, not client communication
+  const securityCompanyEmail = 'it@defenseic.com';
+  const effectiveContactEmail = contactEmail === securityCompanyEmail ? contactEmail : securityCompanyEmail;
+
+  // Enhanced logging for background image debugging
+  useEffect(() => {
+    console.log('PreviewPanel theme background debugging:', {
+      contextThemeBackgroundImage: contextTheme?.backgroundImage,
+      contextThemeHeaderImage: contextTheme?.headerImage,
+      effectiveThemeBackgroundImage: effectiveTheme.backgroundImage,
+      backgroundColorProp: backgroundColor,
+      themeKeys: contextTheme ? Object.keys(contextTheme) : 'no theme'
+    });
+  }, [contextTheme, backgroundColor, effectiveTheme.backgroundImage]);
 
   // Calculate total intrusions from the metrics
   const totalHumanIntrusions = (Object.values(effectiveMetrics.humanIntrusions || {}) as number[]).reduce(
@@ -1083,7 +1133,7 @@ const EnhancedPreviewPanel: React.FC<EnhancedPreviewPanelProps> = ({
 
         {shouldShowSection('header') && (
           <HeaderSection
-            backgroundImage={effectiveTheme.headerImage || backgroundColor}
+            backgroundImage={effectiveTheme.backgroundImage || effectiveTheme.headerImage || backgroundColor}
             opacity={effectiveTheme.backgroundOpacity}
           >
             <LogoContainer>
@@ -1226,8 +1276,12 @@ const EnhancedPreviewPanel: React.FC<EnhancedPreviewPanelProps> = ({
                     <ContactValue>{signature || 'Security Manager'}</ContactValue>
                   </ContactItem>
                   <ContactItem>
-                    <ContactLabel>Client Contact Email:</ContactLabel>
-                    <ContactValue>{effectiveContactEmail || client?.contactEmail || 'N/A'}</ContactValue>
+                    <ContactLabel>Security Company Contact:</ContactLabel>
+                    <ContactValue>{effectiveContactEmail}</ContactValue>
+                  </ContactItem>
+                  <ContactItem>
+                    <ContactLabel>Client Property:</ContactLabel>
+                    <ContactValue>{client?.contactEmail || 'N/A'}</ContactValue>
                   </ContactItem>
                 </ContactInfo>
               </SignatureSection>

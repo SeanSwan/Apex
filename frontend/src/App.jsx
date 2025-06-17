@@ -23,6 +23,9 @@ import CompanyAdminDashboard from './components/AdminDashboard/CompanyAdminDashb
 // Guard Mobile App Interface (Phase 2C)
 import GuardMobileApp from './components/GuardMobile/GuardMobileApp';
 
+// AI Console - Elite Security Operations (Phase 2A - CORRECTED ARCHITECTURE)
+import AIConsoleDashboard from './components/AIConsole/AIConsoleDashboard';
+
 // Existing Pages
 import UnauthorizedPage from './pages/UnauthorizedPage.component';
 
@@ -89,44 +92,8 @@ function App() {
                 {/* Redirect login to platform landing */}
                 <Route path="/login" element={<Navigate to="/" replace />} />
                 
-                {/* === AI CONSOLE (Phase 3 - Future) === */}
-                <Route path="/ai-console" element={
-                  <div style={{
-                    minHeight: '100vh',
-                    background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)',
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    textAlign: 'center',
-                    padding: '2rem'
-                  }}>
-                    <div>
-                      <h1 style={{ color: '#FFD700', marginBottom: '1rem' }}>🤖 AI Training Console</h1>
-                      <p style={{ color: '#B0B0B0', marginBottom: '2rem' }}>
-                        Advanced AI model training and system management
-                      </p>
-                      <p style={{ color: '#666' }}>
-                        This module will be available in Phase 3 - Advanced AI Features
-                      </p>
-                      <button 
-                        onClick={() => window.history.back()}
-                        style={{
-                          marginTop: '2rem',
-                          padding: '0.75rem 1.5rem',
-                          background: '#FFD700',
-                          color: '#000',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          fontWeight: '600'
-                        }}
-                      >
-                        ← Back to Platform
-                      </button>
-                    </div>
-                  </div>
-                } />
+                {/* === AI CONSOLE - ELITE SECURITY OPERATIONS === */}
+                <Route path="/ai-console" element={<AIConsoleDashboard />} />
                 
                 {/* === ERROR HANDLING === */}
                 

@@ -1,5 +1,12 @@
 {
-    "watch": ["src"],
-    "ext": "ts,json",
-    "exec": "node --loader ts-node/esm src/server.ts"
-  }
+  "watch": ["src"],
+  "ext": "js,mjs,ts,json",
+  "ignore": ["node_modules", "*.test.js"],
+  "delay": 1000,
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "colours": true,
+  "legacyWatch": false,
+  "verbose": true
+}

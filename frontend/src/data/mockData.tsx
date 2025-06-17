@@ -268,14 +268,14 @@ export const mockClients: ClientData[] = [
     isActive: true,
     contacts: [
       {
-        name: 'Steven Manager',
-        email: 'it@defenseic.com',
+        name: 'Steven Rodriguez',
+        email: 'temp_srodas@millcreekplaces.com',
         phone: '214-555-4321',
         isPrimary: true
       },
       {
-        name: 'Steven',
-        email: 'it@defenseic.com',
+        name: 'Property Manager',
+        email: 'manager@moderaargyle.com',
         phone: '214-555-8765',
         isPrimary: false
       }

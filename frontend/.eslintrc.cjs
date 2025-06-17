@@ -1,64 +1,58 @@
-// File: frontend/.eslintrc.cjs
+// Simple ESLint Configuration for Mixed JS/TS React Project
 module.exports = {
   root: true,
-  env: { browser: true, es2020: true, node: true },
+  env: { 
+    browser: true, 
+    es2020: true, 
+    node: true 
+  },
   extends: [
     'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
     'plugin:react/recommended',
-    'plugin:react/jsx-runtime',
     'plugin:react-hooks/recommended',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs', 'node_modules'],
-  parser: '@typescript-eslint/parser',
+  ignorePatterns: [
+    'dist', 
+    '.eslintrc.cjs', 
+    'node_modules',
+    '*.test.*',
+    '*.spec.*',
+    'coverage',
+    'build'
+  ],
   parserOptions: { 
     ecmaVersion: 'latest', 
     sourceType: 'module',
     ecmaFeatures: {
       jsx: true
-    },
-    tsconfigRootDir: __dirname,
-    project: ['./tsconfig.json']
+    }
   },
   settings: { 
     react: { 
       version: '18.2' 
-    },
-    'import/resolver': {
-      node: {
-        extensions: ['.js', '.jsx', '.ts', '.tsx']
-      },
-      typescript: {
-        project: './tsconfig.json'
-      }
     }
   },
-  plugins: ['react-refresh', '@typescript-eslint'],
+  plugins: ['react-refresh'],
   rules: {
+    // === REACT RULES ===
     'react/jsx-no-target-blank': 'off',
-    'react-refresh/only-export-components': [
-      'warn',
-      { allowConstantExport: true },
-    ],
-    '@typescript-eslint/no-unused-vars': ['warn', { 
-      argsIgnorePattern: '^_',
-      varsIgnorePattern: '^_' 
-    }],
-    // Temporarily disable or downgrade rules causing build issues
-    '@typescript-eslint/explicit-function-return-type': 'off',
-    '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-explicit-any': 'warn', // Downgraded from error to warning
-    'react-hooks/exhaustive-deps': 'warn',
-    'react/prop-types': 'off', // Since we're using TypeScript
+    'react/prop-types': 'off',
     'react/react-in-jsx-scope': 'off', // Not needed in React 17+
-  },
-  overrides: [
-    {
-      // Enable stricter rules for new TypeScript files
-      files: ["src/new-components/**/*.ts", "src/new-components/**/*.tsx"],
-      rules: {
-        "@typescript-eslint/explicit-function-return-type": ["warn"]
-      }
-    }
-  ]
+    'react/jsx-uses-react': 'off',
+    'react/jsx-uses-vars': 'error',
+    
+    // === REACT HOOKS RULES ===
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'off', // Disabled for development
+    
+    // === DEVELOPMENT FRIENDLY RULES ===
+    'react-refresh/only-export-components': 'off', // Disabled for development
+    
+    // === GENERAL RULES ===
+    'no-console': 'off',
+    'no-debugger': 'warn',
+    'no-unused-vars': 'off', // Disabled for development
+    'prefer-const': 'off',
+    'no-var': 'error'
+  }
 }

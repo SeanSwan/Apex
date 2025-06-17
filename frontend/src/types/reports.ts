@@ -89,6 +89,7 @@ export interface ThemeSettings {
   fontFamily?: string;
   darkMode?: boolean;
   headerImage?: string;     // URL for header background
+  backgroundImage?: string; // URL for main background image
   companyLogo?: string;     // URL for company logo (often left)
   clientLogo?: string;      // URL for client logo (often right)
   textColor?: string;       // Color for text on header background

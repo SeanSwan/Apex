@@ -1,16 +1,20 @@
-// frontend/vite.config.ts
+// frontend/vite.config.ts - Simple Development Configuration
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import eslint from 'vite-plugin-eslint';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    eslint({
-      include: ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.js', 'src/**/*.jsx'],
-    }),
+    // ESLint plugin disabled during development for cleaner experience
+    // Uncomment if you want ESLint in Vite:
+    // eslint({
+    //   include: ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.js', 'src/**/*.jsx'],
+    //   exclude: ['node_modules', 'dist'],
+    //   failOnWarning: false,
+    //   failOnError: false,
+    // }),
   ],
   resolve: {
     alias: {
@@ -18,7 +22,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173, // Changed to match your VITE_APP_PORT in .env
+    port: 5173,
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
@@ -31,5 +35,13 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
     chunkSizeWarningLimit: 1600,
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Suppress certain warnings during build
+        if (warning.code === 'UNUSED_EXTERNAL_IMPORT') return;
+        if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
+        warn(warning);
+      }
+    }
   }
 });

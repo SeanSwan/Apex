@@ -10,6 +10,9 @@ import {
   DateRange
 } from '../types/reports';
 
+// Import marble texture with proper path
+import marbleTexture from '../assets/marble-texture.png';
+
 // Default data for initialization
 export const defaultMetrics: MetricsData = {
   humanIntrusions: { Monday: 8, Tuesday: 5, Wednesday: 12, Thursday: 7, Friday: 9, Saturday: 4, Sunday: 3 },
@@ -40,6 +43,18 @@ const defaultClient: ClientData = {
 const defaultDateRange: DateRange = {
   start: new Date(new Date().setDate(new Date().getDate() - 7)),
   end: new Date()
+};
+
+// Enhanced default theme with proper background image support
+const defaultTheme: ThemeSettings = {
+  primaryColor: '#FFFFFF',
+  secondaryColor: '#1A1A1A',
+  accentColor: '#FFD700',
+  fontFamily: 'Inter, sans-serif',
+  reportTitle: 'AI Live Monitoring Report',
+  backgroundOpacity: 0.7,
+  headerImage: marbleTexture,
+  backgroundImage: marbleTexture
 };
 
 // Export the context type with the new fetchInitialData property
@@ -81,7 +96,7 @@ const defaultContextValue: ReportDataContextType = {
   setSummaryNotes: () => {},
   chartDataURL: '',
   setChartDataURL: () => {},
-  themeSettings: {},
+  themeSettings: defaultTheme,
   setThemeSettings: () => {},
   signature: '',
   setSignature: () => {},
@@ -109,13 +124,15 @@ interface ReportDataProviderProps {
   initialClient?: ClientData | null;
   initialMetrics?: MetricsData;
   initialDateRange?: DateRange;
+  initialThemeSettings?: ThemeSettings;
 }
 
 export const ReportDataProvider: React.FC<ReportDataProviderProps> = ({ 
   children,
   initialClient = defaultClient,
   initialMetrics = defaultMetrics,
-  initialDateRange = defaultDateRange
+  initialDateRange = defaultDateRange,
+  initialThemeSettings = defaultTheme
 }) => {
   // State for all shared data
   const [client, setClient] = useState<ClientData | null>(initialClient);
@@ -124,7 +141,7 @@ export const ReportDataProvider: React.FC<ReportDataProviderProps> = ({
   const [dailyReports, setDailyReports] = useState<DailyReport[]>([]);
   const [summaryNotes, setSummaryNotes] = useState<string>('');
   const [chartDataURL, setChartDataURL] = useState<string>('');
-  const [themeSettings, setThemeSettings] = useState<ThemeSettings>({});
+  const [themeSettings, setThemeSettings] = useState<ThemeSettings>(initialThemeSettings);
   const [signature, setSignature] = useState<string>('');
   const [contactEmail, setContactEmail] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -233,5 +250,6 @@ export default {
   updateMetrics,
   defaultMetrics,
   defaultClient,
-  defaultDateRange
+  defaultDateRange,
+  defaultTheme
 };
