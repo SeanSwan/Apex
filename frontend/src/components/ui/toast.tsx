@@ -253,5 +253,5 @@ export {
   ToastTitle,
   ToastDescription,
   ToastAction,
-  ToastClose: ToastCloseButton,
+  ToastCloseButton as ToastClose
 }

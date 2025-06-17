@@ -37,7 +37,8 @@ import {
   PlusCircle,
   RefreshCw,
   Power,
-  Calendar
+  Calendar,
+  Edit
 } from 'lucide-react';
 
 // Import existing components
@@ -992,7 +993,7 @@ const GuardMobileApp: React.FC = () => {
                 color: '#666',
                 fontStyle: 'italic'
               }}>
-                No draft reports. Tap "New Report" to create one.
+                No draft reports. Tap &quot;New Report&quot; to create one.
               </div>
             )}
           </PageContainer>

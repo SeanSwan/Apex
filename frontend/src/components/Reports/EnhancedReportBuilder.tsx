@@ -355,7 +355,7 @@ const usePerformanceOptimizedState = <T,>(
       // Debounced localStorage save
       const timeoutId = setTimeout(() => {
         try {
-          const valueToSave = typeof value === 'function' ? (value as Function)(state) : value;
+          const valueToSave = typeof value === 'function' ? (value as (prev: T) => T)(state) : value;
           localStorage.setItem(key, JSON.stringify(valueToSave));
         } catch (error) {
           console.warn(`Failed to save ${key} to localStorage:`, error);
