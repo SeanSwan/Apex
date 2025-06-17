@@ -589,144 +589,61 @@ const Header = () => {
           Home
         </NavLink>
         
-        {shouldShowLink('dashboard') && (
-          <NavLink 
-            to="/dashboard" 
-            className={location.pathname === '/dashboard' ? 'active' : ''} 
-            style={{ '--index': 1 }}
-          >
-            Dashboard
-          </NavLink>
-        )}
+        <NavLink 
+          to="/live-monitoring" 
+          className={location.pathname === '/live-monitoring' ? 'active' : ''} 
+          style={{ '--index': 1 }}
+        >
+          Live Monitoring
+        </NavLink>
         
         <NavLink 
-          to="/object-detection" 
-          className={location.pathname === '/object-detection' ? 'active' : ''} 
+          to="/guard-operations" 
+          className={location.pathname === '/guard-operations' ? 'active' : ''} 
           style={{ '--index': 2 }}
         >
-          Detection
+          Guard Ops
+        </NavLink>
+        
+        <NavLink 
+          to="/reports/new" 
+          className={location.pathname.startsWith('/reports') ? 'active' : ''} 
+          style={{ '--index': 3 }}
+        >
+          Reports
         </NavLink>
         
         {/* Admin Dropdown */}
-        {shouldShowGroup(adminLinks) && (
-          <NavDropdown>
-            <DropdownButton 
-              $isOpen={activeDropdown === 'admin'} 
-              onClick={(e) => toggleDropdown(e, 'admin')}
-            >
-              Admin
-            </DropdownButton>
-            <DropdownContent $isOpen={activeDropdown === 'admin'}>
-              {adminLinks.map((link) => (
-                shouldShowLink(link.key) && (
-                  <Link 
-                    key={link.path} 
-                    to={link.path}
-                    onClick={() => setActiveDropdown(null)}
-                  >
-                    {link.label}
-                  </Link>
-                )
-              ))}
-            </DropdownContent>
-          </NavDropdown>
-        )}
-        
-        {/* Operations Dropdown */}
-        {shouldShowGroup(operationsLinks) && (
-          <NavDropdown>
-            <DropdownButton 
-              $isOpen={activeDropdown === 'operations'} 
-              onClick={(e) => toggleDropdown(e, 'operations')}
-            >
-              Operations
-            </DropdownButton>
-            <DropdownContent $isOpen={activeDropdown === 'operations'}>
-              {operationsLinks.map((link) => (
-                shouldShowLink(link.key) && (
-                  <Link 
-                    key={link.path} 
-                    to={link.path}
-                    onClick={() => setActiveDropdown(null)}
-                  >
-                    {link.label}
-                  </Link>
-                )
-              ))}
-            </DropdownContent>
-          </NavDropdown>
-        )}
-        
-        {/* Reports Dropdown */}
-        {shouldShowGroup(reportLinks) && (
-          <NavDropdown>
-            <DropdownButton 
-              $isOpen={activeDropdown === 'reports'} 
-              onClick={(e) => toggleDropdown(e, 'reports')}
-            >
-              Reports
-            </DropdownButton>
-            <DropdownContent $isOpen={activeDropdown === 'reports'}>
-              {reportLinks.map((link) => (
-                shouldShowLink(link.key) && (
-                  <Link 
-                    key={link.path} 
-                    to={link.path}
-                    onClick={() => setActiveDropdown(null)}
-                  >
-                    {link.label}
-                  </Link>
-                )
-              ))}
-            </DropdownContent>
-          </NavDropdown>
-        )}
-        
-        {/* Properties Dropdown */}
-        {shouldShowGroup(propertyLinks) && (
-          <NavDropdown>
-            <DropdownButton 
-              $isOpen={activeDropdown === 'properties'} 
-              onClick={(e) => toggleDropdown(e, 'properties')}
-            >
-              Properties
-            </DropdownButton>
-            <DropdownContent $isOpen={activeDropdown === 'properties'}>
-              {propertyLinks.map((link) => (
-                shouldShowLink(link.key) && (
-                  <Link 
-                    key={link.path} 
-                    to={link.path}
-                    onClick={() => setActiveDropdown(null)}
-                  >
-                    {link.label}
-                  </Link>
-                )
-              ))}
-            </DropdownContent>
-          </NavDropdown>
-        )}
-        
-        {/* Standalone Links */}
-        {shouldShowLink('payroll') && (
-          <NavLink 
-            to="/payroll" 
-            className={location.pathname === '/payroll' ? 'active' : ''} 
-            style={{ '--index': 7 }}
+        <NavDropdown>
+          <DropdownButton 
+            $isOpen={activeDropdown === 'admin'} 
+            onClick={(e) => toggleDropdown(e, 'admin')}
           >
-            Payroll
-          </NavLink>
-        )}
+            Admin
+          </DropdownButton>
+          <DropdownContent $isOpen={activeDropdown === 'admin'}>
+            <Link 
+              to="/admin"
+              onClick={() => setActiveDropdown(null)}
+            >
+              Admin Dashboard
+            </Link>
+            <Link 
+              to="/guard-mobile"
+              onClick={() => setActiveDropdown(null)}
+            >
+              Guard Mobile
+            </Link>
+            <Link 
+              to="/ai-console"
+              onClick={() => setActiveDropdown(null)}
+            >
+              AI Console
+            </Link>
+          </DropdownContent>
+        </NavDropdown>
         
-        {shouldShowLink('communication') && (
-          <NavLink 
-            to="/communication" 
-            className={location.pathname === '/communication' ? 'active' : ''} 
-            style={{ '--index': 8 }}
-          >
-            Messages
-          </NavLink>
-        )}
+
       </NavLinks>
       
       {/* Hamburger Menu */}
@@ -740,121 +657,22 @@ const Header = () => {
       {/* Mobile Menu */}
       <MobileMenu $isOpen={isMobileMenuOpen}>
         <MobileNavLink to="/" style={{ '--index': 0 }}>Home</MobileNavLink>
-        
-        {shouldShowLink('dashboard') && (
-          <MobileNavLink to="/dashboard" style={{ '--index': 1 }}>Dashboard</MobileNavLink>
-        )}
-        
-        <MobileNavLink to="/object-detection" style={{ '--index': 2 }}>Object Detection</MobileNavLink>
+        <MobileNavLink to="/live-monitoring" style={{ '--index': 1 }}>Live Monitoring</MobileNavLink>
+        <MobileNavLink to="/guard-operations" style={{ '--index': 2 }}>Guard Operations</MobileNavLink>
+        <MobileNavLink to="/reports/new" style={{ '--index': 3 }}>Reports</MobileNavLink>
         
         {/* Admin Section */}
-        {shouldShowGroup(adminLinks) && (
-          <>
-            <div style={{ 
-              padding: '1rem', 
-              borderBottom: `1px solid ${colors.gold}`, 
-              color: colors.gold,
-              marginTop: '1rem'
-            }}>
-              Admin
-            </div>
-            {adminLinks.map((link, index) => (
-              shouldShowLink(link.key) && (
-                <MobileNavLink 
-                  key={link.path} 
-                  to={link.path} 
-                  style={{ '--index': index + 3 }}
-                >
-                  {link.label}
-                </MobileNavLink>
-              )
-            ))}
-          </>
-        )}
-        
-        {/* Operations Section */}
-        {shouldShowGroup(operationsLinks) && (
-          <>
-            <div style={{ 
-              padding: '1rem', 
-              borderBottom: `1px solid ${colors.gold}`, 
-              color: colors.gold,
-              marginTop: '1rem'
-            }}>
-              Operations
-            </div>
-            {operationsLinks.map((link, index) => (
-              shouldShowLink(link.key) && (
-                <MobileNavLink 
-                  key={link.path} 
-                  to={link.path} 
-                  style={{ '--index': index + 6 }}
-                >
-                  {link.label}
-                </MobileNavLink>
-              )
-            ))}
-          </>
-        )}
-        
-        {/* Reports Section */}
-        {shouldShowGroup(reportLinks) && (
-          <>
-            <div style={{ 
-              padding: '1rem', 
-              borderBottom: `1px solid ${colors.gold}`, 
-              color: colors.gold,
-              marginTop: '1rem'
-            }}>
-              Reports
-            </div>
-            {reportLinks.map((link, index) => (
-              shouldShowLink(link.key) && (
-                <MobileNavLink 
-                  key={link.path} 
-                  to={link.path} 
-                  style={{ '--index': index + 10 }}
-                >
-                  {link.label}
-                </MobileNavLink>
-              )
-            ))}
-          </>
-        )}
-        
-        {/* Properties Section */}
-        {shouldShowGroup(propertyLinks) && (
-          <>
-            <div style={{ 
-              padding: '1rem', 
-              borderBottom: `1px solid ${colors.gold}`, 
-              color: colors.gold,
-              marginTop: '1rem'
-            }}>
-              Properties
-            </div>
-            {propertyLinks.map((link, index) => (
-              shouldShowLink(link.key) && (
-                <MobileNavLink 
-                  key={link.path} 
-                  to={link.path} 
-                  style={{ '--index': index + 13 }}
-                >
-                  {link.label}
-                </MobileNavLink>
-              )
-            ))}
-          </>
-        )}
-        
-        {/* Additional Links */}
-        {shouldShowLink('payroll') && (
-          <MobileNavLink to="/payroll" style={{ '--index': 15 }}>Payroll</MobileNavLink>
-        )}
-        
-        {shouldShowLink('communication') && (
-          <MobileNavLink to="/communication" style={{ '--index': 16 }}>Messages</MobileNavLink>
-        )}
+        <div style={{ 
+          padding: '1rem', 
+          borderBottom: `1px solid ${colors.gold}`, 
+          color: colors.gold,
+          marginTop: '1rem'
+        }}>
+          Admin
+        </div>
+        <MobileNavLink to="/admin" style={{ '--index': 4 }}>Admin Dashboard</MobileNavLink>
+        <MobileNavLink to="/guard-mobile" style={{ '--index': 5 }}>Guard Mobile</MobileNavLink>
+        <MobileNavLink to="/ai-console" style={{ '--index': 6 }}>AI Console</MobileNavLink>
         
         {/* Auth Links for Mobile */}
         <div style={{ 

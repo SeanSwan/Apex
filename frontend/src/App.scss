@@ -66,5 +66,6 @@ textarea {
 }
 
 #root {
-  padding-top: 60px; // Adjust this value to match the header height
+  padding-top: 0; // Header positioning handled by individual components
+  min-height: 100vh;
 }
