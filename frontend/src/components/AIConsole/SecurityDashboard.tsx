@@ -88,7 +88,7 @@ const SecurityMetric = styled.div`
   }
 `;
 
-const StatusIndicator = styled.div<{ status: 'online' | 'offline' | 'warning' | 'alert' }>`
+const StatusIndicator = styled.div<{ $status: 'online' | 'offline' | 'warning' | 'alert' }>`
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -100,7 +100,7 @@ const StatusIndicator = styled.div<{ status: 'online' | 'offline' | 'warning' | 
   letter-spacing: 0.5px;
   
   background-color: ${props => {
-    switch(props.status) {
+    switch(props.$status) {
       case 'online': return 'rgba(46, 204, 113, 0.2)';
       case 'warning': return 'rgba(241, 196, 15, 0.2)';
       case 'alert': return 'rgba(231, 76, 60, 0.2)';
@@ -109,7 +109,7 @@ const StatusIndicator = styled.div<{ status: 'online' | 'offline' | 'warning' | 
   }};
   
   color: ${props => {
-    switch(props.status) {
+    switch(props.$status) {
       case 'online': return '#2ecc71';
       case 'warning': return '#f1c40f';
       case 'alert': return '#e74c3c';
@@ -363,7 +363,7 @@ const ApexAISecurityEnhancements: React.FC<SecurityEnhancementsProps> = ({ class
         <SecurityCard>
           <SecurityCardHeader>
             <h4><Eye size={20} /> Live Security Status</h4>
-            <StatusIndicator status={securityMetrics.cameraStatus}>
+            <StatusIndicator $status={securityMetrics.cameraStatus}>
               {securityMetrics.cameraStatus === 'online' ? <Wifi size={12} /> : <WifiOff size={12} />}
               {securityMetrics.cameraStatus.toUpperCase()}
             </StatusIndicator>
@@ -390,7 +390,7 @@ const ApexAISecurityEnhancements: React.FC<SecurityEnhancementsProps> = ({ class
         <SecurityCard>
           <SecurityCardHeader>
             <h4><TrendingUp size={20} /> AI Security Analytics</h4>
-            <StatusIndicator status={securityMetrics.aiAccuracy > 95 ? 'online' : 'warning'}>
+            <StatusIndicator $status={securityMetrics.aiAccuracy > 95 ? 'online' : 'warning'}>
               <Zap size={12} />
               AI ACTIVE
             </StatusIndicator>
@@ -423,7 +423,7 @@ const ApexAISecurityEnhancements: React.FC<SecurityEnhancementsProps> = ({ class
         <SecurityCard>
           <SecurityCardHeader>
             <h4><Users size={20} /> Guard Operations</h4>
-            <StatusIndicator status="online">
+            <StatusIndicator $status="online">
               <Radio size={12} />
               DISPATCH ACTIVE
             </StatusIndicator>
@@ -450,7 +450,7 @@ const ApexAISecurityEnhancements: React.FC<SecurityEnhancementsProps> = ({ class
         <SecurityCard>
           <SecurityCardHeader>
             <h4><AlertTriangle size={20} /> Threat Assessment</h4>
-            <StatusIndicator status={securityMetrics.threatLevel === 'low' ? 'online' : securityMetrics.threatLevel === 'medium' ? 'warning' : 'alert'}>
+            <StatusIndicator $status={securityMetrics.threatLevel === 'low' ? 'online' : securityMetrics.threatLevel === 'medium' ? 'warning' : 'alert'}>
               <Shield size={12} />
               {securityMetrics.threatLevel.toUpperCase()}
             </StatusIndicator>
@@ -487,7 +487,7 @@ const ApexAISecurityEnhancements: React.FC<SecurityEnhancementsProps> = ({ class
         <SecurityCard style={{ gridColumn: 'span 2' }}>
           <SecurityCardHeader>
             <h4><Activity size={20} /> Live Security Feed</h4>
-            <StatusIndicator status="online">
+            <StatusIndicator $status="online">
               <Eye size={12} />
               MONITORING
             </StatusIndicator>
@@ -512,7 +512,7 @@ const ApexAISecurityEnhancements: React.FC<SecurityEnhancementsProps> = ({ class
         <SecurityCard>
           <SecurityCardHeader>
             <h4><Award size={20} /> Security Score</h4>
-            <StatusIndicator status={securityMetrics.uptime > 98 ? 'online' : 'warning'}>
+            <StatusIndicator $status={securityMetrics.uptime > 98 ? 'online' : 'warning'}>
               <ShieldCheck size={12} />
               RATED
             </StatusIndicator>

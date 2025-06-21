@@ -73,7 +73,7 @@ const ClientGrid = styled.div`
 
 interface ClientCardProps {
   $active: boolean;
-  bgPosition: string;
+  $bgPosition: string;
 }
 
 const ClientCard = styled.div<ClientCardProps>`
@@ -85,7 +85,7 @@ const ClientCard = styled.div<ClientCardProps>`
   border: 2px solid ${props => props.$active ? '#e5c76b' : '#444'};
   background-image: url('/src/assets/marble-texture.png');
   background-size: ${() => 120 + Math.random() * 30}%;
-  background-position: ${props => props.bgPosition};
+  background-position: ${props => props.$bgPosition};
   overflow: hidden;
   
   &::before {
@@ -291,7 +291,7 @@ const ClientSelector: React.FC<ClientSelectorProps> = ({
               <ClientCard
                 key={client.id}
                 $active={selectedClient?.id === client.id}
-                bgPosition={getBackgroundPosition(index)}
+                $bgPosition={getBackgroundPosition(index)}
                 onClick={() => onSelectClient(client)}
               >
                 <ClientHeader>

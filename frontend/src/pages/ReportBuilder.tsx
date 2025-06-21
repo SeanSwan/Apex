@@ -28,7 +28,7 @@ import MediaManagementSystem from '../components/Reports/MediaManagementSystem';
 import DataVisualizationPanel from '../components/Reports/DataVisualizationPanel';
 import ThemeBuilder from '../components/Reports/ThemeBuilder';
 // Import the Enhanced Preview Panel instead of standard PreviewPanel
-import EnhancedPreviewPanel from '../components/Reports/PreviewPanel';
+import EnhancedPreviewPanel from '../components/Reports/EnhancedPreviewPanel';
 import DeliveryOptionsPanel from '../components/Reports/DeliveryOptionsPanel';
 import { DatePicker } from './../components/ui/date-picker';
 

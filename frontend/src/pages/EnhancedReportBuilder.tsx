@@ -24,6 +24,7 @@ import QuickIncidentReport from '../components/Reports/QuickIncidentReport';
 
 // Import data visualization components
 import DataVisualizationPanel from '../components/Reports/DataVisualizationPanel';
+import BugFixVerification from '../components/BugFixVerification';
 
 // Import types and mock data
 import { 
@@ -51,7 +52,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Clock,
-  Users
+  Users,
+  X
 } from 'lucide-react';
 
 // Styled components
@@ -1215,6 +1217,9 @@ const EnhancedReportBuilder: React.FC = () => {
           />
         </Card>
       )}
+      
+      {/* Bug Fix Verification Status */}
+      <BugFixVerification />
     </Container>
   );
 };

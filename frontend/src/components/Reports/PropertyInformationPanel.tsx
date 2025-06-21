@@ -47,7 +47,176 @@ const MetricTitle = styled.h4`
 `;
 
 const MetricValue = styled.div<{ size?: 'small' | 'medium' | 'large' }>`
-  font-size: ${props => props.size === 'large' ? '2rem' : props.size === 'medium' ? '1.5rem' : '1.25rem'  return (
+  font-size: ${props => props.size === 'large' ? '2rem' : props.size === 'medium' ? '1.5rem' : '1.25rem'};
+  font-weight: 700;
+  color: #333;
+`;
+
+const MetricChange = styled.span<{ positive?: boolean }>`
+  font-size: 0.875rem;
+  color: ${props => props.positive ? '#28a745' : '#dc3545'};
+  display: flex;
+  align-items: center;
+  margin-top: 0.25rem;
+  
+  &::before {
+    content: ${props => props.positive ? '"↑"' : '"↓"'};
+    margin-right: 0.25rem;
+  }
+`;
+
+const MetricDetail = styled.div`
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-top: 0.5rem;
+`;
+
+const DataTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  
+  th, td {
+    padding: 0.75rem;
+    border: 1px solid #dee2e6;
+    text-align: left;
+  }
+  
+  th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+  }
+  
+  tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+  }
+  
+  tbody tr:hover {
+    background-color: #f1f1f1;
+  }
+`;
+
+const EditableInput = styled.input`
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  
+  &:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+`;
+
+// Type for the calculated metrics
+interface CalculatedMetrics {
+  totalHumanIntrusions: number;
+  totalVehicleIntrusions: number;
+  avgHumanIntrusionsPerDay: number;
+  avgVehicleIntrusionsPerDay: number;
+  peakHumanDay: string;
+  peakVehicleDay: string;
+  cameraUptime: number;
+  responseEfficiency: number;
+}
+
+interface PropertyInfoPanelProps {
+  clientData: ClientData | null;
+  metrics: MetricsData;
+  dateRange: { start: Date; end: Date };
+  onMetricsChange: (metrics: Partial<MetricsData>) => void;
+}
+
+const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
+  clientData,
+  metrics,
+  dateRange,
+  onMetricsChange,
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedMetrics, setEditedMetrics] = useState<MetricsData>(metrics);
+  
+  // Update local state when props change
+  React.useEffect(() => {
+    setEditedMetrics(metrics);
+  }, [metrics]);
+  
+  // Calculate derived metrics from either edited or original metrics
+  const calculatedMetrics: CalculatedMetrics = React.useMemo(() => {
+    const data = isEditing ? editedMetrics : metrics;
+    
+    // Sum values
+    const totalHumanIntrusions = Object.values(data.humanIntrusions).reduce((sum, value) => sum + value, 0);
+    const totalVehicleIntrusions = Object.values(data.vehicleIntrusions).reduce((sum, value) => sum + value, 0);
+    
+    // Averages
+    const avgHumanIntrusionsPerDay = totalHumanIntrusions / 7;
+    const avgVehicleIntrusionsPerDay = totalVehicleIntrusions / 7;
+    
+    // Peak days
+    const humanEntries = Object.entries(data.humanIntrusions);
+    const vehicleEntries = Object.entries(data.vehicleIntrusions);
+    
+    const peakHumanDay = humanEntries.reduce((max, [day, count]) => 
+      count > (max[1] || 0) ? [day, count] : max, ['', 0])[0];
+      
+    const peakVehicleDay = vehicleEntries.reduce((max, [day, count]) => 
+      count > (max[1] || 0) ? [day, count] : max, ['', 0])[0];
+    
+    // Additional calculated metrics
+    const cameraUptime = data.camerasOnline / Math.max(data.totalCameras, 1) * 100;
+    const responseEfficiency = 100 - (data.responseTime / 2 * 100); // Normalize 0-2 seconds to 100-0%
+    
+    return {
+      totalHumanIntrusions,
+      totalVehicleIntrusions,
+      avgHumanIntrusionsPerDay,
+      avgVehicleIntrusionsPerDay,
+      peakHumanDay,
+      peakVehicleDay,
+      cameraUptime,
+      responseEfficiency
+    };
+  }, [metrics, editedMetrics, isEditing]);
+  
+  // Handle manual metric changes
+  const handleMetricChange = (key: keyof MetricsData, value: any) => {
+    setEditedMetrics(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+  
+  // Handle daily metric input
+  const handleDailyMetricChange = (
+    metricType: 'humanIntrusions' | 'vehicleIntrusions',
+    day: string,
+    value: number
+  ) => {
+    setEditedMetrics(prev => ({
+      ...prev,
+      [metricType]: {
+        ...prev[metricType],
+        [day]: value
+      }
+    }));
+  };
+  
+  // Save changes
+  const handleSaveChanges = () => {
+    onMetricsChange(editedMetrics);
+    setIsEditing(false);
+  };
+  
+  // Cancel changes
+  const handleCancelChanges = () => {
+    setEditedMetrics(metrics);
+    setIsEditing(false);
+  };
+
+  return (
     <div>
       {!clientData ? (
         <div>Please select a client to view property information</div>
@@ -335,169 +504,5 @@ const MetricValue = styled.div<{ size?: 'small' | 'medium' | 'large' }>`
     </div>
   );
 };
-  font-weight: 700;
-  color: #333;
-`;
 
-const MetricChange = styled.span<{ positive?: boolean }>`
-  font-size: 0.875rem;
-  color: ${props => props.positive ? '#28a745' : '#dc3545'};
-  display: flex;
-  align-items: center;
-  margin-top: 0.25rem;
-  
-  &::before {
-    content: ${props => props.positive ? '"↑"' : '"↓"'};
-    margin-right: 0.25rem;
-  }
-`;
-
-const MetricDetail = styled.div`
-  font-size: 0.875rem;
-  color: #6c757d;
-  margin-top: 0.5rem;
-`;
-
-const DataTable = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-  
-  th, td {
-    padding: 0.75rem;
-    border: 1px solid #dee2e6;
-    text-align: left;
-  }
-  
-  th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-  }
-  
-  tbody tr:nth-child(even) {
-    background-color: #f8f9fa;
-  }
-  
-  tbody tr:hover {
-    background-color: #f1f1f1;
-  }
-`;
-
-const EditableInput = styled.input`
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  
-  &:focus {
-    border-color: #80bdff;
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-  }
-`;
-
-// Type for the calculated metrics
-interface CalculatedMetrics {
-  totalHumanIntrusions: number;
-  totalVehicleIntrusions: number;
-  avgHumanIntrusionsPerDay: number;
-  avgVehicleIntrusionsPerDay: number;
-  peakHumanDay: string;
-  peakVehicleDay: string;
-  cameraUptime: number;
-  responseEfficiency: number;
-}
-
-interface PropertyInfoPanelProps {
-  clientData: ClientData | null;
-  metrics: MetricsData;
-  dateRange: { start: Date; end: Date };
-  onMetricsChange: (metrics: Partial<MetricsData>) => void;
-}
-
-const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
-  clientData,
-  metrics,
-  dateRange,
-  onMetricsChange,
-}) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedMetrics, setEditedMetrics] = useState<MetricsData>(metrics);
-  
-  // Update local state when props change
-  React.useEffect(() => {
-    setEditedMetrics(metrics);
-  }, [metrics]);
-  // Calculate derived metrics from either edited or original metrics
-  const calculatedMetrics: CalculatedMetrics = React.useMemo(() => {
-    const data = isEditing ? editedMetrics : metrics;
-    
-    // Sum values
-    const totalHumanIntrusions = Object.values(data.humanIntrusions).reduce((sum, value) => sum + value, 0);
-    const totalVehicleIntrusions = Object.values(data.vehicleIntrusions).reduce((sum, value) => sum + value, 0);
-    
-    // Averages
-    const avgHumanIntrusionsPerDay = totalHumanIntrusions / 7;
-    const avgVehicleIntrusionsPerDay = totalVehicleIntrusions / 7;
-    
-    // Peak days
-    const humanEntries = Object.entries(data.humanIntrusions);
-    const vehicleEntries = Object.entries(data.vehicleIntrusions);
-    
-    const peakHumanDay = humanEntries.reduce((max, [day, count]) => 
-      count > (max[1] || 0) ? [day, count] : max, ['', 0])[0];
-      
-    const peakVehicleDay = vehicleEntries.reduce((max, [day, count]) => 
-      count > (max[1] || 0) ? [day, count] : max, ['', 0])[0];
-    
-    // Additional calculated metrics
-    const cameraUptime = data.camerasOnline / Math.max(data.totalCameras, 1) * 100;
-    const responseEfficiency = 100 - (data.responseTime / 2 * 100); // Normalize 0-2 seconds to 100-0%
-    
-    return {
-      totalHumanIntrusions,
-      totalVehicleIntrusions,
-      avgHumanIntrusionsPerDay,
-      avgVehicleIntrusionsPerDay,
-      peakHumanDay,
-      peakVehicleDay,
-      cameraUptime,
-      responseEfficiency
-    };
-  }, [metrics, editedMetrics, isEditing]);
-  
-  // Handle manual metric changes
-  const handleMetricChange = (key: keyof MetricsData, value: any) => {
-    setEditedMetrics(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  };
-  
-  // Handle daily metric input
-  const handleDailyMetricChange = (
-    metricType: 'humanIntrusions' | 'vehicleIntrusions',
-    day: string,
-    value: number
-  ) => {
-    setEditedMetrics(prev => ({
-      ...prev,
-      [metricType]: {
-        ...prev[metricType],
-        [day]: value
-      }
-    }));
-  };
-  
-  // Save changes
-  const handleSaveChanges = () => {
-    onMetricsChange(editedMetrics);
-    setIsEditing(false);
-  };
-  
-  // Cancel changes
-  const handleCancelChanges = () => {
-    setEditedMetrics(metrics);
-    setIsEditing(false);
-  };
+export default PropertyInfoPanel;

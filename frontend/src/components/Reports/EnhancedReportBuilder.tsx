@@ -3,7 +3,8 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import styled, { createGlobalStyle, css, ThemeProvider } from 'styled-components';
 import { format, startOfWeek, endOfWeek, addDays, subDays } from 'date-fns';
 import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
+import { EnhancedPDFGenerator } from './EnhancedPDFGenerator';
 import { useToast } from '../../hooks/use-toast';
 import { ChevronLeft, ChevronRight, Download, Calendar as CalendarIcon, RefreshCw } from 'lucide-react';
 
@@ -28,10 +29,10 @@ import DailyReportsPanel from './DailyReportsPanel';
 import MediaManagementSystem from './MediaManagementSystem';
 import DataVisualizationPanel from './DataVisualizationPanel';
 import ThemeBuilder from './ThemeBuilder';
-import EnhancedPreviewPanel from './PreviewPanel';
+import EnhancedPreviewPanel from './EnhancedPreviewPanel';
 import DeliveryOptionsPanel from './DeliveryOptionsPanel';
-import ReportDataUpdater from './ReportDataUpdater';
 import BugFixVerification from './BugFixVerification';
+
 
 import { DatePicker } from '../ui/date-picker';
 
@@ -39,10 +40,13 @@ import { DatePicker } from '../ui/date-picker';
 import { ReportDataProvider, useReportData } from '../../context/ReportDataContext';
 
 // Mock Data Import
-import { mockClients, mockMetricsData, mockDailyReports } from '../../data/mockData';
+import { mockClients, mockMetricsData, mockDailyReports, generateMetricsForClient } from '../../data/mockData';
 
-// Import marble texture for theme defaults
+// Import marble texture for theme defaults - using proper import for bundling
 import marbleTexture from '../../assets/marble-texture.png';
+
+// Debug asset loading
+console.log('🖼️ Marble texture loaded:', marbleTexture);
 
 // Enhanced Theme Interface
 interface CustomThemeSettings extends ThemeSettings {
@@ -446,7 +450,7 @@ const EnhancedReportBuilder: React.FC = () => {
   const [activeTab, setActiveTab] = usePerformanceOptimizedState<string>('client', 'activeTab');
   const [clients] = useState<ClientData[]>(() => mockClients);
   const [selectedClient, setSelectedClient] = usePerformanceOptimizedState<ClientData | null>(null, 'selectedClient');
-  const [metrics, setMetrics] = usePerformanceOptimizedState<MetricsData>(mockMetricsData, 'metrics');
+  // REMOVED LOCAL METRICS STATE - Context is single source of truth
   const [dailyReports, setDailyReports] = usePerformanceOptimizedState<DailyReport[]>(mockDailyReports || [], 'dailyReports');
   const [summaryNotes, setSummaryNotes] = usePerformanceOptimizedState<string>('', 'summaryNotes');
   const [signature, setSignature] = usePerformanceOptimizedState<string>('', 'signature');
@@ -460,6 +464,10 @@ const EnhancedReportBuilder: React.FC = () => {
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [isChartGenerationRequested, setIsChartGenerationRequested] = useState<boolean>(false);
   const [currentDate, setCurrentDate] = usePerformanceOptimizedState<Date>(new Date(), 'currentDate');
+
+  // Get chart data from context directly
+  const contextData = useReportData();
+  const contextMetrics = contextData.metrics;
 
   // Memoized date range calculation
   const dateRange = useMemo(() => ({
@@ -507,61 +515,51 @@ const EnhancedReportBuilder: React.FC = () => {
     }
   }, [toast]);
 
-  // Chart generation effect with error handling
+  // 🚨 QUICK FIX: Less restrictive chart generation for preview
   useEffect(() => {
-    if ((activeTab === 'viz' || activeTab === 'preview') && chartRef.current && (isChartGenerationRequested || chartDataURL === '')) {
+    const needsChart = (activeTab === 'viz' || activeTab === 'preview');
+    const shouldGenerate = needsChart && (isChartGenerationRequested || (activeTab === 'preview' && !chartDataURL));
+    
+    if (shouldGenerate && chartRef.current) {
+      console.log('📊 GENERATING chart for preview:', {
+        activeTab,
+        hasChartRef: !!chartRef.current,
+        isRequested: isChartGenerationRequested,
+        hasExistingChart: !!chartDataURL
+      });
+      
       generateChartWithErrorHandling();
     }
   }, [activeTab, isChartGenerationRequested, generateChartWithErrorHandling, chartDataURL]);
 
-  // Request chart regeneration when data changes
+  // 🚨 IMMEDIATE chart generation when switching to preview
   useEffect(() => {
-    if (activeTab === 'viz' || activeTab === 'preview') {
-      console.log('📈 Chart generation requested for tab:', activeTab);
-      setIsChartGenerationRequested(true);
+    if (activeTab === 'preview' && chartRef.current) {
+      console.log('⚡ IMMEDIATE chart generation for preview');
+      
+      // Generate immediately, don't wait
+      const timeoutId = setTimeout(() => {
+        setIsChartGenerationRequested(true);
+      }, 100); // Very short delay
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [metrics, themeSettings, activeTab]);
+  }, [activeTab]);
 
-  // Force chart generation when switching to preview if no chart exists
+  // 🚨 CRITICAL FIX: Chart regeneration when context metrics change  
   useEffect(() => {
-    if (activeTab === 'preview' && !chartDataURL) {
-      console.log('⚠️ No chart data found, forcing chart generation...');
-      setIsChartGenerationRequested(true);
+    if ((activeTab === 'viz' || activeTab === 'preview') && contextMetrics) {
+      console.log('📈 CONTEXT metrics changed - requesting chart regeneration');
       
-      // Also try to generate immediately if we have metrics
-      if (metrics && chartRef.current) {
-        generateChartWithErrorHandling();
-      }
+      // Shorter debounce for preview
+      const debounceTime = activeTab === 'preview' ? 500 : 1000;
+      const timeoutId = setTimeout(() => {
+        setIsChartGenerationRequested(true);
+      }, debounceTime);
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [activeTab, chartDataURL, metrics, generateChartWithErrorHandling]);
-
-  // Enhanced data synchronization - CRITICAL FOR FIXING BUGS
-  useEffect(() => {
-    if (activeTab === 'preview') {
-      console.log('🔄 Preview tab activated - ensuring ALL data sync:', {
-        client: selectedClient?.name,
-        hasMetrics: !!metrics,
-        reportsCount: dailyReports?.length,
-        themeTitle: themeSettings?.reportTitle,
-        hasBackgroundImage: !!themeSettings?.backgroundImage,
-        backgroundImagePath: themeSettings?.backgroundImage,
-        signature: signature || 'Not set',
-        contactEmail: contactEmail || 'Not set',
-        chartDataURL: chartDataURL ? 'Present' : 'Missing'
-      });
-      
-      // Force a small delay to ensure all state updates are complete
-      const syncTimeout = setTimeout(() => {
-        console.log('✅ Preview sync complete - verifying data:', {
-          clientInContext: !!selectedClient,
-          themeInContext: !!themeSettings,
-          metricsInContext: !!metrics
-        });
-      }, 100);
-      
-      return () => clearTimeout(syncTimeout);
-    }
-  }, [activeTab, selectedClient, metrics, dailyReports, themeSettings, signature, contactEmail, chartDataURL]);
+  }, [contextMetrics?.potentialThreats, contextMetrics?.aiAccuracy, contextMetrics?.totalCameras, activeTab]);
 
   // CRITICAL: Real-time theme synchronization to context
   useEffect(() => {
@@ -577,43 +575,55 @@ const EnhancedReportBuilder: React.FC = () => {
     try {
       setSelectedClient(client);
       
-      // CRITICAL: Keep security company contact, don't override with client email
-      // The contact email should remain as the security company's contact (it@defenseic.com)
-      // NOT the client's contact email
+      // CRITICAL: ALWAYS use security company contact information
+      // NEVER use client contact information for reports
       const securityCompanyEmail = 'it@defenseic.com';
+      const securityCompanySignature = 'Sean Swan';
+      
+      // FORCE security company email - do not use client email
       setContactEmail(securityCompanyEmail);
+      setSignature(securityCompanySignature);
+      
+      console.log('🔒 SECURITY CONTACT ENFORCED:', {
+        clientName: client.name,
+        clientEmail: client.contactEmail,
+        FORCED_securityEmail: securityCompanyEmail,
+        FORCED_signature: securityCompanySignature,
+        message: 'Contact info ALWAYS uses security company details'
+      });
       
       setDeliveryOptions(prev => ({ 
         ...prev, 
-        // For delivery, we still want to send TO the client
+        // For delivery, we send TO the client but FROM security company
         emailRecipients: client.contactEmail ? [client.contactEmail] : [],
-        // But CC our security company
+        // CC our security company for records
         ccEmails: [securityCompanyEmail]
       }));
       
-      // CRITICAL: Sync client camera data to metrics
-      const updatedMetrics = {
-        ...mockMetricsData,
-        totalCameras: client.cameras || 0,
-        camerasOnline: client.cameras || 0, // Assume all cameras are online by default
-      };
-      setMetrics(updatedMetrics);
+      // CRITICAL: Generate metrics based on client data using proper calculation
+      const clientSpecificMetrics = generateMetricsForClient(client);
       
-      console.log('🏢 Security company data synced for client:', {
-        clientName: client.name,
-        clientEmail: client.contactEmail,
-        securityContactEmail: securityCompanyEmail,
-        clientCameras: client.cameras,
-        totalCameras: updatedMetrics.totalCameras,
-        camerasOnline: updatedMetrics.camerasOnline
+      // Update context directly - no local state
+      if (contextData.setMetrics) {
+      contextData.setMetrics(clientSpecificMetrics);
+      }
+      
+      console.log('🏢 Client-specific metrics generated for context:', {
+      clientName: client.name,
+      clientCameras: client.cameras,
+      generatedTotalCameras: clientSpecificMetrics.totalCameras,
+      generatedCamerasOnline: clientSpecificMetrics.camerasOnline,
+      shouldShow: `${clientSpecificMetrics.camerasOnline}/${clientSpecificMetrics.totalCameras}`,
+      aiAccuracy: clientSpecificMetrics.aiAccuracy,
+      operationalUptime: clientSpecificMetrics.operationalUptime
       });
       
-      // Reset other states for new client
+      // Reset other states for new client but keep security company defaults
       setDailyReports(mockDailyReports || []);
       setSummaryNotes('');
-      setSignature('');
+      setSignature(securityCompanySignature); // Keep default signature
       setReportMedia([]);
-      setChartDataURL('');
+      setChartDataURL(''); // Clear existing chart so new one generates
       setActiveTab('info');
       
       toast({ 
@@ -629,11 +639,10 @@ const EnhancedReportBuilder: React.FC = () => {
         description: "Failed to select client. Please try again."
       });
     }
-  }, [setSelectedClient, setContactEmail, setDeliveryOptions, setMetrics, setDailyReports, setSummaryNotes, setSignature, setReportMedia, setActiveTab, toast]);
+  }, [setSelectedClient, setContactEmail, setDeliveryOptions, contextData.setMetrics, setDailyReports, setSummaryNotes, setSignature, setReportMedia, setActiveTab, toast]);
 
-  const handleMetricsChange = useCallback((updatedMetrics: Partial<MetricsData>) => {
-    setMetrics(prev => ({ ...prev, ...updatedMetrics }));
-  }, [setMetrics]);
+  // REMOVED handleMetricsChange - PropertyInfoPanel updates context directly
+  // Charts regenerate automatically when context metrics change
 
   const handleReportChange = useCallback((day: string, content: string, status?: string, securityCode?: string) => {
     setDailyReports(prev => prev.map(report => 
@@ -678,11 +687,12 @@ const EnhancedReportBuilder: React.FC = () => {
   }, [setReportMedia]);
 
   const handleRefreshChart = useCallback(() => { 
+    setChartDataURL(''); // Clear existing chart
     setIsChartGenerationRequested(true); 
   }, []);
 
-  // Enhanced PDF download with better error handling
-  const handleDownloadReport = useCallback(async () => {
+  // Enhanced PDF download with compression options
+  const handleDownloadReport = useCallback(async (compressionType: 'standard' | 'compressed' | 'both' = 'both') => {
     if (!selectedClient || !previewPanelRef.current) {
       toast({ 
         variant: "destructive", 
@@ -706,48 +716,37 @@ const EnhancedReportBuilder: React.FC = () => {
     }
 
     setIsLoading(true); 
-    setLoadingMessage('Generating PDF...');
+    setLoadingMessage('Generating PDF with compression options...');
     
     try {
-      const canvas = await html2canvas(previewPanelRef.current, { 
-        scale: 2, 
-        useCORS: true, 
-        logging: false,
-        backgroundColor: '#ffffff',
-        onclone: (doc) => { 
-          const wm = doc.querySelector('[data-watermark="true"]'); 
-          if(wm) (wm as HTMLElement).style.display = 'none'; 
-        }
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth(); 
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgProps = pdf.getImageProperties(imgData); 
-      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      
-      let heightLeft = imgHeight; 
-      let position = 0;
-      
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight); 
-      heightLeft -= pdfHeight;
-      
-      while (heightLeft > 0) { 
-        position -= pdfHeight; 
-        pdf.addPage(); 
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight); 
-        heightLeft -= pdfHeight; 
-      }
-      
       const fileName = `${selectedClient.name}_Report_${format(dateRange.start, 'yyyyMMdd')}-${format(dateRange.end, 'yyyyMMdd')}.pdf`;
-      pdf.save(fileName);
       
-      toast({ 
-        title: "PDF Generated Successfully", 
-        description: `Report saved as ${fileName}`,
-        variant: "default"
+      const result = await EnhancedPDFGenerator.generatePDF({
+        element: previewPanelRef.current,
+        filename: fileName,
+        quality: compressionType === 'compressed' ? 0.6 : 0.8,
+        generateCompressed: compressionType === 'both' || compressionType === 'compressed',
+        removeWatermarks: true,
+        scale: 2
       });
+      
+      if (result.success) {
+        let description = `Report saved as ${result.filename}`;
+        if (result.compressedFilename) {
+          const savings = result.originalSize && result.compressedSize 
+            ? Math.round((1 - result.compressedSize / result.originalSize) * 100)
+            : 0;
+          description += ` and ${result.compressedFilename} (${savings}% smaller)`;
+        }
+        
+        toast({ 
+          title: "PDF Generated Successfully", 
+          description,
+          variant: "default"
+        });
+      } else {
+        throw new Error(result.error || 'Unknown error');
+      }
     } catch (error) { 
       console.error("PDF Error:", error); 
       toast({ 
@@ -764,14 +763,14 @@ const EnhancedReportBuilder: React.FC = () => {
   // Memoized values for performance
   const isClientSelected = !!selectedClient;
   const tabs = useMemo(() => [
-    { id: 'client', label: '1. Client', disabled: false },
-    { id: 'info', label: '2. Info', disabled: !isClientSelected },
-    { id: 'reports', label: '3. Reports', disabled: !isClientSelected },
-    { id: 'media', label: '4. Media', disabled: !isClientSelected },
-    { id: 'viz', label: '5. Visualize', disabled: !isClientSelected },
-    { id: 'theme', label: '6. Theme', disabled: !isClientSelected },
-    { id: 'delivery', label: '7. Delivery', disabled: !isClientSelected },
-    { id: 'preview', label: '8. Preview', disabled: !isClientSelected },
+    { id: 'client', label: '1. Client Selection', disabled: false },
+    { id: 'info', label: '2. Property Info', disabled: !isClientSelected },
+    { id: 'reports', label: '3. Daily Reports', disabled: !isClientSelected },
+    { id: 'media', label: '4. Media Management', disabled: !isClientSelected },
+    { id: 'viz', label: '5. Data Visualization', disabled: !isClientSelected },
+    { id: 'theme', label: '6. Theme Customization', disabled: !isClientSelected },
+    { id: 'delivery', label: '7. Delivery Options', disabled: !isClientSelected },
+    { id: 'preview', label: '8. PDF Preview & Export', disabled: !isClientSelected },
   ], [isClientSelected]);
 
   // Navigation logic
@@ -808,26 +807,18 @@ const EnhancedReportBuilder: React.FC = () => {
         
         <ReportDataProvider 
           initialClient={selectedClient} 
-          initialMetrics={metrics}
+          initialMetrics={mockMetricsData}
           initialDateRange={dateRange}
           initialThemeSettings={themeSettings}
           key={`${selectedClient?.id || 'no-client'}-${themeSettings?.backgroundImage || 'no-bg'}`}
         >
-          {/* CRITICAL: Data synchronizer to keep context updated */}
-          <ReportDataUpdater
-            client={selectedClient}
-            metrics={metrics}
-            themeSettings={themeSettings}
-            dailyReports={dailyReports}
-            dateRange={dateRange}
-            summaryNotes={summaryNotes}
-            signature={signature}
-            contactEmail={contactEmail}
-            chartDataURL={chartDataURL}
-          />
+          {/* 🚨 CRITICAL FIX: REMOVED ReportDataUpdater and ContextDataSyncer */}
+          {/* These were creating circular loops - context is now the single source of truth */}
           
           {/* Debug verification component */}
           <BugFixVerification />
+          
+          {/* Enhanced Debug Monitor - REMOVED to fix infinite loop */}
           
           <Container>
             <Title>{themeSettings.reportTitle || 'Enhanced Report Builder'}</Title>
@@ -890,9 +881,7 @@ const EnhancedReportBuilder: React.FC = () => {
                 <ReportBuilderErrorBoundary fallback={<div>Error loading property info</div>}>
                   <PropertyInfoPanel 
                     clientData={selectedClient} 
-                    metrics={metrics} 
                     dateRange={dateRange} 
-                    onMetricsChange={handleMetricsChange} 
                   />
                 </ReportBuilderErrorBoundary>
               )}
@@ -928,7 +917,6 @@ const EnhancedReportBuilder: React.FC = () => {
                 <ReportBuilderErrorBoundary fallback={<div>Error loading visualization</div>}>
                   <div ref={chartRef}>
                     <DataVisualizationPanel 
-                      metrics={metrics} 
                       themeSettings={themeSettings} 
                       setChartDataURL={(url) => setChartDataURL(url ?? '')} 
                       dateRange={dateRange} 
@@ -1003,14 +991,35 @@ const EnhancedReportBuilder: React.FC = () => {
                   Next <ChevronRight size={16} /> 
                 </Button>
               ) : (
-                <Button 
-                  $variant="success" 
-                  onClick={handleDownloadReport} 
-                  disabled={isLoading || !selectedClient}
-                  theme={themeSettings}
-                > 
-                  <Download size={16} /> Download PDF 
-                </Button>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <Button 
+                    $variant="success" 
+                    onClick={() => handleDownloadReport('standard')} 
+                    disabled={isLoading || !selectedClient}
+                    theme={themeSettings}
+                    title="Download standard quality PDF"
+                  > 
+                    <Download size={16} /> Standard PDF 
+                  </Button>
+                  <Button 
+                    $variant="secondary" 
+                    onClick={() => handleDownloadReport('compressed')} 
+                    disabled={isLoading || !selectedClient}
+                    theme={themeSettings}
+                    title="Download compressed PDF (smaller file size)"
+                  > 
+                    <Download size={16} /> Compressed 
+                  </Button>
+                  <Button 
+                    $variant="primary" 
+                    onClick={() => handleDownloadReport('both')} 
+                    disabled={isLoading || !selectedClient}
+                    theme={themeSettings}
+                    title="Download both standard and compressed versions"
+                  > 
+                    <Download size={16} /> Both Versions 
+                  </Button>
+                </div>
               )}
             </NavigationContainer>
           </Container>

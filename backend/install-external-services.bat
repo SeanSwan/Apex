@@ -1,1 +1,0 @@
-cd C:\Users\ogpsw\Desktop\defense\backend && npm install firebase-admin apn @google-cloud/text-to-speech

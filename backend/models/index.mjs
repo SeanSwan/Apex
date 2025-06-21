@@ -19,21 +19,18 @@ import Key from './key.mjs';
 import MaintenanceRequest from './maintenanceRequest.mjs';
 import ReportComment from './reportComment.mjs';
 import ReportTemplate from './reportTemplate.mjs';
+import Checkpoint from './checkpoint.mjs';
+import CheckpointScan from './checkpointScan.mjs';
+import PropertyAssignment from './propertyAssignment.mjs';
 
 // Import function-based models (need sequelize parameter)
 import ClientFunction from './client.mjs';
 import ContactFunction from './contact.mjs';
-import CheckpointFunction from './checkpoint.mjs';
-import CheckpointScanFunction from './checkpointScan.mjs';
-import PropertyAssignmentFunction from './propertyAssignment.mjs';
 import PatrolRouteFunction from './patrolRoute.mjs';
 
 // Initialize function-based models
 const Client = ClientFunction(sequelize);
 const Contact = ContactFunction(sequelize);
-const Checkpoint = CheckpointFunction(sequelize);
-const CheckpointScan = CheckpointScanFunction(sequelize);
-const PropertyAssignment = PropertyAssignmentFunction(sequelize);
 const PatrolRoute = PatrolRouteFunction(sequelize);
 
 // === MODEL ASSOCIATIONS ===

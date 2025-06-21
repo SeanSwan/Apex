@@ -24,7 +24,12 @@
     "update-browserslist": "cd frontend && npm run update-browserslist",
     "typecheck": "cd frontend && npm run typecheck",
     "test": "cd frontend && npm run test",
-    "update-deps": "npm update && cd frontend && npm update && cd ../backend && npm update"
+    "update-deps": "npm update && cd frontend && npm update && cd ../backend && npm update",
+    "fix-deps": "node fix-dependencies-now.js",
+    "test-frontend": "cd frontend && npm run dev -- --mode test",
+    "test-backend": "cd backend && npm run dev",
+    "verify-deps": "node verify-installation.js",
+    "health-check": "curl -s http://localhost:5000/api/health || echo Backend not running"
   },
   "keywords": [
     "security",
