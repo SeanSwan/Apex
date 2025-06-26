@@ -23,7 +23,7 @@ export { default as ErrorBoundary } from './ErrorBoundary/error-boundry.componen
 
 // === FORM COMPONENTS ===
 export { default as SignupForm } from './SignupForm/SignUpForm.component';
-export { default as UniversalAuthForm } from './UniversalAuthForm';
+export { default as UniversalAuthForm } from './UniversalAuthForm/UniversalAuthForm.component';
 export { default as TimeOffRequestForm } from './TimeOffRequestForm';
 export { default as DARForm } from './DARForm';
 
