@@ -939,52 +939,60 @@ const EnhancedPreviewPanel: React.FC<EnhancedPreviewPanelProps> = ({
     contactEmail
   } = useReportData();
   
-  // 🚨 CRITICAL DEBUG: Chart data URL tracking
+  // Chart data tracking
   useEffect(() => {
-    console.log('🖼️ CHART DATA URL DEBUG:', {
-      chartDataURL: chartDataURL ? `Present (${chartDataURL.length} chars)` : 'MISSING',
-      preview: chartDataURL ? chartDataURL.substring(0, 50) + '...' : 'No chart data',
-      timestamp: new Date().toISOString()
-    });
+    if (chartDataURL && !chartDataURL.startsWith('data:image')) {
+      console.warn('⚠️ Invalid chart data format detected');
+    }
   }, [chartDataURL]);
 
-  // 🚨 APEX AI: Use context metrics (already analyzed from daily reports)
+  // Use context metrics (already analyzed from daily reports)
   const analyzedMetrics = useMemo(() => {
-    if (contextMetrics) {
-      console.log('🎯 APEX AI: Using analyzed metrics from context:', {
-        totalHumanIntrusions: Object.values(contextMetrics.humanIntrusions || {}).reduce((a, b) => a + b, 0),
-        totalVehicleIntrusions: Object.values(contextMetrics.vehicleIntrusions || {}).reduce((a, b) => a + b, 0),
-        potentialThreats: contextMetrics.potentialThreats,
-        totalCameras: contextMetrics.totalCameras,
-        source: 'CONTEXT_ANALYZED_METRICS'
-      });
-      return contextMetrics;
-    }
-    
-    console.log('⚠️ APEX AI: No context metrics available, using fallback');
-    return fallbackMetrics;
+    return contextMetrics || fallbackMetrics;
   }, [contextMetrics]);
 
-  // 🚨 APEX AI: Enhanced debug tracking for data flow verification
+  // 🚨 CRITICAL: Real-time data sync verification
   useEffect(() => {
-    console.log('🔍 APEX AI: PreviewPanel data flow verification:', {
-      client: client?.name,
-      clientCameras: client?.cameras,
-      contextMetricsTotalCameras: analyzedMetrics.totalCameras,
-      contextMetricsCamerasOnline: analyzedMetrics.camerasOnline,
-      totalHumanIntrusions: Object.values(analyzedMetrics.humanIntrusions || {}).reduce((a, b) => a + b, 0),
-      totalVehicleIntrusions: Object.values(analyzedMetrics.vehicleIntrusions || {}).reduce((a, b) => a + b, 0),
-      potentialThreats: analyzedMetrics.potentialThreats,
-      hasMetrics: !!analyzedMetrics,
-      hasDailyReports: dailyReports?.length,
-      hasTheme: !!contextTheme,
-      hasChartData: !!chartDataURL,
-      chartDataLength: chartDataURL?.length || 0,
-      dataSource: 'SINGLE_SOURCE_OF_TRUTH_CONTEXT',
-      signature: signature || 'Sean Swan (default)',
-      contactEmail: contactEmail || 'it@defenseic.com (default)'
-    });
-  }, [client, analyzedMetrics, dailyReports, contextTheme, chartDataURL, signature, contactEmail]);
+    const handleTabSwitchSync = (event: CustomEvent) => {
+      console.log('🔄 Preview: Tab switch detected, verifying data sync:', event.detail);
+      
+      // If switching TO preview, log current data state for debugging
+      if (event.detail.toTab === 'preview') {
+        console.log('🖼️ Preview: Preparing to show data - Current state:', {
+          clientName: client?.name,
+          dailyReportsCount: dailyReports?.length || 0,
+          reportsWithContent: dailyReports?.filter(r => r.content && r.content.trim().length > 0).length || 0,
+          summaryNotesLength: summaryNotes?.length || 0,
+          chartDataAvailable: !!chartDataURL,
+          metricsLoaded: !!analyzedMetrics,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Verify critical data is present
+        const hasValidReports = dailyReports && dailyReports.some(r => r.content && r.content.trim().length > 10);
+        if (!hasValidReports) {
+          console.warn('⚠️ Preview: WARNING - No meaningful daily reports content detected!');
+        } else {
+          console.log('✅ Preview: Daily reports content verified and ready for display');
+        }
+      }
+    };
+    
+    // Listen for tab switch events
+    window.addEventListener('tabSwitchDataSync', handleTabSwitchSync as EventListener);
+    
+    // Cleanup listener
+    return () => {
+      window.removeEventListener('tabSwitchDataSync', handleTabSwitchSync as EventListener);
+    };
+  }, [client, dailyReports, summaryNotes, chartDataURL, analyzedMetrics]);
+
+  // Summary notes verification
+  useEffect(() => {
+    if (summaryNotes && summaryNotes.trim()) {
+      console.log('✅ Summary notes available for preview');
+    }
+  }, [summaryNotes]);
 
   const [previewView, setPreviewView] = useState<PreviewViewType>('full');
   const [isPDFLoading, setIsPDFLoading] = useState<boolean>(false);
@@ -1375,11 +1383,26 @@ const EnhancedPreviewPanel: React.FC<EnhancedPreviewPanelProps> = ({
                  Weekly Security Analysis
               </SectionHeader>
               <ChartImageContainer>
-                {chartDataURL ? (
-                  <img src={chartDataURL} alt="Weekly Security Analytics" />
+                {chartDataURL && chartDataURL.startsWith('data:image') ? (
+                  <img 
+                    src={chartDataURL} 
+                    alt="Weekly Security Analytics" 
+                    onLoad={() => console.log('✅ Preview: Chart image loaded successfully')}
+                    onError={() => console.error('❌ Preview: Chart image failed to load')}
+                  />
                 ) : (
                   <div style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>
-                    Chart visualization will appear here once data is processed
+                    {chartDataURL ? (
+                      <div>
+                        <p>Chart data detected but invalid format</p>
+                        <p style={{ fontSize: '0.8rem', color: '#666' }}>Length: {chartDataURL.length} chars</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p>📈 Chart visualization will appear here</p>
+                        <p style={{ fontSize: '0.8rem', color: '#666' }}>Navigate to the Visualize tab to generate charts</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </ChartImageContainer>
@@ -1413,18 +1436,23 @@ const EnhancedPreviewPanel: React.FC<EnhancedPreviewPanelProps> = ({
                         <DailyReportDay>{report.day}:</DailyReportDay>
                         {report.securityCode && (
                           <SecurityCodeBadge $code={report.securityCode}>
-                            {report.securityCode}
+                            {report.securityCode}✓
                           </SecurityCodeBadge>
                         )}
                       </DailyReportHeader>
                       <DailyReportContent>
-                        {report.content || `Standard security monitoring conducted for ${report.day}. No significant incidents reported.`}
+                        {report.content && report.content.trim() ? 
+                          report.content.trim().replace(/Debug:[^\n]*/g, '').replace(/\n+/g, '\n').trim() : 
+                          `Standard security monitoring conducted for ${report.day}. No significant incidents reported.`
+                        }
                       </DailyReportContent>
                     </DailyReportItem>
                   ))
                 ) : (
                   <DailyReportItem>
-                    <DailyReportContent>No daily activity logs available for this period.</DailyReportContent>
+                    <DailyReportContent>
+                      No daily activity logs available for this period.
+                    </DailyReportContent>
                   </DailyReportItem>
                 )}
               </DailyReportsSection>
@@ -1438,7 +1466,11 @@ const EnhancedPreviewPanel: React.FC<EnhancedPreviewPanelProps> = ({
               </SectionHeader>
               <NotesSection>
                 <DailyReportContent>
-                  {summaryNotes || 'All security protocols followed as per standard operating procedures. Continuous monitoring maintained throughout the reporting period.'}
+                  {summaryNotes && summaryNotes.trim() ? (
+                    summaryNotes.trim().replace(/Debug:[^\n]*/g, '').replace(/\n+/g, '\n').trim()
+                  ) : (
+                    'All security protocols followed as per standard operating procedures. Continuous monitoring maintained throughout the reporting period.'
+                  )}
                 </DailyReportContent>
               </NotesSection>
             </div>

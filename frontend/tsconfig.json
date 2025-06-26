@@ -14,8 +14,8 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": false,     /* Temporarily disabled */
-    "noUnusedParameters": false, /* Temporarily disabled */
+    "noUnusedLocals": true,      /* Re-enabled for better code quality */
+    "noUnusedParameters": true,  /* Re-enabled for better code quality */
     "noFallthroughCasesInSwitch": true,
     
     /* Path aliases */

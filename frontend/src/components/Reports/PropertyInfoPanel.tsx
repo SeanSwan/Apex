@@ -202,12 +202,23 @@ const EditableInput = styled.input`
   box-sizing: border-box;
   background-color: rgba(0, 0, 0, 0.4);
   color: #faf0e6;
+  transition: all 0.2s ease;
 
   &:focus {
     border-color: #eee8aa;
     outline: 0;
     box-shadow: 0 0 0 0.2rem rgba(238, 232, 170, 0.25);
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+  
+  &:hover {
+    border-color: rgba(238, 232, 170, 0.5);
+  }
+  
+  /* 🚨 CRITICAL: Ensure input is not disabled */
+  &:not(:disabled) {
+    pointer-events: auto;
+    user-select: text;
   }
 `;
 
@@ -281,12 +292,23 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
   const isInitializedRef = useRef(false);
   
   // Create a stable callback that updates context
-  const handleMetricsChange = useCallback((updatedMetrics: Partial<MetricsData>) => {
+  const handleMetricsChange = useCallback((updatedMetrics: Partial<MetricsData> | MetricsData) => {
     console.log('🔄 PropertyInfoPanel: Handling metrics change');
     
-    // Always update context
+    // Always update context - handle both partial and full metrics
     if (setContextMetrics) {
-      const newMetrics = updateMetrics(metrics, updatedMetrics);
+      const newMetrics = 'potentialThreats' in updatedMetrics && 'humanIntrusions' in updatedMetrics 
+        ? updatedMetrics as MetricsData  // Full metrics object
+        : updateMetrics(metrics, updatedMetrics as Partial<MetricsData>); // Partial update
+      
+      console.log('📈 PropertyInfoPanel: Updating context with metrics:', {
+        totalCameras: newMetrics.totalCameras,
+        camerasOnline: newMetrics.camerasOnline,
+        aiAccuracy: newMetrics.aiAccuracy,
+        potentialThreats: newMetrics.potentialThreats,
+        source: 'PropertyInfoPanel_Save'
+      });
+      
       setContextMetrics(newMetrics);
     }
   }, [setContextMetrics, metrics]);
@@ -345,7 +367,7 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
     }
   }, [client?.id]); // Only depend on client ID
 
-  // 🚨 CRITICAL FIX: Improved debounced localStorage save
+  // 🚨 FIXED: Simplified debounced localStorage save
   const debouncedSave = useCallback((clientId: string, clientName: string, metricsToSave: MetricsData) => {
     // Clear existing timeout
     if (saveTimeoutRef.current) {
@@ -354,22 +376,21 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
     
     // Set new timeout for debounced save
     saveTimeoutRef.current = setTimeout(() => {
-      // Only save if still editing and user is not actively typing
-      if (isEditing && !isUserInteractingRef.current) {
+      if (isEditing) {
         const saved = saveEditedMetrics(clientId, clientName, metricsToSave, true);
         if (saved) {
-          console.log('💾 Auto-saved edited metrics (debounced):', clientName);
+          console.log('💾 Auto-saved edited metrics:', clientName);
         }
       }
       saveTimeoutRef.current = null;
-    }, 2000); // Increased debounce to 2 seconds to prevent interruptions
+    }, 1500); // Reduced debounce time
   }, [isEditing]);
 
-  // Save metrics to localStorage with debouncing (ONLY when editing)
+  // 🚨 FIXED: Simplified localStorage save when editing
   useEffect(() => {
-    if (!isEditing || !client?.id || !client?.name || isUserInteractingRef.current) return;
+    if (!isEditing || !client?.id || !client?.name) return;
     
-    console.log('💾 PropertyInfoPanel: Scheduling debounced save');
+    console.log('💾 PropertyInfoPanel: Scheduling save for:', client.name);
     debouncedSave(client.id, client.name, editedMetrics);
     
     // Cleanup timeout on unmount
@@ -432,45 +453,41 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
     };
   }, [isEditing, editedMetrics, metrics]);
 
-  // 🚨 CRITICAL FIX: Improved user interaction tracking
+  // 🚨 FIXED: Simplified metric change handler
   const handleMetricChange = (key: keyof MetricsData, rawValue: string) => {
-    isUserInteractingRef.current = true;
+    console.log('🔢 Metric change:', key, rawValue);
     
     const isFloat = key === 'aiAccuracy' || key === 'responseTime' || key === 'operationalUptime';
     const value = isFloat ? parseFloat(rawValue) : parseInt(rawValue, 10);
+    const finalValue = Number.isNaN(value) ? 0 : value;
     
-    setEditedMetrics((prev) => ({ ...prev, [key]: Number.isNaN(value) ? 0 : value }));
-    
-    // Reset interaction flag after a longer delay to prevent interruptions
-    setTimeout(() => {
-      isUserInteractingRef.current = false;
-    }, 1000);
+    setEditedMetrics((prev) => ({ ...prev, [key]: finalValue }));
+    setHasUnsavedChanges(true);
   };
 
-  // 🚨 CRITICAL FIX: Improved daily metrics handling
+  // 🚨 FIXED: Simplified daily metrics handling without interference
   const handleDailyMetricChange = (
     metricType: 'humanIntrusions' | 'vehicleIntrusions',
     day: string,
     rawValue: string
   ) => {
-    isUserInteractingRef.current = true;
+    console.log('🔢 Daily metric change:', metricType, day, rawValue);
     
     const value = parseInt(rawValue, 10);
+    const finalValue = Number.isNaN(value) ? 0 : value;
+    
     setEditedMetrics((prev) => ({
       ...prev,
-      [metricType]: { ...(prev[metricType] || {}), [day]: Number.isNaN(value) ? 0 : value },
+      [metricType]: { ...(prev[metricType] || {}), [day]: finalValue },
     }));
     
-    // Reset interaction flag after a longer delay to prevent interruptions
-    setTimeout(() => {
-      isUserInteractingRef.current = false;
-    }, 1000);
+    setHasUnsavedChanges(true);
   };
 
   const handleSaveChanges = () => {
-    console.log('💾 PropertyInfoPanel: Saving changes');
+    console.log('💾 PropertyInfoPanel: Saving changes and triggering chart regeneration');
     
-    // Call the unified metrics update function to update both props and context
+    // 🚨 CRITICAL: Call the unified metrics update function to update both props and context
     handleMetricsChange(editedMetrics);
     setIsEditing(false);
     setHasUnsavedChanges(false);
@@ -480,6 +497,21 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
       clearEditedMetrics(client.id);
       console.log('📋 Metrics saved successfully, cleared localStorage for:', client.name);
     }
+    
+    // 🚨 CRITICAL: Force immediate chart regeneration after context update
+    setTimeout(() => {
+      console.log('📈 PropertyInfoPanel: Triggering chart regeneration after metrics save');
+      
+      // Dispatch a custom event to trigger chart regeneration
+      const chartUpdateEvent = new CustomEvent('metricsUpdated', {
+        detail: {
+          source: 'PropertyInfoPanel',
+          metrics: editedMetrics,
+          timestamp: new Date().toISOString()
+        }
+      });
+      window.dispatchEvent(chartUpdateEvent);
+    }, 100); // Short delay to ensure context update completes
   };
   
   const handleCancelChanges = () => {
@@ -652,8 +684,7 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
                     type="number"
                     value={getCurrentMetric('potentialThreats')}
                     onChange={(e) => handleMetricChange('potentialThreats', e.target.value)}
-                    onFocus={() => { isUserInteractingRef.current = true; }}
-                    onBlur={() => { setTimeout(() => isUserInteractingRef.current = false, 500); }}
+                    placeholder="0"
                   />
                 </MetricCard>
                 <MetricCard>
@@ -662,8 +693,7 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
                     type="number"
                     value={getCurrentMetric('proactiveAlerts')}
                     onChange={(e) => handleMetricChange('proactiveAlerts', e.target.value)}
-                    onFocus={() => { isUserInteractingRef.current = true; }}
-                    onBlur={() => { setTimeout(() => isUserInteractingRef.current = false, 500); }}
+                    placeholder="0"
                   />
                 </MetricCard>
                 <MetricCard>
@@ -675,8 +705,7 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
                     max="100"
                     value={getCurrentMetric('aiAccuracy')}
                     onChange={(e) => handleMetricChange('aiAccuracy', e.target.value)}
-                    onFocus={() => { isUserInteractingRef.current = true; }}
-                    onBlur={() => { setTimeout(() => isUserInteractingRef.current = false, 500); }}
+                    placeholder="0.0"
                   />
                 </MetricCard>
                 <MetricCard>
@@ -687,8 +716,7 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
                     min="0"
                     value={getCurrentMetric('responseTime')}
                     onChange={(e) => handleMetricChange('responseTime', e.target.value)}
-                    onFocus={() => { isUserInteractingRef.current = true; }}
-                    onBlur={() => { setTimeout(() => isUserInteractingRef.current = false, 500); }}
+                    placeholder="0.0"
                   />
                 </MetricCard>
                 <MetricCard>
@@ -698,8 +726,7 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
                     min="0"
                     value={getCurrentMetric('totalCameras')}
                     onChange={(e) => handleMetricChange('totalCameras', e.target.value)}
-                    onFocus={() => { isUserInteractingRef.current = true; }}
-                    onBlur={() => { setTimeout(() => isUserInteractingRef.current = false, 500); }}
+                    placeholder="0"
                   />
                 </MetricCard>
                 <MetricCard>
@@ -709,8 +736,7 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
                     min="0"
                     value={getCurrentMetric('camerasOnline')}
                     onChange={(e) => handleMetricChange('camerasOnline', e.target.value)}
-                    onFocus={() => { isUserInteractingRef.current = true; }}
-                    onBlur={() => { setTimeout(() => isUserInteractingRef.current = false, 500); }}
+                    placeholder="0"
                   />
                 </MetricCard>
                 <MetricCard>
@@ -722,8 +748,7 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
                     max="100"
                     value={getCurrentMetric('operationalUptime')}
                     onChange={(e) => handleMetricChange('operationalUptime', e.target.value)}
-                    onFocus={() => { isUserInteractingRef.current = true; }}
-                    onBlur={() => { setTimeout(() => isUserInteractingRef.current = false, 500); }}
+                    placeholder="0.0"
                   />
                 </MetricCard>
               </InfoGrid>
@@ -788,8 +813,7 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
                           min="0"
                           value={getCurrentDailyMetric('humanIntrusions', day)}
                           onChange={(e) => handleDailyMetricChange('humanIntrusions', day, e.target.value)}
-                          onFocus={() => { isUserInteractingRef.current = true; }}
-                          onBlur={() => { setTimeout(() => isUserInteractingRef.current = false, 500); }}
+                          placeholder="0"
                         />
                       ) : (
                         getCurrentDailyMetric('humanIntrusions', day)
@@ -802,8 +826,7 @@ const PropertyInfoPanel: React.FC<PropertyInfoPanelProps> = ({
                           min="0"
                           value={getCurrentDailyMetric('vehicleIntrusions', day)}
                           onChange={(e) => handleDailyMetricChange('vehicleIntrusions', day, e.target.value)}
-                          onFocus={() => { isUserInteractingRef.current = true; }}
-                          onBlur={() => { setTimeout(() => isUserInteractingRef.current = false, 500); }}
+                          placeholder="0"
                         />
                       ) : (
                         getCurrentDailyMetric('vehicleIntrusions', day)

@@ -7,32 +7,30 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './App.scss';
 
 // Enhanced Report Builder (Phase 1 - COMPLETED)
-import EnhancedReportBuilder from './components/Reports/EnhancedReportBuilder';
+import { EnhancedReportBuilder } from './components/Reports';
 import ReportBuilder from './pages/ReportBuilder';
 import DetailedReportPage from './pages/DetailedReportPage';
 
 // AI Infrastructure & Live Monitoring (Phase 2A)
-import LiveMonitoringDashboard from './components/LiveMonitoring/LiveMonitoringDashboard';
+import { LiveMonitoringDashboard, EnhancedLiveMonitoring } from './components';
 
 // Guard Operations & Dispatch (Phase 2B)  
-import GuardOperationsDashboard from './components/GuardOperations/GuardOperationsDashboard';
+import { GuardOperationsDashboard } from './components';
 
 // Company Admin Dashboard (Phase 2B)
-import CompanyAdminDashboard from './components/AdminDashboard/CompanyAdminDashboard';
+import { CompanyAdminDashboard } from './components';
 
 // Guard Mobile App Interface (Phase 2C)
-import GuardMobileApp from './components/GuardMobile/GuardMobileApp';
+import { GuardMobileApp } from './components';
 
 // AI Console - Elite Security Operations (Phase 2A - CORRECTED ARCHITECTURE)
-import AIConsoleDashboard from './components/AIConsole/AIConsoleDashboard';
+import { AIConsoleDashboard } from './components';
 
 // Existing Pages
 import UnauthorizedPage from './pages/UnauthorizedPage.component';
 
 // Components
-import Header from './components/Header/header.component';
-import IntegratedHomePage from './components/HomePage';
-import ErrorBoundary from './components/ErrorBoundary/error-boundry.component';
+import { Header, IntegratedHomePage, TestHomePage, ErrorBoundary } from './components';
 
 // Context
 import { AuthProvider } from './context/AuthContext';
@@ -51,11 +49,13 @@ function App() {
               <Routes>
                 {/* === MAIN PLATFORM ROUTES === */}
                 
-                {/* Platform Landing Page */}
-                <Route path="/" element={<IntegratedHomePage />} />
+                {/* Platform Landing Page - TEMPORARILY USING TEST COMPONENT */}
+                <Route path="/" element={<TestHomePage />} />
+                <Route path="/original-home" element={<IntegratedHomePage />} />
                 
                 {/* Phase 2A: AI Infrastructure & Live Monitoring */}
-                <Route path="/live-monitoring" element={<LiveMonitoringDashboard />} />
+                <Route path="/live-monitoring" element={<EnhancedLiveMonitoring />} />
+                <Route path="/live-monitoring/legacy" element={<LiveMonitoringDashboard />} />
                 
                 {/* Phase 2B: Guard Operations & Dispatch */}
                 <Route path="/guard-operations" element={<GuardOperationsDashboard />} />

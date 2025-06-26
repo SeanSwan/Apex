@@ -772,14 +772,20 @@ interface EnhancedDailyReportsPanelProps {
 }
 
 /**
- * Enhanced Daily Reports Panel with Bulk Import Feature
+ * Enhanced Daily Reports Panel with Bulk Import Feature and Context Integration
  * Allows users to paste entire weekly reports and automatically parse them
+ * 🚨 CRITICAL: Now with direct context integration for reliable data flow
  */
 const EnhancedDailyReportsPanel: React.FC<EnhancedDailyReportsPanelProps> = ({
   dailyReports, onReportChange, dateRange, summaryNotes, onSummaryChange,
   signature, onSignatureChange, aiOptions, onAIOptionChange, contactEmail = '', onContactEmailChange,
 }) => {
-  // State and Callbacks
+  
+  // Data validation for daily reports
+  const reportsWithContent = dailyReports?.filter(r => r.content && r.content.trim()).length || 0;
+  const isDataComplete = reportsWithContent > 0 && summaryNotes;
+  
+  // 🚨 FIXED: State definitions FIRST to prevent initialization errors
   const [activeDay, setActiveDay] = useState<string>(dailyReports[0]?.day || 'Monday');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isAutosaving, setIsAutosaving] = useState<boolean>(false);
@@ -789,14 +795,61 @@ const EnhancedDailyReportsPanel: React.FC<EnhancedDailyReportsPanelProps> = ({
   const [bulkImportText, setBulkImportText] = useState<string>('');
   const [parsedReports, setParsedReports] = useState<Array<{day: string, content: string}>>([]);
   const [showBulkImport, setShowBulkImport] = useState<boolean>(true);
-
+  
   // Set default values for security company contact
   const defaultSignature = "Sean Swan";
   const defaultContactEmail = "it@defenseic.com";
   
   const [contactEmailValue, setContactEmailValue] = useState<string>(contactEmail || defaultContactEmail);
   const [signatureValue, setSignatureValue] = useState<string>(signature || defaultSignature);
-
+  
+  // 🚨 FIXED: getActiveReport callback AFTER state definitions
+  const getActiveReport = useCallback(() => { 
+    return dailyReports.find(report => report.day === activeDay) || dailyReports[0]; 
+  }, [activeDay, dailyReports]);
+  
+  // 🚨 CRITICAL: Listen for tab switch events to force save data
+  useEffect(() => {
+    const handleForceSave = (event: CustomEvent) => {
+      console.log('💾 FORCE SAVE: Tab switch detected, saving all daily reports data:', event.detail);
+      
+      // Force save all current data to parent component
+      // This ensures data is persisted before user switches tabs
+      const activeReport = getActiveReport();
+      if (activeReport && activeReport.content) {
+        console.log('💾 FORCE SAVE: Saving active report for', activeReport.day);
+        onReportChange(activeReport.day, activeReport.content, activeReport.status, activeReport.securityCode);
+      }
+      
+      // Force save summary notes if they exist
+      if (summaryNotes && summaryNotes.trim()) {
+        console.log('💾 FORCE SAVE: Saving summary notes');
+        onSummaryChange(summaryNotes);
+      }
+      
+      // Force save signature and contact email
+      if (signatureValue) {
+        console.log('💾 FORCE SAVE: Saving signature');
+        onSignatureChange(signatureValue);
+      }
+      
+      if (contactEmailValue) {
+        console.log('💾 FORCE SAVE: Saving contact email');
+        if (onContactEmailChange) onContactEmailChange(contactEmailValue);
+      }
+      
+      console.log('✅ FORCE SAVE COMPLETE: All daily reports data persisted');
+    };
+    
+    // Listen for tab switch save events
+    window.addEventListener('forceSaveBeforeTabSwitch', handleForceSave as EventListener);
+    
+    // Cleanup listener
+    return () => {
+      window.removeEventListener('forceSaveBeforeTabSwitch', handleForceSave as EventListener);
+    };
+  }, [getActiveReport, summaryNotes, signatureValue, contactEmailValue, onReportChange, onSummaryChange, onSignatureChange, onContactEmailChange]);
+  
   // Sync with parent component
   useEffect(() => { 
     if (contactEmail) setContactEmailValue(contactEmail);
@@ -1030,32 +1083,42 @@ const EnhancedDailyReportsPanel: React.FC<EnhancedDailyReportsPanelProps> = ({
     });
   }, [parsedReports, onReportChange, setActiveDay]);
 
-  const getActiveReport = useCallback(() => { 
-    return dailyReports.find(report => report.day === activeDay) || dailyReports[0]; 
-  }, [activeDay, dailyReports]);
-  
   const triggerAutosave = useCallback(() => { 
     setIsAutosaving(true); 
     const timer = setTimeout(() => setIsAutosaving(false), 1500); 
     return () => clearTimeout(timer); 
   }, []);
   
+  // 🚨 CRITICAL FIX: Enhanced immediate context sync for all data changes
   const handleContentChange = useCallback((day: string, content: string) => { 
     const report = dailyReports.find(r => r.day === day); 
     const status = (report?.status === 'Completed') ? 'In Progress' : report?.status || 'In Progress'; 
     
-    console.log('📝 APEX AI: Daily report content updated:', {
+    console.log('📝 DAILY REPORT UPDATE - IMMEDIATE CONTEXT SYNC:', {
       day,
       contentLength: content.length,
-      wordCount: content.trim().split(/\s+/).length,
       status,
-      securityCode: report?.securityCode,
       timestamp: new Date().toISOString()
     });
     
+    // 🚨 STEP 1: Update via callback prop (for parent component)
     onReportChange(day, content, status, report?.securityCode); 
+    
+    // 🚨 STEP 2: Trigger autosave indicator
     triggerAutosave(); 
     
+    // 🚨 STEP 3: Emit custom event for immediate chart regeneration
+    const metricsUpdateEvent = new CustomEvent('dailyReportsUpdated', {
+      detail: {
+        day,
+        content,
+        action: 'CONTENT_UPDATED',
+        timestamp: new Date().toISOString()
+      }
+    });
+    window.dispatchEvent(metricsUpdateEvent);
+    
+    // AI assistance trigger
     if (aiOptions.enabled && aiOptions.suggestContent && content.length > 100) { 
       setTypingAI(true); 
       setTimeout(() => { 
@@ -1472,7 +1535,7 @@ Notes: This is a test summary.`;
         ))}
       </ReportTabs>
 
-      {/* Summary Section */}
+      {/* Summary Section - ENHANCED with immediate context sync */}
       <SummarySection>
         <SummarySectionTitle>
           <FileCheck size={18} /> Additional Notes & Summary
@@ -1481,6 +1544,9 @@ Notes: This is a test summary.`;
           <TextArea 
             value={summaryNotes} 
             onChange={(e) => { 
+              // Summary notes updated
+              
+              // 🚨 CRITICAL: Update immediately
               onSummaryChange(e.target.value); 
               triggerAutosave(); 
             }} 

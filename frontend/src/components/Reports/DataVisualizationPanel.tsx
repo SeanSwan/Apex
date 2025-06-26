@@ -698,20 +698,18 @@ const DataVisualizationPanel: React.FC<DataVisualizationPanelProps> = ({
   setChartDataURL,
   dateRange,
 }) => {
-  // 🚨 CRITICAL FIX: Get metrics from context to use EDITED VALUES
-  const { dailyReports, client, metrics: contextMetrics } = useReportData();
+  // 🚨 FIXED: Use context as single source of truth
+  const { dailyReports, client, metrics: contextMetrics, setChartDataURL: contextSetChartDataURL } = useReportData();
   
-  // 🎯 PRIORITIZE CONTEXT METRICS (edited values) over prop metrics
-  const currentMetrics = contextMetrics || propMetrics;
+  // 🎯 SINGLE SOURCE OF TRUTH: Always use context metrics
+  const currentMetrics = contextMetrics;
   
-  console.log('🔥 DataVisualization CRITICAL DEBUG:', {
-    propMetrics: propMetrics,
-    contextMetrics: contextMetrics, 
-    usingMetrics: currentMetrics,
-    source: contextMetrics ? 'CONTEXT (EDITED)' : 'PROPS (DEFAULT)',
-    humanIntrusions: currentMetrics.humanIntrusions,
-    potentialThreats: currentMetrics.potentialThreats,
-    aiAccuracy: currentMetrics.aiAccuracy
+  console.log('📊 DataVisualization - Using Context Metrics:', {
+    hasContextMetrics: !!contextMetrics,
+    humanIntrusions: currentMetrics?.humanIntrusions,
+    potentialThreats: currentMetrics?.potentialThreats,
+    aiAccuracy: currentMetrics?.aiAccuracy,
+    source: 'CONTEXT_SINGLE_SOURCE'
   });
 
   // 🚨 CRITICAL FIX: STABLE reference tracking to prevent infinite loops
@@ -791,60 +789,212 @@ const DataVisualizationPanel: React.FC<DataVisualizationPanelProps> = ({
   }, []);
 
   const handleRefreshChart = useCallback(() => {
-    // 🚨 CRITICAL FIX: Cooldown to prevent rapid-fire chart generation
+    // 🚨 FIXED: Simplified cooldown with clear feedback
     const now = Date.now();
-    if (chartGenerationCooldownRef.current || (now - lastChartGenerationRef.current < 3000)) {
-      console.log('🚫 Chart generation on cooldown, ignoring request');
+    if (chartGenerationCooldownRef.current || (now - lastChartGenerationRef.current < 2000)) {
+      console.log('⏱️ Chart generation on cooldown, please wait');
       return;
     }
     
-    console.log('📊 Manual chart refresh requested');
+    console.log('🔄 Manual chart refresh requested by user');
     setIsChartGenerationRequested(true);
     lastChartGenerationRef.current = now;
     chartGenerationCooldownRef.current = true;
     
-    // Reset cooldown after 5 seconds
+    // Reset cooldown after 3 seconds
     setTimeout(() => {
       chartGenerationCooldownRef.current = false;
-    }, 5000);
+      console.log('✅ Chart generation cooldown reset');
+    }, 3000);
   }, []);
+
+  // 🚨 CRITICAL FIX: Listen for metrics updates from PropertyInfoPanel
+  useEffect(() => {
+    const handleMetricsUpdated = (event: CustomEvent) => {
+      console.log('📈 DataVisualizationPanel: Received metrics update event:', event.detail);
+      
+      // Only trigger if we're not already generating and not on cooldown
+      if (!isChartGenerationRequested && !isLoading && !chartGenerationCooldownRef.current) {
+        console.log('🔄 DataVisualizationPanel: Triggering immediate chart regeneration from PropertyInfoPanel save');
+        setIsChartGenerationRequested(true);
+        lastChartGenerationRef.current = Date.now();
+      } else {
+        console.log('📝 DataVisualizationPanel: Chart generation skipped - already in progress or on cooldown');
+      }
+    };
+    
+    // Listen for the custom event
+    window.addEventListener('metricsUpdated', handleMetricsUpdated as EventListener);
+    
+    // Cleanup listener on unmount
+    return () => {
+      window.removeEventListener('metricsUpdated', handleMetricsUpdated as EventListener);
+    };
+  }, [isChartGenerationRequested, isLoading]);
 
   // --- Helper Functions ---
   const getMetric = useCallback((metricObj: { [key: string]: number } | undefined, key: string): number => {
     return (metricObj && typeof metricObj[key] === 'number' && !isNaN(metricObj[key])) ? metricObj[key] : 0;
   }, []);
 
-  // 🚨 CRITICAL FIX: ONLY chart generation effect - NO infinite loops
+  // 🚨 FIXED: Enhanced chart generation with proper loading wait
   useEffect(() => {
     if (isChartGenerationRequested && chartRef.current && !isLoading) {
-      console.log('📊 DataViz: Chart generation starting (CONTROLLED)');
+      console.log('📊 DataViz: Chart generation starting with enhanced timing');
       
       const captureChartAsImage = async () => {
         setIsLoading(true);
         try {
-          await new Promise(resolve => setTimeout(resolve, 500));
+          console.log('📊 CHART CAPTURE: Starting intelligent chart readiness detection');
+          
+          // Check if chart container exists and has content
+          if (!chartRef.current) {
+            throw new Error('Chart container not found');
+          }
+          
+          // 🚨 INTELLIGENT CHART READINESS DETECTION
+          const waitForChartsToBeReady = async () => {
+            let attempts = 0;
+            const maxAttempts = 30; // 30 seconds max wait
+            
+            while (attempts < maxAttempts) {
+              console.log(`🔍 Attempt ${attempts + 1}: Checking chart readiness...`);
+              
+              // 1. Check for loading indicators
+              const loadingElements = chartRef.current?.querySelectorAll('[class*="loading"], [class*="spinner"], .loading-overlay');
+              const hasLoadingIndicators = loadingElements && loadingElements.length > 0;
+              
+              // 2. Check for chart content elements (the actual data visualizations)
+              const chartDataElements = chartRef.current?.querySelectorAll(
+                'svg path, svg rect, svg circle, svg line, svg polygon, .recharts-bar, .recharts-line, .recharts-area, .recharts-pie'
+              );
+              const hasChartData = chartDataElements && chartDataElements.length > 0;
+              
+              // 3. Check for SVG elements with actual content
+              const svgElements = chartRef.current?.querySelectorAll('svg');
+              let svgHasContent = false;
+              if (svgElements) {
+                svgElements.forEach(svg => {
+                  try {
+                    const bbox = svg.getBBox?.();
+                    if (bbox && bbox.width > 0 && bbox.height > 0) {
+                      svgHasContent = true;
+                    }
+                  } catch (e) {
+                    // getBBox might fail, check for child elements instead
+                    const hasChildren = svg.children && svg.children.length > 0;
+                    if (hasChildren) svgHasContent = true;
+                  }
+                });
+              }
+              
+              // 4. Check for recharts wrapper with proper dimensions
+              const rechartsWrapper = chartRef.current?.querySelector('.recharts-wrapper');
+              const hasProperDimensions = rechartsWrapper && 
+                rechartsWrapper.offsetWidth > 0 && 
+                rechartsWrapper.offsetHeight > 0;
+              
+              console.log(`🔍 Readiness Check ${attempts + 1}:`, {
+                hasLoadingIndicators,
+                hasChartData,
+                chartDataCount: chartDataElements?.length || 0,
+                svgHasContent,
+                hasProperDimensions,
+                svgElements: svgElements?.length || 0
+              });
+              
+              // Chart is ready when:
+              // - No loading indicators
+              // - Has actual chart data elements
+              // - SVG has content
+              // - Proper dimensions
+              if (!hasLoadingIndicators && hasChartData && svgHasContent && hasProperDimensions) {
+                console.log('✅ Charts are fully ready! Proceeding with capture...');
+                return true;
+              }
+              
+              // Wait 1 second before next check
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              attempts++;
+            }
+            
+            console.log('⚠️ Max attempts reached, proceeding anyway...');
+            return false;
+          };
+          
+          // Wait for charts to be ready
+          const chartsReady = await waitForChartsToBeReady();
+          console.log(`📊 Chart readiness result: ${chartsReady ? 'READY' : 'TIMEOUT_REACHED'}`);
+          
+          // Additional 2-second buffer after readiness detection
+          console.log('⏳ Adding 2-second buffer for final animations...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          console.log('🔍 Final check before capture...');
+          const chartElements = chartRef.current.querySelectorAll('svg, canvas, .recharts-wrapper');
+          console.log(`📊 Found ${chartElements.length} chart elements to capture`);
+          
+          // Enhanced debugging for chart brightness/visibility
+          chartElements.forEach((el, index) => {
+            const computedStyle = window.getComputedStyle(el);
+            console.log(`🔍 Chart Element ${index + 1}:`, {
+              tagName: el.tagName,
+              opacity: computedStyle.opacity,
+              visibility: computedStyle.visibility,
+              display: computedStyle.display,
+              backgroundColor: computedStyle.backgroundColor,
+              width: computedStyle.width,
+              height: computedStyle.height
+            });
+          });
 
+          console.log('🎨 Starting canvas capture with enhanced settings...');
           const canvas = await html2canvas(chartRef.current!, {
             scale: 2,
             useCORS: true,
-            backgroundColor: null,
+            backgroundColor: null, // Keep transparent background to show chart content
             logging: false,
+            allowTaint: true,
+            onclone: (clonedDoc) => {
+              // Remove any loading indicators from the cloned document
+              const loadingElements = clonedDoc.querySelectorAll('[class*="loading"], [class*="spinner"], .loading-overlay');
+              loadingElements.forEach(el => {
+                if (el.parentNode) {
+                  el.parentNode.removeChild(el);
+                }
+              });
+              
+              // Ensure all chart elements have proper visibility
+              const chartElements = clonedDoc.querySelectorAll('svg, canvas, .recharts-wrapper');
+              chartElements.forEach(el => {
+                if (el instanceof HTMLElement) {
+                  el.style.visibility = 'visible';
+                  el.style.opacity = '1';
+                }
+              });
+            }
           });
 
-          const dataURL = canvas.toDataURL('image/png');
+          const dataURL = canvas.toDataURL('image/png', 0.95);
           
-          console.log('🖼️ CHART GENERATION SUCCESS:', {
+          console.log('🎨 CHART GENERATION SUCCESS - Intelligent readiness detection:', {
             dataURLLength: dataURL.length,
             preview: dataURL.substring(0, 50) + '...',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            captureMethod: 'INTELLIGENT_CHART_READINESS_DETECTION',
+            chartsWereReady: chartsReady
           });
           
-          setChartDataURL(dataURL);
-          setLocalChartDataURL(dataURL);
-          console.log('📊 Chart captured successfully for preview - setChartDataURL called');
+          // 🚨 CRITICAL FIX: Update BOTH prop callback AND context
+          setChartDataURL(dataURL);  // Prop callback
+          contextSetChartDataURL(dataURL);  // Context update
+          setLocalChartDataURL(dataURL);  // Local state
+          
+          console.log('🔄 Chart data updated in BOTH prop and context');
         } catch (error) {
           console.error('🚨 CHART GENERATION FAILED:', error);
           setChartDataURL(null);
+          contextSetChartDataURL('');
           setLocalChartDataURL('');
         } finally {
           setIsLoading(false);
@@ -854,35 +1004,35 @@ const DataVisualizationPanel: React.FC<DataVisualizationPanelProps> = ({
       
       captureChartAsImage();
     }
-  }, [isChartGenerationRequested, chartRef, setChartDataURL, isLoading]);
+  }, [isChartGenerationRequested, chartRef, setChartDataURL, contextSetChartDataURL, isLoading]);
 
-  // 🚨 CRITICAL FIX: CONTROLLED data change detection - NO infinite loops
+  // 🚨 FIXED: Simplified data change detection
   useEffect(() => {
-    // Only trigger if metrics ACTUALLY changed AND we don't have a recent chart
+    // Only trigger if metrics actually changed and we're not already generating
     const metricsChanged = stableMetricsRef.current !== metricsHash;
-    const hasOldChart = localChartDataURL && localChartDataURL.length > 0;
-    const shouldGenerate = metricsChanged && !hasOldChart && !isChartGenerationRequested && !isLoading;
+    const canGenerate = !isChartGenerationRequested && !isLoading && !chartGenerationCooldownRef.current;
     
-    if (shouldGenerate) {
-      console.log('📈 Data changed - requesting chart generation (CONTROLLED)');
+    if (metricsChanged && canGenerate) {
+      console.log('🔄 Metrics changed - requesting chart generation:', {
+        metricsHash: metricsHash.substring(0, 50) + '...',
+        timestamp: new Date().toISOString()
+      });
       
       // Update the stable reference
       stableMetricsRef.current = metricsHash;
       
-      // Debounce with cooldown
+      // Request chart generation with small delay for stability
       const timeoutId = setTimeout(() => {
-        if (!chartGenerationCooldownRef.current) {
-          setIsChartGenerationRequested(true);
-        }
-      }, 2000);
+        setIsChartGenerationRequested(true);
+      }, 1000);
       
       return () => clearTimeout(timeoutId);
     } else if (metricsChanged) {
       // Just update the reference without triggering generation
       stableMetricsRef.current = metricsHash;
-      console.log('📊 Metrics changed but skipping chart generation (has recent chart or in progress)');
+      console.log('📊 Metrics updated but chart generation skipped (in progress)');
     }
-  }, [metricsHash, localChartDataURL, isChartGenerationRequested, isLoading]);
+  }, [metricsHash, isChartGenerationRequested, isLoading]);
 
   // --- Memoized Values ---
   const localCHART_COLORS = useMemo<ChartColors>(() => ({
@@ -1416,7 +1566,7 @@ const DataVisualizationPanel: React.FC<DataVisualizationPanelProps> = ({
           title="Generate a new image capture of the current chart"
         >
           <span>{isLoading ? '⏳' : '📷'}</span>
-          {isLoading || isChartGenerationRequested ? 'Generating...' : 'Capture Chart Image'}
+          {isLoading || isChartGenerationRequested ? 'Detecting Chart Readiness...' : 'Capture Chart Image'}
         </ExportButton>
       </SectionTitle>
 

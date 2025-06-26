@@ -69,3 +69,25 @@ textarea {
   padding-top: 0; // Header positioning handled by individual components
   min-height: 100vh;
 }
+
+// Ensure content is visible below fixed header
+.app-container {
+  min-height: 100vh;
+  background: var(--color-black, #000000);
+}
+
+.content-container {
+  padding-top: 70px; // Account for fixed header height
+  min-height: calc(100vh - 70px);
+  width: 100%;
+  
+  @media (max-width: 480px) {
+    padding-top: 60px; // Account for smaller mobile header
+    min-height: calc(100vh - 60px);
+  }
+  
+  @media (min-width: 2560px) {
+    padding-top: 80px; // Account for larger 4K header
+    min-height: calc(100vh - 80px);
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "name": "apex-ai-desktop-monitor",
+  "version": "1.0.0",
+  "description": "Apex AI Live Security Monitor - Desktop Application",
+  "main": "main.js",
+  "homepage": "./",
+  "scripts": {
+    "start": "electron .",
+    "dev": "concurrently \"npm run dev:react\" \"wait-on http://localhost:3001 && electron .\"",
+    "dev:react": "npm run start:react",
+    "start:react": "BROWSER=none PORT=3001 react-scripts start",
+    "build": "react-scripts build",
+    "build:electron": "npm run build && electron-builder",
+    "dist": "npm run build && electron-builder --publish=never",
+    "pack": "electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "keywords": [
+    "security",
+    "ai",
+    "monitoring",
+    "rtsp",
+    "surveillance"
+  ],
+  "author": "Apex AI Security",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^28.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.0",
+    "styled-components": "^6.1.0",
+    "socket.io-client": "^4.7.5",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron-builder": "^24.9.1",
+    "react-scripts": "5.0.1",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.apexai.desktop-monitor",
+    "productName": "Apex AI Desktop Monitor",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "build/**/*",
+      "main.js",
+      "preload.js",
+      "node_modules/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

@@ -18,11 +18,7 @@ import { generateMetricsForClient, mockDailyReports } from '../data/mockData';
 
 // Enhanced Daily Reports Analysis Function - PRODUCTION READY
 const analyzeDailyReportsForMetrics = (reports: DailyReport[], client?: ClientData | null): MetricsData => {
-  console.log('🚨 APEX AI: Analyzing daily reports for metrics generation:', {
-    reportsCount: reports.length,
-    clientName: client?.name,
-    timestamp: new Date().toISOString()
-  });
+  // Analyzing daily reports for metrics generation
   
   // Security-focused keyword detection arrays
   const humanKeywords = ['person', 'persons', 'individual', 'pedestrian', 'trespasser', 'visitor', 'human', 'people', 'man', 'woman', 'personnel', 'staff', 'employee', 'unauthorized'];
@@ -42,7 +38,7 @@ const analyzeDailyReportsForMetrics = (reports: DailyReport[], client?: ClientDa
   let accuracyScore = 0;
   let responseScore = 0;
 
-  console.log('🔍 APEX AI: Starting detailed security analysis...');
+  // Starting security analysis
   
   reports.forEach((report, index) => {
     const content = (report.content || '').toLowerCase();
@@ -143,15 +139,7 @@ const analyzeDailyReportsForMetrics = (reports: DailyReport[], client?: ClientDa
     operationalUptime: Number((95 + Math.random() * 4.8).toFixed(1)) // 95-99.8% uptime
   };
   
-  console.log('📈 APEX AI: ANALYSIS COMPLETE - Production metrics generated:', {
-    totalHumanIntrusions: Object.values(result.humanIntrusions).reduce((a, b) => a + b, 0),
-    totalVehicleIntrusions: Object.values(result.vehicleIntrusions).reduce((a, b) => a + b, 0),
-    potentialThreats: result.potentialThreats,
-    proactiveAlerts: result.proactiveAlerts,
-    aiAccuracy: result.aiAccuracy,
-    totalCameras: result.totalCameras,
-    source: 'APEX_AI_DAILY_REPORTS_ANALYSIS'
-  });
+  // Metrics analysis complete
   
   return result;
 };
@@ -322,16 +310,45 @@ export const ReportDataProvider: React.FC<ReportDataProviderProps> = ({
   });
   const [dateRange, setDateRange] = useState<DateRange>(initialDateRange);
   
-  // Initialize with proper daily reports immediately
+  // ENHANCED: Initialize daily reports with persistence check
   const [dailyReports, setDailyReports] = useState<DailyReport[]>(() => {
-    // Use mock daily reports with actual content
-    return mockDailyReports.map(report => ({
+    // Try to load from localStorage first, then use mock data
+    try {
+      const saved = localStorage.getItem('dailyReports');
+      if (saved) {
+        const parsedReports = JSON.parse(saved);
+        // Loaded daily reports from localStorage
+        return parsedReports;
+      }
+    } catch (error) {
+      // Failed to load daily reports from localStorage
+    }
+    
+    // Use mock daily reports with actual content as fallback
+    const initialReports = mockDailyReports.map(report => ({
       ...report,
-      timestamp: new Date().toISOString() // Update timestamp to current
+      timestamp: new Date().toISOString()
     }));
+    
+    // Initialized daily reports with mock data
+    
+    return initialReports;
   });
   
-  const [summaryNotes, setSummaryNotes] = useState<string>('');
+  const [summaryNotes, setSummaryNotes] = useState<string>(() => {
+    // Try to load from localStorage first
+    try {
+      const saved = localStorage.getItem('summaryNotes');
+      if (saved) {
+        const parsedNotes = JSON.parse(saved);
+        // Loaded summary notes from localStorage
+        return parsedNotes;
+      }
+    } catch (error) {
+      // Failed to load summary notes from localStorage
+    }
+    return '';
+  });
   const [chartDataURL, setChartDataURL] = useState<string>('');
   
   // 🚨 DEBUG: Track chartDataURL changes in context
@@ -399,6 +416,40 @@ export const ReportDataProvider: React.FC<ReportDataProviderProps> = ({
     }
   }, []); // FIXED: Empty dependency array - only run once on mount
 
+  // Enhanced setDailyReports with automatic persistence
+  const enhancedSetDailyReports = useCallback((reportsOrUpdater: DailyReport[] | ((prev: DailyReport[]) => DailyReport[])) => {
+    setDailyReports(prev => {
+      const newReports = typeof reportsOrUpdater === 'function' ? reportsOrUpdater(prev) : reportsOrUpdater;
+      
+      // Save to localStorage for persistence
+      try {
+        localStorage.setItem('dailyReports', JSON.stringify(newReports));
+        // Daily reports saved to localStorage
+      } catch (error) {
+        // Failed to save daily reports to localStorage
+      }
+      
+      return newReports;
+    });
+  }, []);
+
+  // Enhanced setSummaryNotes with automatic persistence
+  const enhancedSetSummaryNotes = useCallback((notesOrUpdater: string | ((prev: string) => string)) => {
+    setSummaryNotes(prev => {
+      const newNotes = typeof notesOrUpdater === 'function' ? notesOrUpdater(prev) : notesOrUpdater;
+      
+      // Save to localStorage for persistence
+      try {
+        localStorage.setItem('summaryNotes', JSON.stringify(newNotes));
+        // Summary notes saved to localStorage
+      } catch (error) {
+        // Failed to save summary notes to localStorage
+      }
+      
+      return newNotes;
+    });
+  }, []);
+
   // Enhanced setClient that automatically syncs metrics
   const enhancedSetClient = useCallback((newClient: ClientData | null) => {
     console.log('🔄 Setting new client and syncing metrics:', newClient?.name || 'null');
@@ -418,85 +469,53 @@ export const ReportDataProvider: React.FC<ReportDataProviderProps> = ({
     setMetrics(syncedMetrics);
   }, [client]);
 
-  // 🚨 APEX AI: CRITICAL DATA FLOW - Analyze daily reports to generate metrics
+  // 🚨 FIXED: Simplified daily reports analysis with debouncing
   useEffect(() => {
-    if (dailyReports && dailyReports.length > 0) {
+    if (dailyReports && dailyReports.length > 0 && client) {
       // Check if daily reports have meaningful content
       const hasContent = dailyReports.some(report => 
         report.content && report.content.trim().length > 10
       );
       
       if (hasContent) {
-        console.log('🔥 APEX AI: Daily reports content detected - triggering analysis:', {
+        console.log('📈 APEX AI: Analyzing daily reports content:', {
           reportsWithContent: dailyReports.filter(r => r.content && r.content.trim().length > 10).length,
           totalReports: dailyReports.length,
-          clientName: client?.name
+          clientName: client.name
         });
         
-        // Analyze daily reports to generate real metrics
-        const analyzedMetrics = analyzeDailyReportsForMetrics(dailyReports, client);
+        // Debounce analysis to prevent excessive updates
+        const timeoutId = setTimeout(() => {
+          // Analyze daily reports to generate real metrics
+          const analyzedMetrics = analyzeDailyReportsForMetrics(dailyReports, client);
+          
+          // Update context metrics
+          setMetrics(analyzedMetrics);
+          
+          console.log('🎯 APEX AI: Updated context metrics from analysis:', {
+            totalHumanIntrusions: Object.values(analyzedMetrics.humanIntrusions).reduce((a, b) => a + b, 0),
+            potentialThreats: analyzedMetrics.potentialThreats,
+            source: 'DAILY_REPORTS_ANALYSIS'
+          });
+        }, 1000);
         
-        // Update context metrics with analyzed results
-        setMetrics(currentMetrics => {
-          // Compare key values to prevent unnecessary updates
-          const totalHumanIntrusions = Object.values(analyzedMetrics.humanIntrusions).reduce((a, b) => a + b, 0);
-          const currentHumanIntrusions = Object.values(currentMetrics.humanIntrusions || {}).reduce((a, b) => a + b, 0);
-          
-          const hasSignificantChanges = (
-            totalHumanIntrusions !== currentHumanIntrusions ||
-            analyzedMetrics.potentialThreats !== currentMetrics.potentialThreats ||
-            analyzedMetrics.proactiveAlerts !== currentMetrics.proactiveAlerts ||
-            Math.abs(analyzedMetrics.aiAccuracy - currentMetrics.aiAccuracy) > 0.1
-          );
-          
-          if (hasSignificantChanges) {
-            console.log('🎯 APEX AI: Updating context metrics with analysis results:', {
-              oldHumanTotal: currentHumanIntrusions,
-              newHumanTotal: totalHumanIntrusions,
-              oldThreats: currentMetrics.potentialThreats,
-              newThreats: analyzedMetrics.potentialThreats,
-              source: 'DAILY_REPORTS_ANALYSIS'
-            });
-            return analyzedMetrics;
-          }
-          
-          // No significant changes, return current metrics
-          return currentMetrics;
-        });
-      } else {
-        console.log('🔍 APEX AI: Daily reports present but no significant content yet');
+        return () => clearTimeout(timeoutId);
       }
     }
-  }, [dailyReports, client?.id, client?.cameras]); // Re-analyze when reports or client changes
+  }, [dailyReports.length, client?.id]); // Only depend on length and client ID
 
-  // Auto-sync when client changes (additional safety net) - FIXED TO PREVENT LOOPS
+  // 🚨 FIXED: Simplified auto-sync for client changes
   useEffect(() => {
     if (client && client.cameras) {
-      setMetrics(currentMetrics => {
-        const syncedMetrics = syncClientDataWithMetrics(client, currentMetrics);
-        
-        // 🚨 CRITICAL FIX: More thorough comparison to prevent unnecessary updates
-        const hasChanges = (
-          syncedMetrics.totalCameras !== currentMetrics.totalCameras || 
-          syncedMetrics.camerasOnline !== currentMetrics.camerasOnline ||
-          syncedMetrics.aiAccuracy !== currentMetrics.aiAccuracy ||
-          syncedMetrics.operationalUptime !== currentMetrics.operationalUptime
-        );
-        
-        if (hasChanges) {
-          console.log('🔄 Auto-syncing metrics with client data change:', {
-            oldCameras: currentMetrics.totalCameras,
-            newCameras: syncedMetrics.totalCameras,
-            clientName: client.name
-          });
-          return syncedMetrics;
-        }
-        
-        // Return EXACT same reference to prevent re-renders
-        return currentMetrics;
+      console.log('🔄 Syncing metrics with client data:', {
+        clientName: client.name,
+        cameras: client.cameras
       });
+      
+      const syncedMetrics = syncClientDataWithMetrics(client, metrics);
+      setMetrics(syncedMetrics);
     }
-  }, [client?.id, client?.cameras]); // 🚨 CRITICAL: Only sync when client ID or camera count changes
+  }, [client?.id, client?.cameras]); // Only sync when client ID or camera count changes
 
   // Implement fetchInitialData as a stable memoized function
   const fetchInitialData = useCallback(async (clientId: string): Promise<void> => {
@@ -511,7 +530,7 @@ export const ReportDataProvider: React.FC<ReportDataProviderProps> = ({
     setIsLoading(false);
   }, []); // No dependencies - this function is stable
 
-  // Provide the context value
+  // Provide the context value with enhanced functions
   const contextValue: ReportDataContextType = {
     client,
     setClient: enhancedSetClient,
@@ -520,9 +539,9 @@ export const ReportDataProvider: React.FC<ReportDataProviderProps> = ({
     dateRange,
     setDateRange,
     dailyReports,
-    setDailyReports,
+    setDailyReports: enhancedSetDailyReports, // 🚨 CRITICAL: Use enhanced version with persistence
     summaryNotes,
-    setSummaryNotes,
+    setSummaryNotes: enhancedSetSummaryNotes, // 🚨 CRITICAL: Use enhanced version with persistence
     chartDataURL,
     setChartDataURL,
     themeSettings,

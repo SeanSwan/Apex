@@ -414,12 +414,23 @@ const ReportBuilder: React.FC = () => {
     return () => { isMounted = false; };
   }, [activeTab, isChartGenerationRequested, chartDataURL, toast]);
 
-  // Effect to request chart regeneration when relevant data changes
+  // 🚨 FIXED: Trigger chart generation when data changes or tab switches
   useEffect(() => {
     if (activeTab === 'viz' || activeTab === 'preview') {
+      console.log('📊 ReportBuilder: Triggering chart generation for tab:', activeTab);
       setIsChartGenerationRequested(true);
     }
   }, [metrics, themeSettings, activeTab]);
+  
+  // 🚨 NEW: Force chart generation when switching to viz tab
+  useEffect(() => {
+    if (activeTab === 'viz' && !chartDataURL) {
+      console.log('📈 ReportBuilder: No chart data found, requesting generation');
+      setTimeout(() => {
+        setIsChartGenerationRequested(true);
+      }, 1000);
+    }
+  }, [activeTab, chartDataURL]);
 
   // Force context sync when switching to preview tab
   useEffect(() => {
@@ -741,38 +752,40 @@ const ReportDataUpdater: React.FC<ReportDataUpdaterProps> = ({
     setContactEmail
   } = useReportData();
 
-  // CONSOLIDATED DATA SYNC - All data updates in a single effect to prevent race conditions
+  // 🚨 FIXED: Simplified and stable data sync with proper debouncing
   useEffect(() => {
-    console.log('ReportDataUpdater: Syncing ALL data to context:', {
+    console.log('🔄 ReportDataUpdater: Syncing data to context:', {
       clientName: client?.name,
       hasMetrics: !!metrics,
       reportCount: dailyReports?.length,
       hasTheme: !!themeSettings,
-      hasBackgroundImage: !!themeSettings?.backgroundImage,
-      hasHeaderImage: !!themeSettings?.headerImage,
       hasChart: !!chartDataURL,
-      summaryLength: summaryNotes?.length,
-      signature: signature,
-      contactEmail: contactEmail
+      chartLength: chartDataURL?.length || 0,
+      timestamp: new Date().toISOString()
     });
 
-    // Update all context values in batch
-    if (client) setClient(client);
-    setMetrics(metrics);
-    setDateRange(dateRange);
-    setDailyReports(dailyReports);
-    setSummaryNotes(summaryNotes);
-    setSignature(signature);
-    setChartDataURL(chartDataURL);
-    setThemeSettings(themeSettings);
-    setContactEmail(contactEmail);
+    // Use timeout to debounce rapid updates
+    const timeoutId = setTimeout(() => {
+      // Update all context values
+      if (client) setClient(client);
+      setMetrics(metrics);
+      setDateRange(dateRange);
+      setDailyReports(dailyReports);
+      setSummaryNotes(summaryNotes);
+      setSignature(signature);
+      if (chartDataURL) {
+        console.log('🖼️ ReportDataUpdater: Updating chart data URL in context');
+        setChartDataURL(chartDataURL);
+      }
+      setThemeSettings(themeSettings);
+      setContactEmail(contactEmail);
+    }, 500); // Small delay to batch updates
 
+    return () => clearTimeout(timeoutId);
   }, [
-    client, metrics, dateRange, dailyReports, summaryNotes, 
-    signature, chartDataURL, themeSettings, contactEmail,
-    setClient, setMetrics, setDateRange, setDailyReports,
-    setSummaryNotes, setSignature, setChartDataURL, setThemeSettings, setContactEmail
-  ]);
+    client?.id, metrics, dateRange, dailyReports, summaryNotes, 
+    signature, chartDataURL, themeSettings, contactEmail
+  ]); // Removed setters from dependencies to prevent loops
 
   return null; // This component doesn't render anything
 };

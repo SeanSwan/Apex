@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import { useParams } from 'react-router-dom';
 
 // Import modern components from current Reports directory
-import PropertyInformationPanel from '../components/Reports/PropertyInformationPanel';
+import PropertyInfoPanel from '../components/Reports/PropertyInfoPanel';
 import EnhancedPreviewPanel from '../components/Reports/EnhancedPreviewPanel';
 
 // Import the ReportDataContext
@@ -208,7 +208,7 @@ const DetailedReportPage: React.FC = () => {
 
       <ContentGrid>
         <div>
-          <PropertyInformationPanel />
+          <PropertyInfoPanel />
         </div>
         <div>
           <EnhancedPreviewPanel

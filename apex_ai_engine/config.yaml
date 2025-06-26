@@ -1,0 +1,137 @@
+# APEX AI ENGINE CONFIGURATION
+# ============================
+# Configuration file for AI detection engine
+
+# AI Model Settings
+model:
+  # Path to YOLO model file (.pt format)
+  path: "yolov8n.pt"
+  
+  # Model type: nano, small, medium, large, extra-large
+  # n=fastest, s=balanced, m=accurate, l=more accurate, x=most accurate
+  size: "nano"
+  
+  # Confidence threshold for detections (0.0-1.0)
+  confidence_threshold: 0.5
+  
+  # IoU threshold for non-maximum suppression
+  iou_threshold: 0.45
+  
+  # Maximum detections per image
+  max_detections: 100
+
+# Video Processing Settings
+video:
+  # Process every Nth frame (1=every frame, 5=every 5th frame)
+  frame_skip: 5
+  
+  # Target FPS for processing
+  target_fps: 10
+  
+  # Input resolution (will resize frames)
+  input_width: 640
+  input_height: 640
+  
+  # Enable GPU acceleration if available
+  use_gpu: true
+
+# Communication Settings
+communication:
+  # WebSocket port for Electron app communication
+  websocket_port: 8765
+  
+  # WebSocket host (localhost for security)
+  websocket_host: "localhost"
+  
+  # Enable real-time detection streaming
+  real_time_streaming: true
+
+# AI Detection Rules
+rules:
+  # Person Detection
+  person_detection:
+    enabled: true
+    confidence_threshold: 0.6
+    track_movement: true
+    
+  # Loitering Detection
+  loitering:
+    enabled: true
+    time_threshold: 30  # seconds
+    zones: ["entrance", "elevator", "lobby"]
+    priority: "medium"
+    
+  # Zone Breach Detection
+  zone_breach:
+    enabled: true
+    restricted_zones: ["server_room", "executive_area", "storage"]
+    priority: "high"
+    alert_immediately: true
+    
+  # Unknown Person Detection
+  unknown_person:
+    enabled: true
+    alert_threshold: 0.8
+    priority: "high"
+    
+  # Vehicle Detection
+  vehicle_detection:
+    enabled: false
+    include_classes: ["car", "truck", "bus", "motorcycle"]
+    restricted_areas: ["pedestrian_zones"]
+
+# Performance Settings
+performance:
+  # Number of processing threads
+  num_threads: 4
+  
+  # Queue size for detections
+  detection_queue_size: 1000
+  
+  # Memory optimization
+  optimize_memory: true
+  
+  # Enable performance monitoring
+  monitor_performance: true
+
+# Logging Settings
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: "INFO"
+  
+  # Log file path (null for console only)
+  file_path: null
+  
+  # Enable detection logging to file
+  log_detections: false
+  
+  # Log rotation settings
+  max_file_size: "10MB"
+  backup_count: 5
+
+# Storage Settings
+storage:
+  # Directory for snapshots
+  snapshot_dir: "./snapshots"
+  
+  # Directory for processed video clips
+  clips_dir: "./clips"
+  
+  # Retention period for files (days)
+  retention_days: 7
+  
+  # Auto-cleanup old files
+  auto_cleanup: true
+
+# Demo Settings (for development/testing)
+demo:
+  # Enable simulation mode when no cameras available
+  simulation_mode: true
+  
+  # Simulation detection frequency (0.0-1.0)
+  simulation_frequency: 0.3
+  
+  # Demo camera URLs (public test streams)
+  demo_streams:
+    - "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov"
+    - "rtsp://wowzaec2demo.streamlock.net/vod/mp4:sample.mp4"

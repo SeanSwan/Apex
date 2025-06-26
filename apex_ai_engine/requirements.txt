@@ -1,0 +1,30 @@
+# APEX AI ENGINE - PYTHON REQUIREMENTS
+# ====================================
+# Core AI/ML dependencies for real-time security monitoring
+
+# Computer Vision & AI
+ultralytics>=8.0.0          # YOLOv8 for object detection
+opencv-python>=4.8.0        # Computer vision and video processing
+numpy>=1.21.0               # Numerical computing
+Pillow>=9.0.0               # Image processing
+
+# Communication & Networking
+websockets>=11.0.0          # WebSocket communication with Electron app
+asyncio                     # Asynchronous programming (built-in Python 3.7+)
+
+# Data & Configuration
+pyyaml>=6.0                 # YAML configuration files
+python-dotenv>=1.0.0        # Environment variable management
+
+# Performance & Monitoring
+psutil>=5.9.0               # System and process monitoring
+tqdm>=4.64.0                # Progress bars for model loading
+
+# Optional: Advanced AI features (install if needed)
+# torch>=1.13.0             # PyTorch (will be installed by ultralytics)
+# torchvision>=0.14.0       # Computer vision models
+# onnx>=1.12.0              # ONNX model format support
+# tensorrt                  # NVIDIA TensorRT acceleration (GPU only)
+
+# Development & Debugging
+colorama>=0.4.5             # Colored terminal output
