@@ -24,31 +24,31 @@ export { default as ErrorBoundary } from './ErrorBoundary/error-boundry.componen
 // === FORM COMPONENTS ===
 export { default as SignupForm } from './SignupForm/SignUpForm.component';
 export { default as UniversalAuthForm } from './UniversalAuthForm/UniversalAuthForm.component';
-export { default as TimeOffRequestForm } from './TimeOffRequestForm';
-export { default as DARForm } from './DARForm';
+export { default as TimeOffRequestForm } from './TimeOffRequestForm/time-off-request-form.component';
+export { default as DARForm } from './DARForm/dar-form.component';
 
 // === CARD COMPONENTS ===
-export { default as ClockInOutCard } from './ClockInOutCard';
-export { default as CommunicationCard } from './CommunicationCard';
-export { default as PerformanceCard } from './PerformanceCard';
-export { default as GamificationCard } from './GamificationCard';
-export { default as TimeOffRequestsCard } from './TimeOffRequestsCard';
-export { default as WorkSummaryCard } from './WorkSummaryCard';
-export { default as DARCard } from './DARCard';
+export { default as ClockInOutCard } from './ClockInOutCard/clock-in-out-card.component';
+export { default as CommunicationCard } from './CommunicationCard/communication-card.component';
+export { default as PerformanceCard } from './PerformanceCard/performance-card.component';
+export { default as GamificationCard } from './GamificationCard/gamification-card.component';
+export { default as TimeOffRequestsCard } from './TimeOffRequestsCard/time-off-requests-card.component';
+export { default as WorkSummaryCard } from './WorkSummaryCard/Work-Summary-card.component';
+export { default as DARCard } from './DARCard/dar-card.component';
 
 // === UI COMPONENTS ===
 export * from './ui';
-export { default as DialogD } from './DialogD';
-export { default as Title } from './Title';
-export { default as ImageSlider } from './ImageSlider';
-export { default as ResizeImage } from './ResizeImage';
+export { default as DialogD } from './DialogD/dialog-description.component';
+export { default as Title } from './Title/Title.component';
+export { default as ImageSlider } from './ImageSlider/ImageSlider.component';
+export { default as ResizeImage } from './ResizeImage/resize-image.component';
 
 // === UTILITY COMPONENTS ===
-export { default as Bot } from './Bot';
-export { default as ObjectDetection } from './ObjectDetection';
-export { default as PermissionEditor } from './PermissionEditor';
-export { default as ProtectedRoutes } from './ProtectedRoutes';
-export { default as UserList } from './UserList';
+export { default as Bot } from './Bot/createbot-component';
+export { default as ObjectDetection } from './ObjectDetection/ObjectDetection.component';
+export { default as PermissionEditor } from './PermissionEditor/PermissionEditor';
+export { default as ProtectedRoutes } from './ProtectedRoutes/protected-routes.component';
+export { default as UserList } from './UserList/UserList.component';
 
 // === TESTING & DEBUG ===
 export { default as BugFixVerification } from './BugFixVerification';
