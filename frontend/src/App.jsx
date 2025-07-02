@@ -49,9 +49,9 @@ function App() {
               <Routes>
                 {/* === MAIN PLATFORM ROUTES === */}
                 
-                {/* Platform Landing Page - TEMPORARILY USING TEST COMPONENT */}
-                <Route path="/" element={<TestHomePage />} />
-                <Route path="/original-home" element={<IntegratedHomePage />} />
+                {/* Platform Landing Page - RESTORED ORIGINAL HOMEPAGE */}
+                <Route path="/" element={<IntegratedHomePage />} />
+                <Route path="/test" element={<TestHomePage />} />
                 
                 {/* Phase 2A: AI Infrastructure & Live Monitoring */}
                 <Route path="/live-monitoring" element={<EnhancedLiveMonitoring />} />
