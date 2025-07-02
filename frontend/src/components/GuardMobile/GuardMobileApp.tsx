@@ -13,7 +13,6 @@ import {
   MapPin, 
   Phone, 
   CheckCircle,
-  XCircle,
   Radio,
   Navigation,
   FileText,
@@ -26,24 +25,17 @@ import {
   Eye,
   Target,
   Activity,
-  Timer,
-  Bell,
   Send,
   Mic,
-  Video,
   Image as ImageIcon,
   Home,
-  List,
   PlusCircle,
-  RefreshCw,
-  Power,
   Calendar,
   Edit
 } from 'lucide-react';
 
 // Import existing components
 import { useToast } from '../../hooks/use-toast';
-import { Button } from '../ui/button';
 
 // Types for Guard Mobile App
 interface GuardProfile {
@@ -518,7 +510,7 @@ const GuardMobileApp: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [aiAlerts, setAIAlerts] = useState<AIAlert[]>([]);
   const [messages, setMessages] = useState<DispatchMessage[]>([]);
-  const [incidentDrafts, setIncidentDrafts] = useState<IncidentReport[]>([]);
+  const [incidentDrafts] = useState<IncidentReport[]>([]);
   const [checkPoints, setCheckPoints] = useState<CheckInPoint[]>([]);
   const [messageContent, setMessageContent] = useState('');
 
@@ -618,7 +610,7 @@ const GuardMobileApp: React.FC = () => {
     });
   }, [toast]);
 
-  const handleRespondToAlert = useCallback((alertId: string) => {
+  const handleRespondToAlert = useCallback((_alertId: string) => {
     toast({
       title: "Response Logged",
       description: "Your response to the alert has been logged. Dispatch has been notified.",

@@ -36,9 +36,17 @@ export { default as TimeOffRequestsCard } from './TimeOffRequestsCard/time-off-r
 export { default as WorkSummaryCard } from './WorkSummaryCard/Work-Summary-card.component';
 export { default as DARCard } from './DARCard/dar-card.component';
 
-// === UI COMPONENTS ===
-export * from './ui';
-export { default as DialogD } from './DialogD/dialog-description.component';
+// === UI COMPONENTS (excluding conflicting exports) ===
+// Note: Button is exported from Reports, so we exclude it from ui re-exports
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
+export { Input } from './ui/input';
+export { Badge } from './ui/badge';
+export { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+export { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+export { Textarea } from './ui/textarea';
+export { DatePicker } from './ui/date-picker';
+// export { default as DialogD } from './DialogD/dialog-description.component'; // TODO: Fix component structure when needed
 export { default as Title } from './Title/Title.component';
 export { default as ImageSlider } from './ImageSlider/ImageSlider.component';
 export { default as ResizeImage } from './ResizeImage/resize-image.component';

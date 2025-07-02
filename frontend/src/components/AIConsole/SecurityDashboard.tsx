@@ -5,8 +5,8 @@ import { useReportData } from '../../context/ReportDataContext';
 import marbleTexture from '../../assets/marble-texture.png';
 import {
   Shield, Eye, AlertTriangle, Activity, Clock, MapPin, Camera, 
-  Users, TrendingUp, Zap, Phone, Radio, ShieldCheck, Award,
-  Target, Layers, Wifi, WifiOff, CheckCircle, AlertCircle
+  Users, TrendingUp, Zap, Radio, ShieldCheck, Award,
+  Target, Wifi, WifiOff, CheckCircle, AlertCircle
 } from 'lucide-react';
 import AdvancedCameraMonitoring from './AdvancedCameraMonitoring';
 
@@ -275,7 +275,7 @@ interface SecurityEnhancementsProps {
 const ApexAISecurityEnhancements: React.FC<SecurityEnhancementsProps> = ({ className }) => {
   const { client, metrics, dailyReports } = useReportData();
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [alertsFeed, setAlertsFeed] = useState([
+  const [alertsFeed] = useState([
     { time: '14:23', message: 'Perimeter patrol completed - Sector 7', priority: 'low' },
     { time: '14:20', message: 'Motion detected - Parking Garage Level B2', priority: 'medium' },
     { time: '14:18', message: 'Guard check-in - Main Lobby', priority: 'low' },
@@ -309,7 +309,7 @@ const ApexAISecurityEnhancements: React.FC<SecurityEnhancementsProps> = ({ class
     return {
       totalCameras,
       camerasOnline,
-      cameraStatus: camerasOnline === totalCameras ? 'online' : camerasOnline > totalCameras * 0.8 ? 'warning' : 'alert',
+      cameraStatus: (camerasOnline === totalCameras ? 'online' : camerasOnline > totalCameras * 0.8 ? 'warning' : 'alert') as 'online' | 'offline' | 'warning' | 'alert',
       totalIntrusions,
       humanIntrusions,
       vehicleIntrusions,

@@ -29,7 +29,7 @@ export { EnhancedPDFGenerator } from './EnhancedPDFGenerator';
 
 // === UTILITY COMPONENTS ===
 export { default as AIReportAssistant } from './AIReportAssistant';
-export { default as ChartComponents } from './ChartComponents';
+export * from './ChartComponents';
 export { default as DataFlowMonitor } from './DataFlowMonitor';
 export { default as DragDropImageUpload } from './DragDropImageUpload';
 export { default as BugFixVerification } from './BugFixVerification';

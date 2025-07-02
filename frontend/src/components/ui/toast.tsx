@@ -227,7 +227,7 @@ const Toast = React.forwardRef<
   return (
     <StyledToast
       ref={ref}
-      variant={variant}
+      variant={variant || 'default'}
       {...props}
     />
   )

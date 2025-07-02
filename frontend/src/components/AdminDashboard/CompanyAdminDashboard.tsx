@@ -16,28 +16,15 @@ import {
   Settings,
   Plus,
   Edit,
-  Trash2,
   Search,
-  Filter,
   Download,
-  Upload,
   UserPlus,
   MapPin,
-  Phone,
-  Mail,
   AlertTriangle,
-  CheckCircle,
-  XCircle,
   TrendingUp,
   TrendingDown,
   Activity,
   Target,
-  Briefcase,
-  Key,
-  Camera,
-  Wifi,
-  Database,
-  Server,
   MonitorSpeaker,
   Eye
 } from 'lucide-react';
@@ -73,6 +60,14 @@ interface Client {
   status: 'active' | 'pending' | 'inactive';
   properties: Property[];
   account_manager: string;
+}
+
+interface PatrolRoute {
+  route_id: string;
+  name: string;
+  checkpoints: string[];
+  estimated_duration: number;
+  active: boolean;
 }
 
 interface Property {
@@ -130,18 +125,6 @@ interface Shift {
   end_time: string;
   status: 'scheduled' | 'active' | 'completed' | 'missed';
   notes?: string;
-}
-
-interface PayrollRecord {
-  record_id: string;
-  guard_id: string;
-  pay_period_start: string;
-  pay_period_end: string;
-  regular_hours: number;
-  overtime_hours: number;
-  holiday_hours: number;
-  total_pay: number;
-  status: 'pending' | 'approved' | 'paid';
 }
 
 interface AnalyticsData {
@@ -594,7 +577,7 @@ const CompanyAdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [guards, setGuards] = useState<GuardEmployee[]>([]);
-  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [shifts] = useState<Shift[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');

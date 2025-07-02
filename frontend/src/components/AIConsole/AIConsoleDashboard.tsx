@@ -5,7 +5,7 @@ import SecurityDashboard from './SecurityDashboard';
 import marbleTexture from '../../assets/marble-texture.png';
 import {
   Shield, Eye, Activity, TrendingUp, Settings, Users, Camera,
-  AlertTriangle, Bell, MapPin, Radio, Clock, Command
+  AlertTriangle, Bell, Radio, Clock, Command
 } from 'lucide-react';
 
 // AI Console Layout Components
@@ -148,7 +148,7 @@ interface AIConsoleDashboardProps {
 const AIConsoleDashboard: React.FC<AIConsoleDashboardProps> = ({ className }) => {
   const [activeSection, setActiveSection] = useState<string>('security');
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [systemStatus, setSystemStatus] = useState({
+  const [systemStatus] = useState({
     aiStatus: 'online',
     guardDispatch: 'active', 
     cameras: { online: 24, total: 26 },

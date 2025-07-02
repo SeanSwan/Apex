@@ -8,26 +8,15 @@ import styled, { createGlobalStyle, ThemeProvider, keyframes } from 'styled-comp
 import { 
   Camera, 
   AlertTriangle, 
-  Users, 
-  MapPin, 
-  Zap, 
   Volume2, 
   Maximize2, 
-  Settings,
   Grid3X3,
-  Grid2X2,
-  RotateCcw,
   Play,
   Pause,
-  SkipForward,
   Eye,
   Target,
-  Activity,
   Monitor,
-  Layers,
-  Filter,
-  Search,
-  RefreshCw
+  Search
 } from 'lucide-react';
 
 // Import existing components

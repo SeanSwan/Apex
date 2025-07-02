@@ -13,21 +13,13 @@ import {
   Navigation, 
   Clock, 
   AlertTriangle,
-  CheckCircle,
-  XCircle,
   Radio,
   Map,
   Target,
   Activity,
-  Calendar,
-  UserCheck,
-  Headphones,
   Send,
   FileText,
-  Camera,
   Eye,
-  Zap,
-  Timer,
   MapIcon
 } from 'lucide-react';
 
@@ -42,31 +34,6 @@ interface GuardLocation {
   lng: number;
   timestamp: string;
   accuracy: number;
-}
-
-interface Post {
-  post_id: string;
-  name: string;
-  location: { lat: number; lng: number };
-  property_id: string;
-  requirements: string[];
-  shift_schedule: string;
-  current_guard?: string;
-  status: 'occupied' | 'vacant' | 'offline';
-}
-
-interface PatrolRoute {
-  route_id: string;
-  name: string;
-  checkpoints: Array<{
-    checkpoint_id: string;
-    name: string;
-    location: { lat: number; lng: number };
-    required_time?: number;
-  }>;
-  estimated_duration: number;
-  assigned_guard?: string;
-  last_completed?: string;
 }
 
 interface Incident {
@@ -614,7 +581,7 @@ const GuardOperationsDashboard: React.FC = () => {
   const [selectedGuards, setSelectedGuards] = useState<string[]>([]);
   const [messageContent, setMessageContent] = useState('');
   const [messagePriority, setMessagePriority] = useState<'low' | 'normal' | 'high' | 'urgent'>('normal');
-  const [guardLocations, setGuardLocations] = useState<Record<string, GuardLocation>>({});
+  const [guardLocations] = useState<Record<string, GuardLocation>>({});
 
   // Initialize demo data
   useEffect(() => {
