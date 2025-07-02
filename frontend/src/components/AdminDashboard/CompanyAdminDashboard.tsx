@@ -221,16 +221,16 @@ const SidebarSection = styled.div`
   }
 `;
 
-const SidebarItem = styled.button<{ active: boolean }>`
+const SidebarItem = styled.button<{ $active: boolean }>`
   width: 100%;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  background: ${props => props.active ? 'rgba(255, 215, 0, 0.1)' : 'transparent'};
+  background: ${props => props.$active ? 'rgba(255, 215, 0, 0.1)' : 'transparent'};
   border: none;
-  border-left: 3px solid ${props => props.active ? '#FFD700' : 'transparent'};
-  color: ${props => props.active ? '#FFD700' : '#B0B0B0'};
+  border-left: 3px solid ${props => props.$active ? '#FFD700' : 'transparent'};
+  color: ${props => props.$active ? '#FFD700' : '#B0B0B0'};
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
@@ -464,7 +464,7 @@ const Table = styled.table`
   }
 `;
 
-const StatusBadge = styled.span<{ status: string }>`
+const StatusBadge = styled.span<{ $status: string }>`
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
   font-size: 0.75rem;
@@ -473,7 +473,7 @@ const StatusBadge = styled.span<{ status: string }>`
   letter-spacing: 0.5px;
   
   background: ${props => {
-    switch(props.status) {
+    switch(props.$status) {
       case 'active':
       case 'online':
       case 'completed': return 'rgba(34, 197, 94, 0.2)';
@@ -489,7 +489,7 @@ const StatusBadge = styled.span<{ status: string }>`
   }};
   
   color: ${props => {
-    switch(props.status) {
+    switch(props.$status) {
       case 'active':
       case 'online':
       case 'completed': return '#22C55E';
@@ -505,7 +505,7 @@ const StatusBadge = styled.span<{ status: string }>`
   }};
   
   border: 1px solid ${props => {
-    switch(props.status) {
+    switch(props.$status) {
       case 'active':
       case 'online':
       case 'completed': return 'rgba(34, 197, 94, 0.5)';
@@ -577,7 +577,7 @@ const CompanyAdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [guards, setGuards] = useState<GuardEmployee[]>([]);
-  const [shifts] = useState<Shift[]>([]);
+  const [shifts, setShifts] = useState<Shift[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -995,7 +995,7 @@ const CompanyAdminDashboard: React.FC = () => {
                         </span>
                       </td>
                       <td>
-                        <StatusBadge status={user.status}>{user.status}</StatusBadge>
+                        <StatusBadge $status={user.status}>{user.status}</StatusBadge>
                       </td>
                       <td>{new Date(user.last_login).toLocaleDateString()}</td>
                       <td>
@@ -1099,7 +1099,7 @@ const CompanyAdminDashboard: React.FC = () => {
                         ${client.monthly_value.toLocaleString()}
                       </td>
                       <td>
-                        <StatusBadge status={client.status}>{client.status}</StatusBadge>
+                        <StatusBadge $status={client.status}>{client.status}</StatusBadge>
                       </td>
                       <td>
                         <ActionButtons>
@@ -1214,7 +1214,7 @@ const CompanyAdminDashboard: React.FC = () => {
                         </div>
                       </td>
                       <td>
-                        <StatusBadge status={guard.status}>{guard.status}</StatusBadge>
+                        <StatusBadge $status={guard.status}>{guard.status}</StatusBadge>
                       </td>
                       <td>
                         <ActionButtons>
@@ -1273,7 +1273,7 @@ const CompanyAdminDashboard: React.FC = () => {
                 {items.map((item) => (
                   <SidebarItem
                     key={item.id}
-                    active={activeSection === item.id}
+                    $active={activeSection === item.id}
                     onClick={() => setActiveSection(item.id)}
                   >
                     <item.icon size={18} />

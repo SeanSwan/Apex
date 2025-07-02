@@ -49,7 +49,7 @@ export { DatePicker } from './ui/date-picker';
 // export { default as DialogD } from './DialogD/dialog-description.component'; // TODO: Fix component structure when needed
 export { default as Title } from './Title/Title.component';
 export { default as ImageSlider } from './ImageSlider/ImageSlider.component';
-export { default as ResizeImage } from './ResizeImage/resize-image.component';
+// export { default as ResizeImage } from './ResizeImage/resize-image.component'; // TODO: Build component when needed
 
 // === UTILITY COMPONENTS ===
 export { default as Bot } from './Bot/createbot-component';
