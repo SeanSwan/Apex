@@ -88,17 +88,26 @@ class ApexAIEngine:
         """Load YOLO model for inference"""
         try:
             if not YOLO_AVAILABLE:
+                print("⚠️  YOLO not available - running in DEMO SIMULATION mode")
                 logger.warning("YOLO not available, using simulation mode")
                 return True
                 
+            print(f"📥 Loading YOLO model: {self.model_path}")
             logger.info(f"📥 Loading YOLO model: {self.model_path}")
+            
+            # Download model if it doesn't exist
             self.model = YOLO(self.model_path)
+            
+            print("✅ YOLO model loaded successfully")
             logger.info("✅ YOLO model loaded successfully")
             return True
             
         except Exception as e:
+            print(f"⚠️  Model loading failed - using DEMO SIMULATION mode")
+            print(f"   Error: {e}")
             logger.error(f"❌ Failed to load model: {e}")
-            return False
+            logger.info("🎭 Falling back to demo simulation mode")
+            return True  # Continue with simulation mode
 
     async def start_camera_stream(self, camera_data: Dict):
         """Start processing a camera stream"""
@@ -355,6 +364,7 @@ class ApexAIEngine:
 
     async def start_websocket_server(self):
         """Start WebSocket server for Electron communication"""
+        print(f"🚀 Starting WebSocket server on port {self.websocket_port}")
         logger.info(f"🚀 Starting WebSocket server on port {self.websocket_port}")
         
         server = await websockets.serve(
@@ -363,6 +373,8 @@ class ApexAIEngine:
             self.websocket_port
         )
         
+        print(f"✅ WebSocket server running on ws://localhost:{self.websocket_port}")
+        print("🔌 Ready for Desktop App connection!")
         logger.info(f"✅ WebSocket server running on ws://localhost:{self.websocket_port}")
         return server
 
@@ -545,6 +557,16 @@ if __name__ == "__main__":
     MODEL_PATH = "yolov8n.pt"  # Start with nano model for speed
     WEBSOCKET_PORT = 8765
     
+    # Display startup banner
+    print("\n" + "="*60)
+    print("       🚀 APEX AI ENGINE - DEMO MODE")
+    print("="*60)
+    print(f"📡 WebSocket Port: {WEBSOCKET_PORT}")
+    print(f"🧠 AI Model: {MODEL_PATH}")
+    print(f"🎭 Demo Mode: Enabled (simulated detections)")
+    print("🔌 Waiting for Desktop App connection...")
+    print("="*60 + "\n")
+    
     # Create and run AI engine
     engine = ApexAIEngine(
         websocket_port=WEBSOCKET_PORT,
@@ -554,6 +576,9 @@ if __name__ == "__main__":
     try:
         asyncio.run(engine.run())
     except KeyboardInterrupt:
+        print("\n🛑 AI Engine stopped by user")
         logger.info("👋 AI Engine stopped by user")
     except Exception as e:
+        print(f"\n❌ Fatal error: {e}")
         logger.error(f"❌ Fatal error: {e}")
+        input("Press Enter to close...")

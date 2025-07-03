@@ -160,7 +160,7 @@ const StatusSection = styled.div`
   gap: 2rem;
 `;
 
-const StatusItem = styled.div<{ status: 'online' | 'offline' | 'warning' }>`
+const StatusItem = styled.div<{ $status: 'online' | 'offline' | 'warning' }>`
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -170,10 +170,10 @@ const StatusItem = styled.div<{ status: 'online' | 'offline' | 'warning' }>`
     height: 8px;
     border-radius: 50%;
     background: ${props => 
-      props.status === 'online' ? '#10B981' : 
-      props.status === 'warning' ? '#F59E0B' : '#EF4444'
+      props.$status === 'online' ? '#10B981' : 
+      props.$status === 'warning' ? '#F59E0B' : '#EF4444'
     };
-    animation: ${props => props.status === 'online' ? pulse : 'none'} 2s infinite;
+    animation: ${props => props.$status === 'online' ? pulse : 'none'} 2s infinite;
   }
 `;
 
@@ -295,14 +295,14 @@ const CameraGridContainer = styled.div`
   overflow: hidden;
 `;
 
-const CameraGrid = styled.div<{ layout: string }>`
+const CameraGrid = styled.div<{ $layout: string }>`
   display: grid;
   gap: 0.5rem;
   height: 100%;
   overflow-y: auto;
   
   grid-template-columns: ${props => {
-    switch(props.layout) {
+    switch(props.$layout) {
       case '4x4': return 'repeat(4, 1fr)';
       case '6x6': return 'repeat(6, 1fr)';
       case '8x8': return 'repeat(8, 1fr)';
@@ -605,7 +605,7 @@ const EnhancedLiveMonitoring: React.FC = () => {
     setStreamingStatus('connecting');
     
     try {
-      wsRef.current = new WebSocket('ws://localhost:5001/stream');
+      wsRef.current = new WebSocket('ws://localhost:8765'); // Match Python AI engine port
       
       wsRef.current.onopen = () => {
         setStreamingStatus('connected');
@@ -1162,7 +1162,7 @@ const EnhancedLiveMonitoring: React.FC = () => {
         {/* Main Content Area */}
         <MainContent>
           <CameraGridContainer>
-            <CameraGrid layout={gridConfig.layout}>
+            <CameraGrid $layout={gridConfig.layout}>
               {currentPageCameras.map((camera) => (
                 <CameraFeedContainer
                   key={camera.camera_id}
