@@ -36,7 +36,7 @@ export { default as TimeOffRequestsCard } from './TimeOffRequestsCard/time-off-r
 export { default as WorkSummaryCard } from './WorkSummaryCard/Work-Summary-card.component';
 export { default as DARCard } from './DARCard/dar-card.component';
 
-// === UI COMPONENTS (excluding conflicting exports) ===
+// === UI COMPONENTS ===
 // Note: Button is exported from Reports, so we exclude it from ui re-exports
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 export { Input } from './ui/input';
@@ -46,10 +46,8 @@ export { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 export { Textarea } from './ui/textarea';
 export { DatePicker } from './ui/date-picker';
-// export { default as DialogD } from './DialogD/dialog-description.component'; // TODO: Fix component structure when needed
 export { default as Title } from './Title/Title.component';
 export { default as ImageSlider } from './ImageSlider/ImageSlider.component';
-// export { default as ResizeImage } from './ResizeImage/resize-image.component'; // TODO: Build component when needed
 
 // === UTILITY COMPONENTS ===
 export { default as Bot } from './Bot/createbot-component';
@@ -57,10 +55,6 @@ export { default as ObjectDetection } from './ObjectDetection/ObjectDetection.co
 export { default as PermissionEditor } from './PermissionEditor/PermissionEditor';
 export { default as ProtectedRoutes } from './ProtectedRoutes/protected-routes.component';
 export { default as UserList } from './UserList/UserList.component';
-
-// === TESTING & DEBUG ===
-export { default as BugFixVerification } from './BugFixVerification';
-export { default as connectionTest } from './connectionTest';
 
 // === ICONS ===
 export * from './icons';

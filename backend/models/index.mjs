@@ -9,6 +9,7 @@ import User from './user.mjs';
 import Property from './property.mjs';
 import Guard from './guard.mjs';
 import Patrol from './patrol.mjs';
+import PatrolRoute from './patrolRoute.mjs';
 import Incident from './incident.mjs';
 import Report from './report.mjs';
 import Schedule from './schedule.mjs';
@@ -26,12 +27,10 @@ import PropertyAssignment from './propertyAssignment.mjs';
 // Import function-based models (need sequelize parameter)
 import ClientFunction from './client.mjs';
 import ContactFunction from './contact.mjs';
-import PatrolRouteFunction from './patrolRoute.mjs';
 
 // Initialize function-based models
 const Client = ClientFunction(sequelize);
 const Contact = ContactFunction(sequelize);
-const PatrolRoute = PatrolRouteFunction(sequelize);
 
 // === MODEL ASSOCIATIONS ===
 

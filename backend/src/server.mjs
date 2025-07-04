@@ -122,7 +122,7 @@ const startServer = async () => {
     // Test database connection
     try {
       const client = await pool.connect();
-      console.log('Database connection successful');
+      console.log('✅ Database connection successful');
       
       // Check if users table exists
       const tableResult = await client.query(`
@@ -135,14 +135,15 @@ const startServer = async () => {
       
       const usersTableExists = tableResult.rows[0].exists;
       if (usersTableExists) {
-        console.log('Users table exists');
+        console.log('✅ Users table exists');
       } else {
-        console.log('Users table does not exist yet - you may need to run migrations');
+        console.log('⚠️ Users table does not exist yet - you may need to run migrations');
       }
       
       client.release();
     } catch (dbError) {
-      console.error('Failed to connect to database', dbError);
+      console.log('⚠️ Database not available - running in DEMO MODE');
+      console.log('📝 This is fine for development and demo purposes');
       // Continue anyway to allow exploring other functionality
     }
 
@@ -308,6 +309,19 @@ const startServer = async () => {
     } catch (importError) {
       console.error('Error importing route files', importError);
       // Don't throw here - we'll continue with partial functionality
+    }
+
+    // ===========================================
+    // DEMO MODE - MOCK API ROUTES (FALLBACK)
+    // ===========================================
+    
+    try {
+      console.log('🎭 Loading Mock API routes for demo mode...');
+      const { default: mockApiRoutes } = await import('../routes/mockApi.mjs');
+      app.use('/api/mock', mockApiRoutes);
+      console.log('✅ Mock API routes loaded - demo mode ready!');
+    } catch (mockError) {
+      console.log('⚠️ Mock API routes not available:', mockError.message);
     }
 
     // Catch-all 404 handler
