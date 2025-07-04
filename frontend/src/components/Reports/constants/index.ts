@@ -49,6 +49,7 @@ export type {
 
 // AI Assistant Constants
 export {
+  aiAnimations,
   SUGGESTION_TYPES,
   GRAMMAR_PATTERNS,
   CONTENT_ENHANCEMENT_PATTERNS,
@@ -56,6 +57,7 @@ export {
   SECURITY_TIPS_BY_DAY,
   AI_ANALYSIS_CONFIG,
   AI_TIMING_CONSTANTS,
+  AI_RESPONSIVE_BREAKPOINTS,
   SUGGESTION_BADGE_COLORS,
   SECURITY_CODE_CONFIG,
   CONTENT_ANALYSIS_KEYWORDS,
@@ -68,8 +70,8 @@ export {
   getDayIndex
 } from './aiAssistantConstants';
 export type {
-  Suggestion,
   AIOptions,
+  Suggestion,
   SuggestionType,
   FeedbackType
 } from './aiAssistantConstants';
