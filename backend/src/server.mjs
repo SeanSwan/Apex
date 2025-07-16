@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { initializeSocketIO } from './socket.js';
+import { initializeEnhancedWebSocket } from '../services/websocket/index.mjs';
 import { log, error, setupGlobalErrorHandlers } from './debug.mjs';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
@@ -147,11 +147,13 @@ const startServer = async () => {
       // Continue anyway to allow exploring other functionality
     }
 
-    // Initialize Socket.io before importing routes
-    initializeSocketIO(server, allowedOrigins);
+    // Initialize Enhanced WebSocket Server before importing routes
+    const websocketInstance = initializeEnhancedWebSocket(server, allowedOrigins);
+    console.log('🚀 Enhanced WebSocket Server initialized with advanced features');
 
     // Enhanced health check route with security status
     app.get('/api/health', (req, res) => {
+      const wsStats = websocketInstance.getStats();
       res.json({ 
         status: 'Server is running',
         timestamp: new Date().toISOString(),
@@ -162,8 +164,15 @@ const startServer = async () => {
           cors_configured: true,
           validation_active: true
         },
+        websocket: {
+          enhanced_server: true,
+          connected_clients: wsStats.connectedClients,
+          messages_processed: wsStats.messagesProcessed,
+          ai_engine_connected: wsStats.clients.some(c => c.type === 'ai_engine'),
+          uptime: wsStats.uptime
+        },
         corsOrigins: allowedOrigins,
-        version: '2.0.0-security-enhanced'
+        version: '2.0.0-enhanced-websocket'
       });
     });
 

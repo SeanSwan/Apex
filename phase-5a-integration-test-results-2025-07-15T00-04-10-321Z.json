@@ -1,0 +1,116 @@
+{
+  "timestamp": "2025-07-15T00:04:10.321Z",
+  "test_suite": "Phase 5A Integration Testing",
+  "summary": {
+    "total": 11,
+    "passed": 1,
+    "failed": 10,
+    "pass_rate": 9
+  },
+  "test_details": [
+    {
+      "test": "Backend Health Check",
+      "status": "FAILED",
+      "details": ""
+    },
+    {
+      "test": "CORS Middleware",
+      "status": "FAILED",
+      "details": ""
+    },
+    {
+      "test": "Security Headers (Helmet)",
+      "status": "FAILED",
+      "details": ""
+    },
+    {
+      "test": "API Endpoint /api/auth/profile",
+      "status": "FAILED",
+      "details": ""
+    },
+    {
+      "test": "API Endpoint /api/properties",
+      "status": "FAILED",
+      "details": ""
+    },
+    {
+      "test": "API Endpoint /api/cameras",
+      "status": "FAILED",
+      "details": ""
+    },
+    {
+      "test": "API Endpoint /api/ai/detection-summary",
+      "status": "FAILED",
+      "details": ""
+    },
+    {
+      "test": "Rate Limiting",
+      "status": "PASSED",
+      "details": "0 rate limited, 0 successful in 14ms"
+    },
+    {
+      "test": "WebSocket Connection",
+      "status": "FAILED",
+      "details": "Connection timeout"
+    },
+    {
+      "test": "WebSocket Protocol",
+      "status": "FAILED",
+      "details": "Protocol test timeout"
+    },
+    {
+      "test": "Frontend Accessibility",
+      "status": "FAILED",
+      "details": "Frontend dev server not accessible"
+    }
+  ],
+  "errors": [
+    {
+      "test": "Backend Health Check",
+      "error": ""
+    },
+    {
+      "test": "CORS Middleware",
+      "error": ""
+    },
+    {
+      "test": "Security Headers (Helmet)",
+      "error": ""
+    },
+    {
+      "test": "API Endpoint /api/auth/profile",
+      "error": ""
+    },
+    {
+      "test": "API Endpoint /api/properties",
+      "error": ""
+    },
+    {
+      "test": "API Endpoint /api/cameras",
+      "error": ""
+    },
+    {
+      "test": "API Endpoint /api/ai/detection-summary",
+      "error": ""
+    },
+    {
+      "test": "WebSocket Connection",
+      "error": "Connection timeout"
+    },
+    {
+      "test": "WebSocket Protocol",
+      "error": "Protocol test timeout"
+    },
+    {
+      "test": "Frontend Accessibility",
+      "error": "Frontend dev server not accessible"
+    }
+  ],
+  "test_config": {
+    "backend_url": "http://localhost:5000",
+    "websocket_url": "http://localhost:5000",
+    "frontend_url": "http://localhost:5173",
+    "timeout": 10000,
+    "retry_attempts": 3
+  }
+}

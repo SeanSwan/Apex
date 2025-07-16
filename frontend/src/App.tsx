@@ -2,7 +2,7 @@
 // Master Prompt v29.1-APEX Implementation
 // CLEAN TYPESCRIPT VERSION
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import { theme } from './theme';
@@ -13,8 +13,10 @@ import { EnhancedReportBuilder } from './components/Reports';
 import ReportBuilder from './pages/ReportBuilder';
 import DetailedReportPage from './pages/DetailedReportPage';
 
-// AI Infrastructure & Live Monitoring (Phase 2A)
-import { LiveMonitoringDashboard, EnhancedLiveMonitoring } from './components';
+// AI Infrastructure & Live Monitoring (Phase 2A - LAZY LOADED TO PREVENT WEBSOCKET INITIALIZATION)
+const LiveMonitoringDashboard = lazy(() => import('./components/LiveMonitoring/LiveMonitoringDashboard'));
+const EnhancedLiveMonitoring = lazy(() => import('./components/LiveMonitoring/EnhancedLiveMonitoring'));
+const LiveMonitoringContainer = lazy(() => import('./components/LiveMonitoring/LiveMonitoringContainer'));
 
 // Guard Operations & Dispatch (Phase 2B)  
 import { GuardOperationsDashboard } from './components';
@@ -35,10 +37,13 @@ import UnauthorizedPage from './pages/UnauthorizedPage.component';
 import { Header, IntegratedHomePage, TestHomePage, ErrorBoundary } from './components';
 
 // Context
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext.jsx';
 import { Toaster } from './components/ui/toaster';
 
 const App: React.FC = () => {
+  // NOTE: WebSocket initialization moved to module level to avoid StrictMode issues
+  // See webSocketManager.ts for automatic connection initialization
+
   return (
     <ErrorBoundary>
       <ThemeProvider theme={theme}>
@@ -54,9 +59,22 @@ const App: React.FC = () => {
                 <Route path="/" element={<IntegratedHomePage />} />
                 <Route path="/test" element={<TestHomePage />} />
                 
-                {/* Phase 2A: AI Infrastructure & Live Monitoring */}
-                <Route path="/live-monitoring" element={<EnhancedLiveMonitoring />} />
-                <Route path="/live-monitoring/legacy" element={<LiveMonitoringDashboard />} />
+                {/* Phase 2A: AI Infrastructure & Live Monitoring - LAZY LOADED */}
+                <Route path="/live-monitoring" element={
+                  <Suspense fallback={<div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#0a0a0a', color: '#fff'}}>Loading Live Monitoring...</div>}>
+                    <LiveMonitoringContainer />
+                  </Suspense>
+                } />
+                <Route path="/live-monitoring/enhanced" element={
+                  <Suspense fallback={<div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#0a0a0a', color: '#fff'}}>Loading Enhanced Live Monitoring...</div>}>
+                    <EnhancedLiveMonitoring />
+                  </Suspense>
+                } />
+                <Route path="/live-monitoring/legacy" element={
+                  <Suspense fallback={<div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#0a0a0a', color: '#fff'}}>Loading Live Monitoring Dashboard...</div>}>
+                    <LiveMonitoringDashboard />
+                  </Suspense>
+                } />
                 
                 {/* Phase 2B: Guard Operations & Dispatch */}
                 <Route path="/guard-operations" element={<GuardOperationsDashboard />} />

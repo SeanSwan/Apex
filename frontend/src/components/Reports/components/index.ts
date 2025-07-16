@@ -6,14 +6,12 @@
 // Theme Builder Components
 export { 
   default as ColorPalette, 
-  ColorContrastDisplay, 
-  ColorAccessibilityInfo, 
-  ColorValueDisplay 
+  ColorContrastDisplay
 } from './ColorPalette';
 export type { 
+  ColorValue,
   ColorPaletteProps, 
-  ColorSwatchProps, 
-  ContrastCheckResult 
+  ColorContrastDisplayProps
 } from './ColorPalette';
 
 // Chart Components

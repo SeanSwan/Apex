@@ -18,28 +18,51 @@ export { default as DeliveryOptionsPanel } from './DeliveryOptionsPanel';
 
 // ===== AI ASSISTANT COMPONENTS =====
 export {
-  default as AIReportAssistant,
-  SimpleAIAssistant,
-  CustomAIAssistant
+  default as AIReportAssistant
 } from './AIReportAssistant';
 export type {
-  AIReportAssistantProps,
+  AIReportAssistantProps
+} from './AIReportAssistant';
+
+// AI Assistant Sub-Components
+export {
+  ProcessingIndicator,
+  NoSuggestionsDisplay,
+  ContentPrompt,
+  FeedbackSection,
+  AnalyticsPanel,
+  SimpleAIAssistant,
+  CustomAIAssistant,
+  AIAssistantPresets,
+  HighSecurityAIAssistant,
+  QuickEditAIAssistant,
+  TrainingAIAssistant,
+  ReviewAIAssistant,
+  AIAssistantComponents,
+  ComponentGroups
+} from './components/AIAssistantComponents';
+export type {
+  ProcessingIndicatorProps,
+  NoSuggestionsDisplayProps,
+  ContentPromptProps,
+  FeedbackSectionProps,
+  PerformanceMetrics,
+  AnalyticsPanelProps,
+  AnalyticsData,
   SimpleAIAssistantProps,
   CustomAIAssistantProps
-} from './AIReportAssistant';
+} from './components/AIAssistantComponents';
 
 // ===== EXTRACTED COMPONENTS =====
 export { default as ChartRenderer, EnhancedChartRenderer, useChartInteraction } from './components/ChartRenderer';
 export { 
   default as ColorPalette, 
-  ColorContrastDisplay, 
-  ColorAccessibilityInfo, 
-  ColorValueDisplay 
+  ColorContrastDisplay
 } from './components/ColorPalette';
 export type { 
+  ColorValue,
   ColorPaletteProps, 
-  ColorSwatchProps, 
-  ContrastCheckResult 
+  ColorContrastDisplayProps
 } from './components/ColorPalette';
 
 export {
@@ -479,8 +502,7 @@ export {
   ProgressIndicator,
   TooltipWrapper as ThemeTooltipWrapper,
   QuickActionButton,
-  ImportExportPanel,
-  ThemePreviewCard
+  ImportExportPanel
 } from './shared/ThemeBuilderStyledComponents';
 
 // AI Assistant Styled Components (Prefixed: AI*)

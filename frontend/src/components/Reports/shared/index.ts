@@ -5,6 +5,8 @@
 
 // Theme Builder Styled Components (Prefixed: Theme*)
 export {
+  Section,
+  SectionTitle,
   TabContainer,
   Tab,
   ContentContainer,
@@ -15,16 +17,22 @@ export {
   SelectInput,
   TextInput,
   RangeSlider,
-  TextArea,
+  TextArea as ThemeTextArea,
   PresetButton,
   ActionBar,
-  ActionButton as ThemeActionButton,
+  ActionButton,
   ToggleSwitch,
   ColorInput,
   FileInput,
   ImagePreview,
+  PreviewHeader,
+  PreviewTitle,
+  PreviewText,
+  PreviewHighlight,
   CollapsibleSection,
+  CollapsibleContent,
   SectionHeader,
+  SectionHeader as CollapsibleHeader,
   SectionContent,
   ValidationMessage,
   PreviewContainer as ThemePreviewContainer,
@@ -33,7 +41,9 @@ export {
   TooltipWrapper as ThemeTooltipWrapper,
   QuickActionButton,
   ImportExportPanel,
-  ThemePreviewCard
+  LoadingSpinner,
+  ErrorMessage,
+  SuccessMessage
 } from './ThemeBuilderStyledComponents';
 
 // Chart Styled Components (Prefixed: Chart*)
@@ -54,6 +64,7 @@ export {
   InsightBox,
   LoadingOverlay as ChartLoadingOverlay,
   LoadingSpinner as ChartLoadingSpinner,
+  StatusMessage,
   StatusMessage as ChartStatusMessage,
   ChartWrapper,
   ResponsiveGrid as ChartResponsiveGrid,
@@ -72,6 +83,7 @@ export {
   HeaderActions,
   IconButton,
   AssistantContent,
+  ContentSection,
   ContentSection as AIContentSection,
   ProcessingContainer,
   SpinnerIcon,
@@ -102,6 +114,70 @@ export {
   ScrollContainer
 } from './AIAssistantStyledComponents';
 
+// Daily Reports Styled Components (Prefixed: DailyReports*)
+export {
+  Section as DailyReportsSection,
+  SectionHeader as DailyReportsSectionHeader,
+  SectionTitle as DailyReportsSectionTitle,
+  BulkImportSection,
+  BulkImportTitle,
+  BulkImportDescription,
+  BulkTextArea,
+  BulkImportButtons,
+  ProcessingIndicator,
+  ImportPreview,
+  PreviewItem,
+  PreviewDay,
+  PreviewContent,
+  ReportTabs,
+  ReportTabsList,
+  ReportTabsTrigger,
+  ReportTabsContent,
+  TabsHeader,
+  TabsHeaderTitle,
+  ReportHeaderTitle,
+  CollapseButton,
+  ProgressContainer,
+  ProgressDetails,
+  ProgressText,
+  ProgressBar,
+  ProgressFill,
+  WordCountBadge,
+  TextAreaContainer,
+  TextArea,
+  CharCount,
+  AIPromptIndicator,
+  ControlsRow,
+  ControlGroup,
+  ControlLabel,
+  Select as DailyReportsSelect,
+  TextInput as DailyReportsTextInput,
+  ButtonGroup as DailyReportsButtonGroup,
+  ExpandedButtonGroup,
+  StyledButton as DailyReportsStyledButton,
+  BulkButton,
+  SecurityCodeBadge,
+  CardSection,
+  SummarySection,
+  SummarySectionTitle,
+  SignatureSection,
+  AIOptionsSection,
+  InputGroup as DailyReportsInputGroup,
+  InputLabel as DailyReportsInputLabel,
+  CheckboxGroup,
+  CheckboxLabel,
+  Checkbox,
+  AutosaveIndicator
+} from './DailyReportsStyledComponents';
+export type {
+  ReportTabsTriggerProps,
+  ProgressFillProps,
+  CharCountProps,
+  SecurityCodeBadgeProps,
+  WordCountBadgeProps,
+  CollapseButtonProps
+} from './DailyReportsStyledComponents';
+
 // Preview Panel Styled Components (Prefixed: Preview*)
 export {
   Section as PreviewSection,
@@ -131,12 +207,12 @@ export {
   ContactValue,
   NotesSection,
   NotesContent,
-  DailyReportsSection,
+  DailyReportsSection as PreviewDailyReportsSection,
   DailyReportItem,
   DailyReportHeader,
   DailyReportDay,
   DailyReportContent,
-  SecurityCodeBadge,
+  SecurityCodeBadge as PreviewSecurityCodeBadge,
   VisuallyHidden as PreviewVisuallyHidden,
   FocusTrap as PreviewFocusTrap,
   ResponsiveGrid as PreviewResponsiveGrid,
@@ -147,3 +223,34 @@ export {
   ScrollContainer as PreviewScrollContainer,
   TooltipWrapper as PreviewTooltipWrapper
 } from './PreviewStyledComponents';
+
+// ========================================
+// BACKWARD COMPATIBILITY ALIASES
+// ========================================
+// These exports maintain backward compatibility for components that haven't been updated
+// to use the new prefixed naming convention
+
+// Common component aliases (defaulting to Chart* versions for most common usage)
+export {
+  ChartStatusMessage as StatusMessage,
+  ChartButtonGroup as ButtonGroup,
+  ChartResponsiveGrid as ResponsiveGrid,
+  ChartVisuallyHidden as VisuallyHidden,
+  ChartFocusTrap as FocusTrap,
+  ChartAnimationDelay as AnimationDelay,
+  ChartThemeTransitionWrapper as ThemeTransitionWrapper
+};
+
+// AI Assistant specific aliases
+// (ContentSection now exported directly)
+
+// Theme Builder specific aliases
+// (ActionButton now exported directly)
+
+// Preview specific aliases
+// (Preview components now exported directly)
+
+// Additional commonly used aliases
+// (CollapsibleHeader now exported directly)
+
+// Error message alias removed - ErrorMessage now exported directly

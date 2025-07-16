@@ -632,6 +632,57 @@ export class ThemeValidator {
 export const themeValidator = new ThemeValidator();
 
 /**
+ * Convenience wrapper functions for easier importing
+ * These provide direct access to themeValidator methods
+ */
+
+/**
+ * Validate complete theme settings
+ */
+export const validateThemeSettings = (settings: ExtendedThemeSettings): ValidationSummary => {
+  return themeValidator.validateThemeSettings(settings);
+};
+
+/**
+ * Validate individual setting
+ */
+export const validateSingleSetting = (
+  field: string,
+  value: any,
+  settings: ExtendedThemeSettings
+): ValidationResult[] => {
+  return themeValidator.validateSingleSetting(field, value, settings);
+};
+
+/**
+ * Get validation severity for a result
+ */
+export const getValidationSeverity = (result: ValidationResult): ValidationSeverity => {
+  return result.severity;
+};
+
+/**
+ * Quick color validation
+ */
+export const isValidColor = (color: string): boolean => {
+  return ThemeValidator.isValidColor(color);
+};
+
+/**
+ * Auto-correct theme settings
+ */
+export const autoCorrectSettings = (settings: ExtendedThemeSettings): ExtendedThemeSettings => {
+  return themeValidator.autoCorrectSettings(settings);
+};
+
+/**
+ * Validate color contrast
+ */
+export const validateColorContrast = (foreground: string, background: string) => {
+  return ThemeValidator.validateColorContrast(foreground, background);
+};
+
+/**
  * Utility functions for theme validation
  */
 export const validationUtils = {

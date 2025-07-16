@@ -10,16 +10,21 @@ export { default as CompanyAdminDashboard } from './AdminDashboard/CompanyAdminD
 export { default as AIConsoleDashboard } from './AIConsole/AIConsoleDashboard';
 export { default as LiveMonitoringDashboard } from './LiveMonitoring/LiveMonitoringDashboard';
 export { default as EnhancedLiveMonitoring } from './LiveMonitoring/EnhancedLiveMonitoring';
+export { LiveMonitoringContainer } from './LiveMonitoring';
 export { default as GuardOperationsDashboard } from './GuardOperations/GuardOperationsDashboard';
+
+// === FACE MANAGEMENT MODULE ===
+export * from './FaceManagement';
+export { default as FaceManagementDashboard } from './FaceManagement/FaceManagementDashboard';
 
 // === GUARD MOBILE ===
 export { default as GuardMobileApp } from './GuardMobile/GuardMobileApp';
 
 // === CORE COMPONENTS ===
-export { default as Header } from './Header/header.component';
-export { default as IntegratedHomePage } from './HomePage';
-export { default as TestHomePage } from './TestHomePage';
-export { default as ErrorBoundary } from './ErrorBoundary/error-boundry.component';
+export { default as Header } from './Header/header.component.jsx';
+export { default as IntegratedHomePage } from './HomePage/IntegratedHomePage.jsx';
+export { default as TestHomePage } from './TestHomePage.jsx';
+export { default as ErrorBoundary } from './ErrorBoundary/error-boundry.component.jsx';
 
 // === FORM COMPONENTS ===
 export { default as SignupForm } from './SignupForm/SignUpForm.component';

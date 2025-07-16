@@ -605,7 +605,7 @@ export const MediaUploadArea: React.FC<MediaUploadAreaProps> = ({
         {item.preview ? (
           <img src={item.preview} alt={item.file.name} />
         ) : (
-          <File size={20} color=\"#777\" />
+          <File size={20} color="#777" />
         )}
       </FilePreview>
       
@@ -619,28 +619,28 @@ export const MediaUploadArea: React.FC<MediaUploadAreaProps> = ({
         </FileInfoDetails>
         
         {!item.validation.isValid && (
-          <FileStatus $type=\"error\">
+          <FileStatus $type="error">
             <AlertTriangle size={12} />
             {item.validation.errors[0]}
           </FileStatus>
         )}
         
         {item.validation.isValid && item.validation.warnings.length > 0 && (
-          <FileStatus $type=\"warning\">
+          <FileStatus $type="warning">
             <AlertTriangle size={12} />
             {item.validation.warnings[0]}
           </FileStatus>
         )}
         
         {item.validation.isValid && item.validation.warnings.length === 0 && (
-          <FileStatus $type=\"success\">
+          <FileStatus $type="success">
             <Check size={12} />
             Ready to upload
           </FileStatus>
         )}
       </FileInfo>
       
-      <RemoveButton onClick={() => handleRemoveFile(item.id)} title=\"Remove file\">
+      <RemoveButton onClick={() => handleRemoveFile(item.id)} title="Remove file">
         <X size={14} />
       </RemoveButton>
     </FileItem>
@@ -658,7 +658,7 @@ export const MediaUploadArea: React.FC<MediaUploadAreaProps> = ({
       >
         <HiddenInput
           ref={fileInputRef}
-          type=\"file\"
+          type="file"
           multiple
           accept={acceptedTypes.join(',')}
           onChange={handleFileInputChange}

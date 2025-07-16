@@ -74,6 +74,22 @@ export interface CustomPreset extends ThemePreset {
 }
 
 /**
+ * Additional type aliases for backward compatibility
+ */
+export type PresetMetadata = {
+  id: string;
+  name: string;
+  createdAt: string;
+  modifiedAt: string;
+  author?: string;
+  description?: string;
+  category?: CustomPreset['category'];
+  tags?: string[];
+};
+
+export type PresetApplication = PresetApplicationResult;
+
+/**
  * Preset manager class for handling theme presets
  */
 export class ThemePresetsManager {
@@ -554,6 +570,66 @@ export class ThemePresetsManager {
 
 // Export singleton instance
 export const themePresetsManager = new ThemePresetsManager();
+
+/**
+ * Convenience wrapper functions for easier importing
+ * These provide direct access to themePresetsManager methods
+ */
+
+/**
+ * Create a custom preset from current settings
+ */
+export const createCustomPreset = (
+  name: string,
+  settings: ExtendedThemeSettings,
+  options?: {
+    description?: string;
+    category?: CustomPreset['category'];
+    tags?: string[];
+    author?: string;
+  }
+) => {
+  return themePresetsManager.createCustomPreset(name, settings, options);
+};
+
+/**
+ * Get list of all presets
+ */
+export const getPresetsList = () => {
+  return themePresetsManager.getAllPresets();
+};
+
+/**
+ * Apply a preset by name
+ */
+export const applyPreset = (presetName: string, currentSettings: ExtendedThemeSettings) => {
+  return themePresetsManager.applyPreset(presetName, currentSettings);
+};
+
+/**
+ * Delete a custom preset
+ */
+export const deleteCustomPreset = (id: string) => {
+  return themePresetsManager.deleteCustomPreset(id);
+};
+
+/**
+ * Export presets to JSON
+ */
+export const exportPresets = () => {
+  const customPresets = themePresetsManager.getCustomPresets();
+  return {
+    success: true,
+    data: JSON.stringify(customPresets, null, 2)
+  };
+};
+
+/**
+ * Import presets from JSON
+ */
+export const importPresets = (jsonData: string) => {
+  return themePresetsManager.importPreset(jsonData);
+};
 
 /**
  * Utility functions for preset management

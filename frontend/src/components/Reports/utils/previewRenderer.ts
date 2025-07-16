@@ -512,14 +512,7 @@ export const PREVIEW_BUTTON_CONFIGS: PreviewButtonConfig[] = [
   }
 ];
 
-// Export utility classes
-export {
-  DateFormatter,
-  ResponsiveUtils,
-  SectionVisibilityManager,
-  PreviewDataValidator,
-  PreviewContentGenerator
-};
+// Utility classes are already exported individually above with 'export class'
 
 // Default export
 export default {

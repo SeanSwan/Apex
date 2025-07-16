@@ -667,13 +667,7 @@ export const CompactMediaGallery: React.FC<Omit<MediaGalleryProps, 'isCompact'>>
 // Default export
 export default MediaGallery;
 
-// Export all components and types
-export {
-  MediaItemComponent,
-  VideoLinkComponent,
-  ChartImage,
-  CompactMediaGallery
-};
+// Components are already exported individually above with 'export const' declarations
 
 export type {
   MediaGalleryProps,

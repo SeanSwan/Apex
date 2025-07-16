@@ -29,6 +29,9 @@ import aiServicesRoutes from './ai/aiServicesRoutes.mjs';
 import aiRoutingRoutes from './ai/routingRoutes.mjs';
 import aiNotificationRoutes from './ai/notificationRoutes.mjs';
 
+// Import Face Recognition API
+import faceManagementRoutes from './face_management_api.mjs';
+
 const router = Router();
 
 // ========================================
@@ -70,6 +73,11 @@ router.use('/cameras', aiCameraRoutes);
 // Features: TTS, executive briefings, AI model management
 router.use('/ai', aiServicesRoutes);
 
+// Face Recognition & Management
+// Features: Face enrollment, detection tracking, analytics
+router.use('/faces', faceManagementRoutes);
+router.use('/face', faceManagementRoutes); // Alternative path for enrollment
+
 // Route Optimization & GPS
 // Features: Real-time routing, ETA calculation, emergency routes
 router.use('/routing', aiRoutingRoutes);
@@ -98,7 +106,10 @@ router.get('/health', (req, res) => {
       voice_synthesis: true,
       route_optimization: true,
       push_notifications: true,
-      security_logging: true
+      security_logging: true,
+      face_recognition: true,
+      face_enrollment: true,
+      face_analytics: true
     },
     message: 'APEX AI Security Platform - Proactive Intelligence Active'
   });

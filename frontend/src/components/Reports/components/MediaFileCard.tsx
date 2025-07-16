@@ -450,13 +450,13 @@ export const MediaFileCard: React.FC<MediaFileCardProps> = ({
   const renderPreview = () => (
     <FilePreview $viewMode={viewMode}>
       {file.type === MEDIA_TYPES.IMAGE && file.thumbnail ? (
-        <img src={file.thumbnail} alt={file.name} loading=\"lazy\" />
+        <img src={file.thumbnail} alt={file.name} loading="lazy" />
       ) : file.type === MEDIA_TYPES.VIDEO && file.thumbnail ? (
         <>
-          <img src={file.thumbnail} alt={file.name} loading=\"lazy\" />
+          <img src={file.thumbnail} alt={file.name} loading="lazy" />
           {showPlayOverlay && (
             <PlayOverlay>
-              <Play size={16} color=\"white\" fill=\"white\" />
+              <Play size={16} color="white" fill="white" />
             </PlayOverlay>
           )}
         </>
@@ -511,30 +511,30 @@ export const MediaFileCard: React.FC<MediaFileCardProps> = ({
     return (
       <ActionsContainer $viewMode={viewMode}>
         <ActionButton
-          $variant=\"primary\"
+          $variant="primary"
           onClick={handlePreview}
-          title=\"Preview file\"
+          title="Preview file"
         >
           <Eye size={14} />
         </ActionButton>
         <ActionButton
           onClick={handleEdit}
-          title=\"Edit file details\"
+          title="Edit file details"
         >
           <Pencil size={14} />
         </ActionButton>
         {canShare && (
           <ActionButton
             onClick={handleShare}
-            title=\"Share file\"
+            title="Share file"
           >
             <Link size={14} />
           </ActionButton>
         )}
         <ActionButton
-          $variant=\"danger\"
+          $variant="danger"
           onClick={handleDelete}
-          title=\"Delete file\"
+          title="Delete file"
         >
           <Trash2 size={14} />
         </ActionButton>

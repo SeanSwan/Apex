@@ -92,8 +92,7 @@ const fallbackMetrics: MetricsData = {
   operationalUptime: 0
 };
 
-// Export component and types
-export default EnhancedPreviewPanel;
+// Component exported at the end of the file after definition
 export type { EnhancedPreviewPanelProps };
 
 const fallbackTheme: ThemeSettings = { 

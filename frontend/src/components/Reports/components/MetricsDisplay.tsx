@@ -578,13 +578,7 @@ export const MetricsSummary: React.FC<MetricsSummaryProps> = ({
 // Default export
 export default MetricsDisplay;
 
-// Export all components and types
-export {
-  PropertyInfo,
-  MetricCardComponent,
-  CompactMetricsDisplay,
-  MetricsSummary
-};
+// Export all components and types - Components are exported individually where defined
 
 export type {
   MetricsDisplayProps,

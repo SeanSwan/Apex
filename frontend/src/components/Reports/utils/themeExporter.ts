@@ -13,6 +13,27 @@ import {
 import { ThemeSettings } from '../../../types/reports';
 
 /**
+ * Import options interface
+ */
+export interface ImportOptions {
+  validateSettings?: boolean;
+  autoCorrect?: boolean;
+  preserveCustomCSS?: boolean;
+  preserveImages?: boolean;
+}
+
+/**
+ * Export options interface
+ */
+export interface ExportOptions {
+  filename?: string;
+  includeImages?: boolean;
+  compressImages?: boolean;
+  includeMetadata?: boolean;
+  validateBeforeExport?: boolean;
+}
+
+/**
  * Extended theme settings for export/import
  */
 export interface ExtendedThemeSettings extends ThemeSettings {
@@ -786,6 +807,57 @@ $card-style: ${settings.cardStyle || 'modern'};
 
 // Export singleton instance
 export const themeExporter = new ThemeExporter();
+
+/**
+ * Convenience wrapper functions for easier importing
+ * These provide direct access to themeExporter methods
+ */
+
+/**
+ * Export theme with specified format
+ */
+export const exportTheme = async (
+  settings: ExtendedThemeSettings,
+  format: ExportFormatType,
+  options?: ExportOptions
+): Promise<ExportResult> => {
+  return themeExporter.exportTheme(settings, format, options);
+};
+
+/**
+ * Import theme from data
+ */
+export const importTheme = async (
+  data: string,
+  format: ExportFormatType,
+  options?: ImportOptions
+): Promise<ImportResult> => {
+  return themeExporter.importTheme(data, format, options);
+};
+
+/**
+ * Download theme file
+ */
+export const downloadTheme = (exportResult: ExportResult): void => {
+  return themeExporter.downloadTheme(exportResult);
+};
+
+/**
+ * Create theme package
+ */
+export const createThemePackage = (
+  settings: ExtendedThemeSettings,
+  metadata: any
+): ThemePackage => {
+  return themeExporter.createThemePackage(settings, metadata);
+};
+
+/**
+ * Validate theme package
+ */
+export const validateThemePackage = (packageData: string) => {
+  return themeExporter.validateThemePackage(packageData);
+};
 
 /**
  * Utility functions for theme export/import

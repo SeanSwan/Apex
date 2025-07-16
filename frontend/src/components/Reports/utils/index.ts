@@ -3,6 +3,35 @@
  * Centralizes all utility functions and hooks for efficient imports
  */
 
+// Daily Reports Utilities
+export {
+  parseBulkReport,
+  applyBulkImportResults,
+  validateBulkImportText,
+  validateReportsCompleteness,
+  assessContentQuality,
+  getActiveReport,
+  findNextIncompleteReport,
+  updateReportStatusWithProgression,
+  emitMetricsUpdateEvent,
+  triggerAutosaveIndicator,
+  shouldTriggerAISuggestions,
+  triggerAITypingIndicator,
+  handleBulkImportError
+} from './dailyReportsUtils';
+
+// Daily Reports Hooks
+export {
+  useDailyReportsState,
+  useBulkImport,
+  useContactForm,
+  useReportHandlers,
+  useForceSave,
+  useAIGeneration,
+  useReportCalculations,
+  useDailyReportsPanel
+} from './dailyReportsHooks';
+
 // Theme Builder Utilities
 export {
   imageUtils,

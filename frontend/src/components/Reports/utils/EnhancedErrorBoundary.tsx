@@ -273,21 +273,21 @@ export const useAsyncError = () => {
 /**
  * Utility function for safe async operations
  */
-export const safeAsync = async <T>(
+export function safeAsync<T>(
   operation: () => Promise<T>,
   fallback?: T,
   onError?: (error: Error) => void
-): Promise<T | undefined> => {
-  try {
-    return await operation();
-  } catch (error) {
-    console.error('Safe async operation failed:', error);
-    if (onError) {
-      onError(error as Error);
-    }
-    return fallback;
-  }
-};
+): Promise<T | undefined> {
+  return operation()
+    .then(result => result)
+    .catch((error: Error) => {
+      console.error('Safe async operation failed:', error);
+      if (onError) {
+        onError(error);
+      }
+      return fallback;
+    });
+}
 
 /**
  * React Query-style error boundary for data fetching

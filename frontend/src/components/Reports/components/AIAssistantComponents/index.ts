@@ -3,6 +3,21 @@
  * Centralizes all AI assistant components for efficient imports
  */
 
+// Import components locally for object literal usage
+import ProcessingIndicator from './ProcessingIndicator';
+import NoSuggestionsDisplay from './NoSuggestionsDisplay';
+import ContentPrompt from './ContentPrompt';
+import FeedbackSection from './FeedbackSection';
+import AnalyticsPanel from './AnalyticsPanel';
+import SimpleAIAssistant from './SimpleAIAssistant';
+import CustomAIAssistant, {
+  AIAssistantPresets,
+  HighSecurityAIAssistant,
+  QuickEditAIAssistant,
+  TrainingAIAssistant,
+  ReviewAIAssistant
+} from './CustomAIAssistant';
+
 // Base Level Components
 export { default as ProcessingIndicator } from './ProcessingIndicator';
 export type { ProcessingIndicatorProps } from './ProcessingIndicator';
