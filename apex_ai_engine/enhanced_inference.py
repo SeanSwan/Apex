@@ -34,6 +34,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 import threading
 import queue
+from enum import Enum
 
 # AI/ML imports
 try:
@@ -51,6 +52,36 @@ except ImportError:
     FACE_RECOGNITION_AVAILABLE = False
     print("⚠️ Face recognition not available. Install with: pip install face_recognition")
 
+# Import Sprint 4 Alert Engines
+try:
+    from visual_alerts.visual_alert_engine import VisualAlertEngine
+    VISUAL_ALERTS_AVAILABLE = True
+except ImportError:
+    VISUAL_ALERTS_AVAILABLE = False
+    print("⚠️ Visual Alert Engine not available")
+
+try:
+    from audio_alerts.spatial_audio_engine import SpatialAudioEngine
+    AUDIO_ALERTS_AVAILABLE = True
+except ImportError:
+    AUDIO_ALERTS_AVAILABLE = False
+    print("⚠️ Spatial Audio Engine not available")
+
+try:
+    from ai_voice.ai_conversation_engine import AIConversationEngine
+    AI_CONVERSATION_AVAILABLE = True
+except ImportError:
+    AI_CONVERSATION_AVAILABLE = False
+    print("⚠️ AI Conversation Engine not available")
+
+# Import Master Threat Detection Coordinator
+try:
+    from models.master_threat_coordinator import MasterThreatDetectionCoordinator
+    MASTER_COORDINATOR_AVAILABLE = True
+except ImportError:
+    MASTER_COORDINATOR_AVAILABLE = False
+    print("⚠️ Master Threat Detection Coordinator not available")
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
@@ -63,12 +94,13 @@ class EnhancedApexAIEngine:
     Enhanced AI Engine with Face Recognition capabilities
     """
     
-    def __init__(self, websocket_port=8765, model_path=None, db_config=None):
+    def __init__(self, websocket_port=8765, model_path=None, db_config=None, openai_api_key=None):
         self.websocket_port = websocket_port
         self.model_path = model_path or "yolov8n.pt"  # Default to nano model
         self.model = None
         self.face_engine = None
         self.db_config = db_config or self.get_default_db_config()
+        self.openai_api_key = openai_api_key
         
         # Processing queues
         self.active_cameras = {}
@@ -77,6 +109,12 @@ class EnhancedApexAIEngine:
         self.ai_rules = self.load_default_rules()
         self.websocket_clients = set()
         self.is_running = False
+        
+        # Sprint 4: Initialize Alert Engines
+        self.visual_alert_engine = None
+        self.spatial_audio_engine = None
+        self.ai_conversation_engine = None
+        self.master_threat_coordinator = None
         
         # Performance tracking
         self.detection_count = 0
@@ -137,7 +175,7 @@ class EnhancedApexAIEngine:
         }
 
     async def load_models(self):
-        """Load both YOLO and Face Recognition models"""
+        """Load YOLO, Face Recognition models, and Sprint 4 Alert Engines"""
         success = True
         
         # Load YOLO model
@@ -183,7 +221,149 @@ class EnhancedApexAIEngine:
             logger.error(f"❌ Failed to load Face Recognition engine: {e}")
             success = False
         
+        # Load Master Threat Detection Coordinator
+        try:
+            if MASTER_COORDINATOR_AVAILABLE:
+                print("📥 Loading Master Threat Detection Coordinator...")
+                logger.info("📥 Loading Master Threat Detection Coordinator...")
+                
+                self.master_threat_coordinator = MasterThreatDetectionCoordinator()
+                print("✅ Master Threat Detection Coordinator loaded successfully")
+                logger.info("✅ Master Threat Detection Coordinator loaded successfully")
+            else:
+                print("⚠️  Master Threat Coordinator not available")
+                logger.warning("Master Threat Coordinator not available")
+        except Exception as e:
+            print(f"⚠️  Master Threat Coordinator loading failed: {e}")
+            logger.error(f"❌ Failed to load Master Threat Coordinator: {e}")
+        
+        # Load Visual Alert Engine
+        try:
+            if VISUAL_ALERTS_AVAILABLE:
+                print("🎨 Loading Visual Alert Engine...")
+                logger.info("🎨 Loading Visual Alert Engine...")
+                
+                visual_config = {
+                    'border_thickness': 8,
+                    'max_opacity': 0.8,
+                    'min_opacity': 0.2
+                }
+                self.visual_alert_engine = VisualAlertEngine(visual_config)
+                print("✅ Visual Alert Engine loaded successfully")
+                logger.info("✅ Visual Alert Engine loaded successfully")
+            else:
+                print("⚠️  Visual Alert Engine not available")
+                logger.warning("Visual Alert Engine not available")
+        except Exception as e:
+            print(f"⚠️  Visual Alert Engine loading failed: {e}")
+            logger.error(f"❌ Failed to load Visual Alert Engine: {e}")
+        
+        # Load Spatial Audio Engine
+        try:
+            if AUDIO_ALERTS_AVAILABLE:
+                print("🔊 Loading Spatial Audio Engine...")
+                logger.info("🔊 Loading Spatial Audio Engine...")
+                
+                self.spatial_audio_engine = SpatialAudioEngine(
+                    sample_rate=44100,
+                    buffer_size=1024,
+                    channels=8
+                )
+                print("✅ Spatial Audio Engine loaded successfully")
+                logger.info("✅ Spatial Audio Engine loaded successfully")
+            else:
+                print("⚠️  Spatial Audio Engine not available")
+                logger.warning("Spatial Audio Engine not available")
+        except Exception as e:
+            print(f"⚠️  Spatial Audio Engine loading failed: {e}")
+            logger.error(f"❌ Failed to load Spatial Audio Engine: {e}")
+        
+        # Load AI Conversation Engine
+        try:
+            if AI_CONVERSATION_AVAILABLE:
+                print("🎙️ Loading AI Conversation Engine...")
+                logger.info("🎙️ Loading AI Conversation Engine...")
+                
+                conversation_config = {
+                    'max_conversation_time': 300,
+                    'max_response_length': 100,
+                    'recording_enabled': True
+                }
+                self.ai_conversation_engine = AIConversationEngine(
+                    openai_api_key=self.openai_api_key,
+                    config=conversation_config
+                )
+                print("✅ AI Conversation Engine loaded successfully")
+                logger.info("✅ AI Conversation Engine loaded successfully")
+            else:
+                print("⚠️  AI Conversation Engine not available")
+                logger.warning("AI Conversation Engine not available")
+        except Exception as e:
+            print(f"⚠️  AI Conversation Engine loading failed: {e}")
+            logger.error(f"❌ Failed to load AI Conversation Engine: {e}")
+        
+        # Register zones with alert engines (example setup)
+        await self._setup_alert_zones()
+        
         return success
+    
+    async def _setup_alert_zones(self):
+        """Setup monitoring zones for alert engines"""
+        logger.info("📍 Setting up alert zones for Sprint 4 engines...")
+        
+        # Example zone configurations (in production, these would come from configuration)
+        example_zones = [
+            {
+                'zone_id': 'entrance_main',
+                'monitor_id': 'monitor_1',
+                'region': (0, 0, 1920, 1080),
+                'spatial_position': {'x': 0.0, 'y': 1.0, 'z': 0.0},  # Front center
+                'sensitivity_multiplier': 1.2
+            },
+            {
+                'zone_id': 'lobby_area',
+                'monitor_id': 'monitor_2', 
+                'region': (0, 0, 1920, 1080),
+                'spatial_position': {'x': -0.7, 'y': 0.5, 'z': 0.0},  # Front left
+                'sensitivity_multiplier': 1.0
+            },
+            {
+                'zone_id': 'parking_garage',
+                'monitor_id': 'monitor_3',
+                'region': (0, 0, 1920, 1080),
+                'spatial_position': {'x': 0.7, 'y': -0.5, 'z': 0.0},  # Rear right
+                'sensitivity_multiplier': 0.8
+            }
+        ]
+        
+        # Register zones with Visual Alert Engine
+        if self.visual_alert_engine:
+            for zone in example_zones:
+                self.visual_alert_engine.register_zone(
+                    zone_id=zone['zone_id'],
+                    monitor_id=zone['monitor_id'],
+                    region=zone['region'],
+                    sensitivity_multiplier=zone['sensitivity_multiplier']
+                )
+        
+        # Register zones with Spatial Audio Engine
+        if self.spatial_audio_engine:
+            try:
+                from audio_alerts.spatial_audio_engine import SpatialPosition
+                for zone in example_zones:
+                    spatial_pos = SpatialPosition(
+                        x=zone['spatial_position']['x'],
+                        y=zone['spatial_position']['y'],
+                        z=zone['spatial_position']['z']
+                    )
+                    self.spatial_audio_engine.register_zone_position(
+                        zone_id=zone['zone_id'],
+                        position=spatial_pos
+                    )
+            except Exception as e:
+                logger.error(f"❌ Failed to setup spatial audio zones: {e}")
+        
+        logger.info(f"✅ Setup {len(example_zones)} alert zones successfully")
 
     async def start_camera_stream(self, camera_data: Dict):
         """Start processing a camera stream with enhanced detection"""
@@ -254,44 +434,197 @@ class EnhancedApexAIEngine:
                 await asyncio.sleep(1)
 
     async def handle_object_detection(self, detection: Dict):
-        """Handle object detection results"""
+        """Handle object detection results with Sprint 4 alert integration"""
         self.detection_count += 1
         
-        # Apply AI rules for object detection
-        alerts = self.apply_object_detection_rules(detection)
+        # Use Master Threat Coordinator if available
+        if self.master_threat_coordinator:
+            threat_analysis = self.master_threat_coordinator.analyze_detection(detection)
+        else:
+            # Fallback to original rules
+            threat_analysis = self.apply_object_detection_rules(detection)
+        
+        # Process threat analysis results
+        for alert in threat_analysis if isinstance(threat_analysis, list) else [threat_analysis]:
+            if alert and alert.get('alert_type'):
+                await self._process_threat_alert(alert, detection)
         
         # Broadcast detection
         await self.broadcast_message({
             'type': 'object_detection',
             'data': detection
         })
-        
-        # Broadcast any alerts
-        for alert in alerts:
+    
+    async def _process_threat_alert(self, alert: Dict, detection: Dict):
+        """Process threat alert through all Sprint 4 alert engines"""
+        try:
+            # Extract alert information
+            alert_type = alert.get('alert_type', 'unknown')
+            threat_level = alert.get('priority', 'medium').upper()
+            camera_id = detection.get('camera_id', 'unknown')
+            zone_id = self._map_camera_to_zone(camera_id)
+            
+            # Convert threat level to enum (with fallback)
+            try:
+                from models.base_threat_model import ThreatLevel
+                if hasattr(ThreatLevel, threat_level):
+                    threat_level_enum = getattr(ThreatLevel, threat_level)
+                else:
+                    threat_level_enum = ThreatLevel.MEDIUM  # Default fallback
+            except:
+                # Define fallback enum if import fails
+                class ThreatLevel:
+                    LOW = 1
+                    MEDIUM = 2 
+                    HIGH = 3
+                    CRITICAL = 4
+                threat_level_enum = ThreatLevel.MEDIUM
+            
+            # Prepare threat data for alert engines
+            threat_data = {
+                'type': alert_type,
+                'threat_level': threat_level_enum,
+                'confidence': detection.get('confidence', 0.5),
+                'description': alert.get('description', f'{alert_type} detected'),
+                'bbox': detection.get('bounding_box', (0, 0, 100, 100)),
+                'camera_id': camera_id,
+                'zone_id': zone_id,
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            # Trigger Visual Alert
+            if self.visual_alert_engine and zone_id:
+                try:
+                    visual_alert_id = self.visual_alert_engine.trigger_alert(zone_id, threat_data)
+                    logger.info(f"🎨 Visual alert triggered: {visual_alert_id}")
+                    
+                    # Broadcast visual alert data to frontend
+                    overlay_data = self.visual_alert_engine.export_overlay_data_for_frontend(
+                        self._get_monitor_for_zone(zone_id)
+                    )
+                    await self.broadcast_message({
+                        'type': 'visual_alert',
+                        'data': {
+                            'alert_id': visual_alert_id,
+                            'zone_id': zone_id,
+                            'overlay_data': overlay_data,
+                            'threat_data': threat_data
+                        }
+                    })
+                except Exception as e:
+                    logger.error(f"❌ Visual alert error: {e}")
+            
+            # Trigger Spatial Audio Alert
+            if self.spatial_audio_engine:
+                try:
+                    audio_alert_id = self.spatial_audio_engine.play_threat_alert(threat_data)
+                    if audio_alert_id:
+                        logger.info(f"🔊 Audio alert triggered: {audio_alert_id}")
+                        
+                        # Broadcast audio alert notification
+                        await self.broadcast_message({
+                            'type': 'audio_alert',
+                            'data': {
+                                'alert_id': audio_alert_id,
+                                'zone_id': zone_id,
+                                'threat_type': alert_type,
+                                'threat_level': threat_level,
+                                'audio_stats': self.spatial_audio_engine.get_audio_statistics()
+                            }
+                        })
+                except Exception as e:
+                    logger.error(f"❌ Audio alert error: {e}")
+            
+            # Trigger AI Conversation (for appropriate threats)
+            if (self.ai_conversation_engine and 
+                alert_type in ['trespassing', 'violence', 'weapon', 'vandalism'] and
+                threat_level_enum.value >= 2):  # Medium or higher priority
+                try:
+                    conversation_trigger = {
+                        'threat_level': threat_level_enum,
+                        'threat_type': alert_type,
+                        'location': zone_id,
+                        'camera_id': camera_id,
+                        'person_id': detection.get('person_id'),
+                        'confidence': threat_data['confidence']
+                    }
+                    
+                    conversation_id = await self.ai_conversation_engine.start_conversation(conversation_trigger)
+                    if conversation_id:
+                        logger.info(f"🎙️ AI conversation started: {conversation_id}")
+                        
+                        # Broadcast conversation start notification
+                        await self.broadcast_message({
+                            'type': 'ai_conversation_started',
+                            'data': {
+                                'conversation_id': conversation_id,
+                                'zone_id': zone_id,
+                                'threat_type': alert_type,
+                                'threat_level': threat_level
+                            }
+                        })
+                except Exception as e:
+                    logger.error(f"❌ AI conversation error: {e}")
+            
+            # Broadcast master alert notification
             await self.broadcast_message({
-                'type': 'alert',
-                'data': alert
+                'type': 'threat_alert',
+                'data': {
+                    'alert_type': alert_type,
+                    'threat_level': threat_level,
+                    'zone_id': zone_id,
+                    'camera_id': camera_id,
+                    'description': threat_data['description'],
+                    'confidence': threat_data['confidence'],
+                    'timestamp': threat_data['timestamp'],
+                    'engines_triggered': {
+                        'visual': self.visual_alert_engine is not None,
+                        'audio': self.spatial_audio_engine is not None,
+                        'conversation': self.ai_conversation_engine is not None
+                    }
+                }
             })
+            
+        except Exception as e:
+            logger.error(f"❌ Error processing threat alert: {e}")
+    
+    def _map_camera_to_zone(self, camera_id: str) -> str:
+        """Map camera ID to zone ID (simplified mapping)"""
+        # In production, this would come from configuration
+        camera_zone_map = {
+            'camera_1': 'entrance_main',
+            'camera_2': 'lobby_area', 
+            'camera_3': 'parking_garage'
+        }
+        return camera_zone_map.get(camera_id, 'default_zone')
+    
+    def _get_monitor_for_zone(self, zone_id: str) -> str:
+        """Get monitor ID for a zone (simplified mapping)"""
+        # In production, this would come from configuration
+        zone_monitor_map = {
+            'entrance_main': 'monitor_1',
+            'lobby_area': 'monitor_2',
+            'parking_garage': 'monitor_3'
+        }
+        return zone_monitor_map.get(zone_id, 'monitor_1')
 
     async def handle_face_detection(self, face_detection: Dict):
-        """Handle face detection and recognition results"""
+        """Handle face detection and recognition results with Sprint 4 integration"""
         self.face_detection_count += 1
         
         # Apply AI rules for face detection
         alerts = self.apply_face_detection_rules(face_detection)
+        
+        # Process face-based threat alerts through Sprint 4 engines
+        for alert in alerts:
+            if alert and alert.get('alert_type'):
+                await self._process_threat_alert(alert, face_detection)
         
         # Broadcast face detection
         await self.broadcast_message({
             'type': 'face_detection',
             'data': face_detection
         })
-        
-        # Broadcast any alerts
-        for alert in alerts:
-            await self.broadcast_message({
-                'type': 'face_alert',
-                'data': alert
-            })
 
     def apply_object_detection_rules(self, detection: Dict) -> List[Dict]:
         """Apply AI rules to object detection and generate alerts"""
@@ -478,9 +811,38 @@ class EnhancedApexAIEngine:
                         'active_cameras': len(self.active_cameras),
                         'object_detection_count': self.detection_count,
                         'face_detection_count': self.face_detection_count,
-                        'face_recognition_available': self.face_engine is not None
+                        'face_recognition_available': self.face_engine is not None,
+                        'sprint4_engines': {
+                            'visual_alerts': self.visual_alert_engine is not None,
+                            'spatial_audio': self.spatial_audio_engine is not None,
+                            'ai_conversation': self.ai_conversation_engine is not None,
+                            'master_coordinator': self.master_threat_coordinator is not None
+                        }
                     }
                 }))
+            # Sprint 4: Visual Alert Commands
+            elif command == 'get_visual_overlay':
+                await self.handle_get_visual_overlay(websocket, payload)
+            elif command == 'clear_visual_alerts':
+                await self.handle_clear_visual_alerts(payload)
+            elif command == 'get_visual_stats':
+                await self.handle_get_visual_stats(websocket)
+            # Sprint 4: Audio Alert Commands
+            elif command == 'set_audio_volume':
+                await self.handle_set_audio_volume(payload)
+            elif command == 'stop_audio_alerts':
+                await self.handle_stop_audio_alerts()
+            elif command == 'get_audio_stats':
+                await self.handle_get_audio_stats(websocket)
+            # Sprint 4: AI Conversation Commands
+            elif command == 'start_conversation':
+                await self.handle_start_conversation(payload)
+            elif command == 'stop_conversation':
+                await self.handle_stop_conversation(payload)
+            elif command == 'get_active_conversations':
+                await self.handle_get_active_conversations(websocket)
+            elif command == 'get_conversation_history':
+                await self.handle_get_conversation_history(websocket, payload)
             else:
                 logger.warning(f"⚠️ Unknown command: {command}")
                 
@@ -517,6 +879,138 @@ class EnhancedApexAIEngine:
                 }))
             except Exception as e:
                 logger.error(f"❌ Failed to send face recognition stats: {e}")
+    
+    # Sprint 4: Visual Alert WebSocket Handlers
+    async def handle_get_visual_overlay(self, websocket, payload: Dict):
+        """Get visual overlay data for a specific monitor"""
+        try:
+            monitor_id = payload.get('monitor_id', 'monitor_1')
+            if self.visual_alert_engine:
+                overlay_data = self.visual_alert_engine.export_overlay_data_for_frontend(monitor_id)
+                await websocket.send(json.dumps({
+                    'type': 'visual_overlay_data',
+                    'data': overlay_data
+                }))
+            else:
+                await websocket.send(json.dumps({
+                    'type': 'error',
+                    'data': {'message': 'Visual Alert Engine not available'}
+                }))
+        except Exception as e:
+            logger.error(f"❌ Visual overlay request error: {e}")
+    
+    async def handle_clear_visual_alerts(self, payload: Dict):
+        """Clear visual alerts for specified zone or all zones"""
+        try:
+            if self.visual_alert_engine:
+                zone_id = payload.get('zone_id')
+                if zone_id:
+                    self.visual_alert_engine.clear_alert(zone_id)
+                    logger.info(f"🧹 Cleared visual alert for zone: {zone_id}")
+                else:
+                    self.visual_alert_engine.clear_all_alerts()
+                    logger.info("🧹 Cleared all visual alerts")
+        except Exception as e:
+            logger.error(f"❌ Clear visual alerts error: {e}")
+    
+    async def handle_get_visual_stats(self, websocket):
+        """Get visual alert engine statistics"""
+        try:
+            if self.visual_alert_engine:
+                stats = self.visual_alert_engine.get_alert_statistics()
+                await websocket.send(json.dumps({
+                    'type': 'visual_stats',
+                    'data': stats
+                }))
+        except Exception as e:
+            logger.error(f"❌ Visual stats request error: {e}")
+    
+    # Sprint 4: Audio Alert WebSocket Handlers
+    async def handle_set_audio_volume(self, payload: Dict):
+        """Set master audio volume"""
+        try:
+            volume = payload.get('volume', 0.7)
+            if self.spatial_audio_engine:
+                self.spatial_audio_engine.set_master_volume(volume)
+                logger.info(f"🔊 Audio volume set to: {volume}")
+        except Exception as e:
+            logger.error(f"❌ Set audio volume error: {e}")
+    
+    async def handle_stop_audio_alerts(self):
+        """Stop all active audio alerts"""
+        try:
+            if self.spatial_audio_engine:
+                self.spatial_audio_engine.stop_all_alerts()
+                logger.info("🔇 All audio alerts stopped")
+        except Exception as e:
+            logger.error(f"❌ Stop audio alerts error: {e}")
+    
+    async def handle_get_audio_stats(self, websocket):
+        """Get audio engine statistics"""
+        try:
+            if self.spatial_audio_engine:
+                stats = self.spatial_audio_engine.get_audio_statistics()
+                await websocket.send(json.dumps({
+                    'type': 'audio_stats',
+                    'data': stats
+                }))
+        except Exception as e:
+            logger.error(f"❌ Audio stats request error: {e}")
+    
+    # Sprint 4: AI Conversation WebSocket Handlers
+    async def handle_start_conversation(self, payload: Dict):
+        """Manually start an AI conversation"""
+        try:
+            if self.ai_conversation_engine:
+                conversation_id = await self.ai_conversation_engine.start_conversation(payload)
+                if conversation_id:
+                    logger.info(f"🎙️ Manual conversation started: {conversation_id}")
+                    await self.broadcast_message({
+                        'type': 'conversation_started',
+                        'data': {'conversation_id': conversation_id}
+                    })
+        except Exception as e:
+            logger.error(f"❌ Start conversation error: {e}")
+    
+    async def handle_stop_conversation(self, payload: Dict):
+        """Stop an active AI conversation"""
+        try:
+            conversation_id = payload.get('conversation_id')
+            if self.ai_conversation_engine and conversation_id:
+                success = await self.ai_conversation_engine.stop_conversation(conversation_id)
+                if success:
+                    logger.info(f"🔇 Conversation stopped: {conversation_id}")
+                    await self.broadcast_message({
+                        'type': 'conversation_stopped',
+                        'data': {'conversation_id': conversation_id}
+                    })
+        except Exception as e:
+            logger.error(f"❌ Stop conversation error: {e}")
+    
+    async def handle_get_active_conversations(self, websocket):
+        """Get list of active conversations"""
+        try:
+            if self.ai_conversation_engine:
+                conversations = self.ai_conversation_engine.get_active_conversations()
+                await websocket.send(json.dumps({
+                    'type': 'active_conversations',
+                    'data': conversations
+                }))
+        except Exception as e:
+            logger.error(f"❌ Get active conversations error: {e}")
+    
+    async def handle_get_conversation_history(self, websocket, payload: Dict):
+        """Get conversation history"""
+        try:
+            limit = payload.get('limit', 50)
+            if self.ai_conversation_engine:
+                history = self.ai_conversation_engine.get_conversation_history(limit)
+                await websocket.send(json.dumps({
+                    'type': 'conversation_history',
+                    'data': history
+                }))
+        except Exception as e:
+            logger.error(f"❌ Get conversation history error: {e}")
 
     async def stop_camera_stream(self, camera_id: str):
         """Stop processing a camera stream"""
@@ -629,7 +1123,14 @@ class EnhancedApexAIEngine:
             for camera_id in list(self.active_cameras.keys()):
                 await self.stop_camera_stream(camera_id)
             
-            logger.info("✅ Enhanced AI Engine shutdown complete")
+            # Shutdown Sprint 4 engines
+            if self.spatial_audio_engine:
+                self.spatial_audio_engine.shutdown()
+            
+            if self.ai_conversation_engine:
+                self.ai_conversation_engine.shutdown()
+            
+            logger.info("✅ Enhanced AI Engine with Sprint 4 integration shutdown complete")
 
 
 class EnhancedCameraProcessor:
@@ -847,20 +1348,28 @@ if __name__ == "__main__":
     WEBSOCKET_PORT = 8765
     
     # Display startup banner
-    print("\n" + "="*70)
-    print("       🚀 ENHANCED APEX AI ENGINE - WITH FACE RECOGNITION")
-    print("="*70)
+    print("\n" + "="*80)
+    print("    🚀 ENHANCED APEX AI ENGINE - SPRINT 4 INTEGRATION COMPLETE")
+    print("="*80)
     print(f"📡 WebSocket Port: {WEBSOCKET_PORT}")
     print(f"🧠 Object Detection: {MODEL_PATH}")
     print(f"👤 Face Recognition: Enabled")
+    print(f"🎨 Visual Alert Engine: Enabled")
+    print(f"🔊 Spatial Audio Engine: Enabled")
+    print(f"🎙️ AI Conversation Engine: Enabled")
+    print(f"🤖 Master Threat Coordinator: Enabled")
     print(f"🎭 Demo Mode: Enabled (simulated detections)")
     print("🔌 Waiting for Desktop App connection...")
-    print("="*70 + "\n")
+    print("="*80 + "\n")
     
-    # Create and run enhanced AI engine
+    # Get OpenAI API key from environment (optional)
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    
+    # Create and run enhanced AI engine with Sprint 4 integration
     engine = EnhancedApexAIEngine(
         websocket_port=WEBSOCKET_PORT,
-        model_path=MODEL_PATH
+        model_path=MODEL_PATH,
+        openai_api_key=OPENAI_API_KEY
     )
     
     try:

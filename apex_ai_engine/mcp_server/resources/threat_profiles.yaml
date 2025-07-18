@@ -1,0 +1,648 @@
+# APEX AI THREAT PROFILES CONFIGURATION
+# =====================================
+# Comprehensive threat classification system for security monitoring
+# Defines threat levels, colors, audio cues, and response protocols
+
+# THREAT LEVEL DEFINITIONS
+threat_levels:
+  safe:
+    level: 0
+    color: "#00AA00"
+    background: "#00AA0010"
+    description: "No security concerns detected"
+    response_time: 0
+    guard_dispatch: false
+    law_enforcement: false
+    audio_alert: false
+    
+  low:
+    level: 1
+    color: "#0099FF"
+    background: "#0099FF15"
+    description: "Minor security observation"
+    response_time: 300
+    guard_dispatch: false
+    law_enforcement: false
+    audio_alert: false
+    
+  medium:
+    level: 2
+    color: "#FFAA00"
+    background: "#FFAA0020"
+    description: "Requires attention and monitoring"
+    response_time: 180
+    guard_dispatch: optional
+    law_enforcement: false
+    audio_alert: true
+    
+  high:
+    level: 3
+    color: "#FF6600"
+    background: "#FF660030"
+    description: "Serious security concern requiring response"
+    response_time: 90
+    guard_dispatch: true
+    law_enforcement: false
+    audio_alert: true
+    
+  critical:
+    level: 4
+    color: "#FF0000"
+    background: "#FF000040"
+    description: "Immediate threat requiring emergency response"
+    response_time: 30
+    guard_dispatch: true
+    law_enforcement: true
+    audio_alert: true
+    
+  emergency:
+    level: 5
+    color: "#CC0000"
+    background: "#CC000050"
+    description: "Active emergency situation"
+    response_time: 15
+    guard_dispatch: true
+    law_enforcement: true
+    audio_alert: true
+
+# DETECTION TYPE THREAT MAPPINGS
+detection_threat_mapping:
+  person:
+    base_threat_level: low
+    risk_factors:
+      - location_restricted: +2
+      - time_after_hours: +1
+      - movement_erratic: +1
+      - face_unknown: +1
+      - loitering_extended: +1
+      - clothing_suspicious: +1
+      - behavior_aggressive: +3
+      - multiple_persons: +1
+    max_escalation: high
+    
+  weapon:
+    base_threat_level: critical
+    risk_factors:
+      - weapon_firearm: +2
+      - weapon_knife: +1
+      - weapon_improvised: +1
+      - wielding_actively: +2
+      - threatening_gesture: +2
+      - multiple_weapons: +1
+    max_escalation: emergency
+    
+  knife:
+    base_threat_level: high
+    risk_factors:
+      - size_large: +1
+      - wielding_threateningly: +2
+      - multiple_knives: +1
+      - aggressive_posture: +2
+      - concealment_attempt: +1
+    max_escalation: critical
+    
+  gun:
+    base_threat_level: critical
+    risk_factors:
+      - drawn_weapon: +2
+      - aimed_weapon: +3
+      - multiple_firearms: +1
+      - aggressive_stance: +2
+      - concealed_carry: +1
+    max_escalation: emergency
+    
+  vehicle:
+    base_threat_level: safe
+    risk_factors:
+      - location_restricted: +2
+      - speed_excessive: +2
+      - driving_erratic: +1
+      - vehicle_stolen: +3
+      - multiple_occupants: +1
+      - time_after_hours: +1
+    max_escalation: medium
+    
+  backpack:
+    base_threat_level: safe
+    risk_factors:
+      - unattended_duration: +1
+      - size_large: +1
+      - location_restricted: +2
+      - suspicious_placement: +2
+      - multiple_bags: +1
+      - concealment_attempt: +1
+    max_escalation: medium
+    
+  suitcase:
+    base_threat_level: safe
+    risk_factors:
+      - unattended_duration: +1
+      - size_large: +1
+      - location_restricted: +2
+      - suspicious_placement: +2
+      - multiple_suitcases: +1
+    max_escalation: medium
+
+# LOCATION-BASED THREAT MODIFIERS
+location_threat_modifiers:
+  lobby:
+    multiplier: 1.0
+    restricted: false
+    public_access: true
+    monitoring_level: standard
+    
+  elevator:
+    multiplier: 1.2
+    restricted: false
+    public_access: true
+    monitoring_level: standard
+    
+  stairwell:
+    multiplier: 1.3
+    restricted: false
+    public_access: true
+    monitoring_level: enhanced
+    
+  parking_garage:
+    multiplier: 1.4
+    restricted: false
+    public_access: true
+    monitoring_level: enhanced
+    
+  office_areas:
+    multiplier: 1.5
+    restricted: true
+    public_access: false
+    monitoring_level: enhanced
+    
+  server_room:
+    multiplier: 2.0
+    restricted: true
+    public_access: false
+    monitoring_level: maximum
+    
+  executive_floor:
+    multiplier: 2.0
+    restricted: true
+    public_access: false
+    monitoring_level: maximum
+    
+  storage_areas:
+    multiplier: 1.6
+    restricted: true
+    public_access: false
+    monitoring_level: enhanced
+    
+  roof_access:
+    multiplier: 2.5
+    restricted: true
+    public_access: false
+    monitoring_level: maximum
+    
+  basement:
+    multiplier: 1.8
+    restricted: true
+    public_access: false
+    monitoring_level: enhanced
+
+# TIME-BASED THREAT MODIFIERS
+time_threat_modifiers:
+  business_hours:
+    start: "08:00"
+    end: "18:00"
+    multiplier: 1.0
+    description: "Normal business operations"
+    
+  extended_hours:
+    start: "18:00"
+    end: "22:00"
+    multiplier: 1.2
+    description: "Extended business hours"
+    
+  after_hours:
+    start: "22:00"
+    end: "06:00"
+    multiplier: 1.5
+    description: "After hours access"
+    
+  early_morning:
+    start: "06:00"
+    end: "08:00"
+    multiplier: 1.3
+    description: "Early morning access"
+    
+  weekend:
+    multiplier: 1.4
+    description: "Weekend access"
+    
+  holiday:
+    multiplier: 1.6
+    description: "Holiday access"
+
+# BEHAVIORAL THREAT INDICATORS
+behavioral_indicators:
+  normal_behavior:
+    threat_adjustment: 0
+    confidence_threshold: 0.8
+    indicators:
+      - "walking_normally"
+      - "purposeful_movement"
+      - "appropriate_pace"
+      - "normal_posture"
+      
+  suspicious_behavior:
+    threat_adjustment: 1
+    confidence_threshold: 0.7
+    indicators:
+      - "loitering_extended"
+      - "pacing_repetitive"
+      - "looking_around_frequently"
+      - "avoiding_cameras"
+      - "concealing_face"
+      
+  aggressive_behavior:
+    threat_adjustment: 3
+    confidence_threshold: 0.6
+    indicators:
+      - "rapid_movement"
+      - "aggressive_posture"
+      - "threatening_gestures"
+      - "confrontational_stance"
+      - "erratic_behavior"
+      
+  threatening_behavior:
+    threat_adjustment: 4
+    confidence_threshold: 0.5
+    indicators:
+      - "weapon_display"
+      - "violent_gestures"
+      - "destruction_attempts"
+      - "assault_indicators"
+      - "escape_attempts"
+
+# FACE RECOGNITION THREAT PROFILES
+face_recognition_profiles:
+  authorized_personnel:
+    threat_level: safe
+    access_level: full
+    monitoring_level: minimal
+    alert_generation: false
+    
+  visitors:
+    threat_level: low
+    access_level: limited
+    monitoring_level: standard
+    alert_generation: false
+    badge_required: true
+    
+  contractors:
+    threat_level: low
+    access_level: limited
+    monitoring_level: standard
+    alert_generation: false
+    escort_required: true
+    
+  vip_persons:
+    threat_level: safe
+    access_level: full
+    monitoring_level: enhanced
+    alert_generation: true
+    alert_type: "notification"
+    
+  watch_list:
+    threat_level: high
+    access_level: none
+    monitoring_level: maximum
+    alert_generation: true
+    alert_type: "security_alert"
+    immediate_dispatch: true
+    
+  blacklist:
+    threat_level: critical
+    access_level: none
+    monitoring_level: maximum
+    alert_generation: true
+    alert_type: "security_threat"
+    immediate_dispatch: true
+    law_enforcement: true
+    
+  unknown_persons:
+    threat_level: medium
+    access_level: none
+    monitoring_level: enhanced
+    alert_generation: true
+    alert_type: "unknown_person"
+    verification_required: true
+
+# AUDIO ALERT CONFIGURATIONS
+audio_alert_profiles:
+  no_alert:
+    enabled: false
+    
+  soft_notification:
+    enabled: true
+    tone_type: "gentle_chime"
+    frequency: 300
+    duration: 0.2
+    volume: 0.3
+    repeat: false
+    
+  information_alert:
+    enabled: true
+    tone_type: "info_beep"
+    frequency: 400
+    duration: 0.5
+    volume: 0.5
+    repeat: false
+    
+  attention_alert:
+    enabled: true
+    tone_type: "attention_tone"
+    frequency: 500
+    duration: 0.8
+    volume: 0.6
+    repeat: true
+    repeat_interval: 5
+    
+  warning_alert:
+    enabled: true
+    tone_type: "warning_beep"
+    frequency: 600
+    duration: 1.0
+    volume: 0.7
+    repeat: true
+    repeat_interval: 3
+    
+  urgent_alert:
+    enabled: true
+    tone_type: "urgent_siren"
+    frequency: 800
+    duration: 1.5
+    volume: 0.8
+    repeat: true
+    repeat_interval: 2
+    
+  critical_alert:
+    enabled: true
+    tone_type: "critical_alarm"
+    frequency: 1000
+    duration: 2.0
+    volume: 0.9
+    repeat: true
+    repeat_interval: 1
+    
+  emergency_alert:
+    enabled: true
+    tone_type: "emergency_klaxon"
+    frequency: 1200
+    duration: 3.0
+    volume: 1.0
+    repeat: true
+    repeat_interval: 0.5
+
+# VISUAL ALERT CONFIGURATIONS
+visual_alert_profiles:
+  no_alert:
+    enabled: false
+    
+  info_indicator:
+    enabled: true
+    border_width: 2
+    border_style: "solid"
+    blink_rate: 0
+    overlay_opacity: 0.1
+    icon_display: true
+    
+  attention_indicator:
+    enabled: true
+    border_width: 3
+    border_style: "solid"
+    blink_rate: 2
+    overlay_opacity: 0.15
+    icon_display: true
+    
+  warning_indicator:
+    enabled: true
+    border_width: 4
+    border_style: "solid"
+    blink_rate: 3
+    overlay_opacity: 0.2
+    icon_display: true
+    
+  urgent_indicator:
+    enabled: true
+    border_width: 5
+    border_style: "solid"
+    blink_rate: 4
+    overlay_opacity: 0.3
+    icon_display: true
+    
+  critical_indicator:
+    enabled: true
+    border_width: 6
+    border_style: "solid"
+    blink_rate: 5
+    overlay_opacity: 0.4
+    icon_display: true
+    
+  emergency_indicator:
+    enabled: true
+    border_width: 8
+    border_style: "solid"
+    blink_rate: 6
+    overlay_opacity: 0.5
+    icon_display: true
+
+# RESPONSE PROTOCOLS
+response_protocols:
+  safe:
+    immediate_actions: []
+    notification_level: "none"
+    escalation_time: 0
+    
+  low:
+    immediate_actions:
+      - "log_incident"
+      - "continue_monitoring"
+    notification_level: "system_log"
+    escalation_time: 300
+    
+  medium:
+    immediate_actions:
+      - "log_incident"
+      - "increase_monitoring"
+      - "notify_security_desk"
+    notification_level: "security_notification"
+    escalation_time: 180
+    
+  high:
+    immediate_actions:
+      - "log_incident"
+      - "maximum_monitoring"
+      - "notify_security_supervisor"
+      - "prepare_dispatch"
+    notification_level: "supervisor_alert"
+    escalation_time: 90
+    
+  critical:
+    immediate_actions:
+      - "log_incident"
+      - "maximum_monitoring"
+      - "immediate_dispatch"
+      - "notify_management"
+      - "prepare_law_enforcement"
+    notification_level: "management_alert"
+    escalation_time: 30
+    
+  emergency:
+    immediate_actions:
+      - "log_incident"
+      - "lockdown_procedures"
+      - "immediate_dispatch"
+      - "contact_law_enforcement"
+      - "notify_emergency_services"
+      - "building_alert"
+    notification_level: "emergency_broadcast"
+    escalation_time: 15
+
+# INTEGRATION SETTINGS
+integration_settings:
+  database_logging:
+    enabled: true
+    log_level: "all_threats"
+    retention_days: 90
+    
+  external_systems:
+    guard_dispatch_system:
+      enabled: true
+      api_endpoint: "/api/dispatch"
+      timeout: 10
+      
+    law_enforcement_system:
+      enabled: true
+      api_endpoint: "/api/emergency"
+      timeout: 5
+      
+    building_management:
+      enabled: true
+      api_endpoint: "/api/building"
+      timeout: 15
+      
+  notification_channels:
+    email_alerts:
+      enabled: true
+      threat_level_threshold: "medium"
+      
+    sms_alerts:
+      enabled: true
+      threat_level_threshold: "high"
+      
+    push_notifications:
+      enabled: true
+      threat_level_threshold: "low"
+      
+    slack_integration:
+      enabled: true
+      channel: "#security-alerts"
+      threat_level_threshold: "medium"
+
+# MACHINE LEARNING THREAT ASSESSMENT
+ml_threat_assessment:
+  enabled: true
+  model_confidence_threshold: 0.7
+  
+  threat_prediction:
+    enabled: true
+    prediction_window: 300  # 5 minutes
+    confidence_threshold: 0.6
+    
+  behavioral_analysis:
+    enabled: true
+    pattern_recognition: true
+    anomaly_detection: true
+    
+  risk_scoring:
+    enabled: true
+    real_time_updates: true
+    historical_context: true
+    
+  adaptive_thresholds:
+    enabled: true
+    learning_rate: 0.01
+    adjustment_period: 86400  # 24 hours
+
+# PERFORMANCE OPTIMIZATION
+performance_settings:
+  threat_assessment_cache:
+    enabled: true
+    cache_size: 1000
+    cache_ttl: 300
+    
+  parallel_processing:
+    enabled: true
+    max_threads: 4
+    
+  batch_processing:
+    enabled: true
+    batch_size: 10
+    processing_interval: 1
+    
+  memory_optimization:
+    enabled: true
+    cleanup_interval: 3600
+    max_memory_usage: "1GB"
+
+# COMPLIANCE AND AUDIT
+compliance_settings:
+  audit_logging:
+    enabled: true
+    log_all_assessments: true
+    include_video_metadata: false
+    retention_period: 2592000  # 30 days
+    
+  privacy_protection:
+    enabled: true
+    anonymize_faces: false
+    blur_non_threats: false
+    data_encryption: true
+    
+  regulatory_compliance:
+    gdpr_compliance: true
+    ccpa_compliance: true
+    hipaa_compliance: false
+    
+  data_retention:
+    threat_data: 90
+    video_data: 30
+    log_data: 365
+    audit_data: 2555  # 7 years
+
+# EMERGENCY OVERRIDE SETTINGS
+emergency_overrides:
+  manual_override:
+    enabled: true
+    required_authorization: "supervisor"
+    
+  automatic_override:
+    enabled: true
+    triggers:
+      - "fire_alarm"
+      - "medical_emergency"
+      - "natural_disaster"
+      - "terrorist_threat"
+      
+  lockdown_protocols:
+    enabled: true
+    automatic_lockdown: true
+    lockdown_triggers:
+      - "active_shooter"
+      - "bomb_threat"
+      - "chemical_hazard"
+      
+  evacuation_procedures:
+    enabled: true
+    automatic_evacuation: true
+    evacuation_triggers:
+      - "fire_detected"
+      - "gas_leak"
+      - "structural_damage"

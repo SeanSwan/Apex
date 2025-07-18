@@ -1,0 +1,415 @@
+{
+  "security_scripts": {
+    "general_greeting": {
+      "id": "script_001",
+      "name": "General Security Greeting",
+      "category": "initial_contact",
+      "escalation_level": 1,
+      "tone": "professional",
+      "script": "Hello. This is the automated security system. Please identify yourself if you are authorized to be in this area.",
+      "variations": [
+        "Good day. This is building security. Please state your business if you are authorized personnel.",
+        "Attention. You are in a monitored security zone. Please identify yourself if authorized.",
+        "Hello. Please present identification or state your authorized purpose for being in this area."
+      ],
+      "trigger_conditions": [
+        "person_detected",
+        "initial_contact",
+        "unknown_person"
+      ],
+      "response_expectations": [
+        "identification_provided",
+        "authorization_stated",
+        "compliance_shown"
+      ],
+      "next_scripts": {
+        "non_compliance": "compliance_request",
+        "suspicious_response": "escalated_warning",
+        "cooperation": "verification_process"
+      }
+    },
+    
+    "compliance_request": {
+      "id": "script_002",
+      "name": "Compliance Request",
+      "category": "directive",
+      "escalation_level": 2,
+      "tone": "firm",
+      "script": "Please comply with security instructions. Your cooperation is required for the safety of all building occupants. Present valid identification or exit the premises immediately.",
+      "variations": [
+        "You must comply with security protocols. Show proper authorization or leave this area now.",
+        "Security compliance is mandatory. Provide identification or vacate the premises immediately.",
+        "This is a security directive. Comply with instructions or you will be escorted from the building."
+      ],
+      "trigger_conditions": [
+        "non_compliance",
+        "refused_identification",
+        "loitering_continued"
+      ],
+      "response_expectations": [
+        "immediate_compliance",
+        "identification_shown",
+        "area_evacuation"
+      ],
+      "next_scripts": {
+        "continued_non_compliance": "final_warning",
+        "aggressive_behavior": "threat_response",
+        "compliance": "verification_process"
+      }
+    },
+    
+    "loitering_warning": {
+      "id": "script_003",
+      "name": "Loitering Warning",
+      "category": "behavior_correction",
+      "escalation_level": 2,
+      "tone": "informative",
+      "script": "You have been in this area for an extended period. If you require assistance, please contact the security desk. Otherwise, please move to authorized public areas.",
+      "variations": [
+        "Extended presence detected. If you need help, contact security. If not, please relocate to appropriate areas.",
+        "You've been stationary for some time. Please contact building management if you need assistance, or move along.",
+        "Prolonged loitering detected. Please state your business or move to designated waiting areas."
+      ],
+      "trigger_conditions": [
+        "loitering_detected",
+        "stationary_person",
+        "extended_presence"
+      ],
+      "response_expectations": [
+        "movement_initiated",
+        "contact_with_security",
+        "explanation_provided"
+      ],
+      "next_scripts": {
+        "continued_loitering": "compliance_request",
+        "movement": "monitoring_continued",
+        "explanation": "verification_process"
+      }
+    },
+    
+    "unauthorized_access": {
+      "id": "script_004",
+      "name": "Unauthorized Access Warning",
+      "category": "security_breach",
+      "escalation_level": 3,
+      "tone": "authoritative",
+      "script": "This is a restricted area. You are not authorized to be here. Exit immediately or security personnel will be dispatched to escort you from the premises.",
+      "variations": [
+        "Unauthorized entry detected. This area is off-limits. Leave now or face immediate security response.",
+        "You are in a restricted zone without authorization. Vacate immediately or security will remove you.",
+        "Access violation. This area is prohibited to unauthorized personnel. Exit now or be removed by security."
+      ],
+      "trigger_conditions": [
+        "zone_breach",
+        "restricted_area_entry",
+        "after_hours_access"
+      ],
+      "response_expectations": [
+        "immediate_exit",
+        "authorization_provided",
+        "security_contact"
+      ],
+      "next_scripts": {
+        "non_compliance": "final_warning",
+        "authorization_claimed": "verification_process",
+        "exit_compliance": "monitoring_continued"
+      }
+    },
+    
+    "final_warning": {
+      "id": "script_005",
+      "name": "Final Warning",
+      "category": "escalation",
+      "escalation_level": 4,
+      "tone": "stern",
+      "script": "This is your final warning. Security personnel are responding to your location. Any aggressive behavior or continued non-compliance will result in immediate law enforcement involvement.",
+      "variations": [
+        "Final notice: Security is en route. Aggressive actions will trigger police response.",
+        "Last warning: Guards are dispatched. Violence or resistance will bring law enforcement.",
+        "Ultimate warning: Security response activated. Any threats will involve police immediately."
+      ],
+      "trigger_conditions": [
+        "repeated_non_compliance",
+        "escalated_behavior",
+        "security_threat"
+      ],
+      "response_expectations": [
+        "immediate_compliance",
+        "peaceful_surrender",
+        "area_evacuation"
+      ],
+      "next_scripts": {
+        "compliance": "security_response",
+        "aggression": "emergency_response",
+        "threat": "law_enforcement_alert"
+      }
+    },
+    
+    "weapon_detected": {
+      "id": "script_006",
+      "name": "Weapon Detection Response",
+      "category": "critical_threat",
+      "escalation_level": 5,
+      "tone": "urgent",
+      "script": "WEAPON DETECTED. Drop any weapons immediately and place your hands where they can be seen. Do not move. Law enforcement has been contacted and is responding.",
+      "variations": [
+        "ARMED THREAT IDENTIFIED. Release weapons now. Hands visible. Police en route.",
+        "WEAPON ALERT. Drop all weapons immediately. Show your hands. Emergency services notified.",
+        "CRITICAL: Armed individual detected. Disarm now. Hands up. Law enforcement responding."
+      ],
+      "trigger_conditions": [
+        "weapon_detected",
+        "armed_threat",
+        "dangerous_object"
+      ],
+      "response_expectations": [
+        "weapon_dropped",
+        "hands_visible",
+        "no_movement"
+      ],
+      "next_scripts": {
+        "compliance": "law_enforcement_response",
+        "non_compliance": "emergency_lockdown",
+        "movement": "threat_escalation"
+      }
+    },
+    
+    "after_hours_challenge": {
+      "id": "script_007",
+      "name": "After Hours Challenge",
+      "category": "access_verification",
+      "escalation_level": 2,
+      "tone": "professional",
+      "script": "This building is currently closed. If you are authorized personnel, please present your credentials to the nearest security camera or contact the security desk immediately.",
+      "variations": [
+        "Building closed. Authorized staff must show credentials or call security.",
+        "After-hours access detected. Show authorization or contact security immediately.",
+        "Facility closed. Present valid access credentials or contact the security office."
+      ],
+      "trigger_conditions": [
+        "after_hours_detection",
+        "building_closed",
+        "night_access"
+      ],
+      "response_expectations": [
+        "credentials_shown",
+        "security_contact",
+        "area_exit"
+      ],
+      "next_scripts": {
+        "credentials": "verification_process",
+        "no_credentials": "unauthorized_access",
+        "exit": "monitoring_continued"
+      }
+    },
+    
+    "emergency_evacuation": {
+      "id": "script_008",
+      "name": "Emergency Evacuation",
+      "category": "emergency",
+      "escalation_level": 5,
+      "tone": "urgent",
+      "script": "EMERGENCY EVACUATION. This is not a drill. Exit the building immediately using the nearest emergency exit. Follow all posted evacuation procedures. Do not use elevators.",
+      "variations": [
+        "EMERGENCY: Evacuate now. Use stairs, not elevators. Follow exit signs.",
+        "BUILDING EVACUATION: Leave immediately via nearest exit. Emergency procedures in effect.",
+        "URGENT EVACUATION: Exit building now. Use emergency routes only. No elevators."
+      ],
+      "trigger_conditions": [
+        "emergency_declared",
+        "fire_alarm",
+        "security_threat",
+        "system_failure"
+      ],
+      "response_expectations": [
+        "immediate_evacuation",
+        "orderly_exit",
+        "procedure_following"
+      ],
+      "next_scripts": {
+        "evacuation_complete": "all_clear_pending",
+        "non_compliance": "emergency_assistance",
+        "assistance_needed": "rescue_response"
+      }
+    },
+    
+    "de_escalation": {
+      "id": "script_009",
+      "name": "De-escalation Response",
+      "category": "conflict_resolution",
+      "escalation_level": 2,
+      "tone": "calm",
+      "script": "Please remain calm. We want to resolve this peacefully. If you have concerns or need assistance, security personnel can help you. Please stay where you are and someone will assist you shortly.",
+      "variations": [
+        "Stay calm. Help is available. Remain in place and security will assist you.",
+        "Keep calm. We're here to help. Wait where you are for security assistance.",
+        "Please relax. Assistance is coming. Stay put and we'll resolve any issues."
+      ],
+      "trigger_conditions": [
+        "agitated_person",
+        "distress_detected",
+        "confused_individual"
+      ],
+      "response_expectations": [
+        "calming_down",
+        "cooperation",
+        "waiting_for_help"
+      ],
+      "next_scripts": {
+        "calmed": "assistance_provided",
+        "escalation": "compliance_request",
+        "cooperation": "verification_process"
+      }
+    },
+    
+    "visitor_assistance": {
+      "id": "script_010",
+      "name": "Visitor Assistance",
+      "category": "customer_service",
+      "escalation_level": 1,
+      "tone": "helpful",
+      "script": "Welcome. If you are visiting, please check in at the reception desk or security office. If you need directions or assistance, please contact building staff or remain in this area for help.",
+      "variations": [
+        "Welcome, visitor. Please check in at reception or ask staff for assistance.",
+        "Hello. Visitors must register at the front desk. Need help finding reception?",
+        "Welcome to the building. All visitors need to sign in. The reception desk can assist you."
+      ],
+      "trigger_conditions": [
+        "visitor_detected",
+        "unfamiliar_person",
+        "main_entrance"
+      ],
+      "response_expectations": [
+        "proceeds_to_reception",
+        "asks_for_directions",
+        "follows_instructions"
+      ],
+      "next_scripts": {
+        "compliance": "monitoring_continued",
+        "confusion": "direction_assistance",
+        "non_compliance": "compliance_request"
+      }
+    }
+  },
+  
+  "script_categories": {
+    "initial_contact": {
+      "description": "First interaction with detected persons",
+      "default_tone": "professional",
+      "escalation_threshold": 30
+    },
+    "behavior_correction": {
+      "description": "Addressing inappropriate or concerning behavior",
+      "default_tone": "firm",
+      "escalation_threshold": 60
+    },
+    "security_breach": {
+      "description": "Responses to security violations",
+      "default_tone": "authoritative",
+      "escalation_threshold": 45
+    },
+    "critical_threat": {
+      "description": "Immediate danger responses",
+      "default_tone": "urgent",
+      "escalation_threshold": 10
+    },
+    "emergency": {
+      "description": "Emergency situation management",
+      "default_tone": "urgent",
+      "escalation_threshold": 5
+    },
+    "conflict_resolution": {
+      "description": "De-escalation and peaceful resolution",
+      "default_tone": "calm",
+      "escalation_threshold": 90
+    },
+    "customer_service": {
+      "description": "Assistance and guidance for authorized persons",
+      "default_tone": "helpful",
+      "escalation_threshold": 120
+    }
+  },
+  
+  "escalation_rules": {
+    "automatic_escalation": {
+      "enabled": true,
+      "time_based": true,
+      "behavior_based": true,
+      "threat_based": true
+    },
+    "escalation_triggers": [
+      "non_compliance_timeout",
+      "aggressive_behavior",
+      "weapon_detection",
+      "restricted_area_breach",
+      "repeated_violations"
+    ],
+    "escalation_delays": {
+      "level_1_to_2": 30,
+      "level_2_to_3": 60,
+      "level_3_to_4": 45,
+      "level_4_to_5": 30
+    }
+  },
+  
+  "response_validation": {
+    "expected_responses": {
+      "compliance": ["yes", "okay", "understood", "will do", "sorry"],
+      "identification": ["employee", "visitor", "contractor", "authorized", "badge"],
+      "assistance": ["help", "lost", "looking for", "need", "directions"],
+      "aggression": ["no", "won't", "leave me alone", "shut up", "threat"],
+      "confusion": ["what", "don't understand", "confused", "why", "huh"]
+    },
+    "response_classification": {
+      "cooperative": {
+        "keywords": ["yes", "okay", "sorry", "understand", "will comply"],
+        "next_action": "continue_monitoring"
+      },
+      "non_cooperative": {
+        "keywords": ["no", "won't", "refuse", "don't want to"],
+        "next_action": "escalate"
+      },
+      "threatening": {
+        "keywords": ["hurt", "kill", "damage", "destroy", "fight"],
+        "next_action": "immediate_escalation"
+      },
+      "seeking_help": {
+        "keywords": ["help", "lost", "confused", "assistance", "directions"],
+        "next_action": "provide_assistance"
+      }
+    }
+  },
+  
+  "multilingual_support": {
+    "available_languages": ["en", "es", "fr", "de", "zh", "ja"],
+    "auto_detect": true,
+    "fallback_language": "en",
+    "translation_scripts": {
+      "es": {
+        "general_greeting": "Hola. Este es el sistema de seguridad automatizado. Por favor identifíquese si está autorizado a estar en esta área.",
+        "compliance_request": "Por favor cumpla con las instrucciones de seguridad. Su cooperación es requerida para la seguridad de todos los ocupantes del edificio."
+      }
+    }
+  },
+  
+  "voice_synthesis_preferences": {
+    "default_voice_profile": "security_professional",
+    "emergency_voice_profile": "emergency_critical",
+    "de_escalation_voice_profile": "de_escalation",
+    "customer_service_voice_profile": "instruction_clear"
+  },
+  
+  "context_awareness": {
+    "time_based_scripts": {
+      "business_hours": ["visitor_assistance", "general_greeting"],
+      "after_hours": ["after_hours_challenge", "unauthorized_access"],
+      "emergency_periods": ["emergency_evacuation", "lockdown_procedures"]
+    },
+    "location_based_scripts": {
+      "lobby": ["visitor_assistance", "general_greeting"],
+      "restricted_areas": ["unauthorized_access", "final_warning"],
+      "emergency_exits": ["emergency_evacuation"],
+      "parking": ["loitering_warning", "vehicle_verification"]
+    }
+  }
+}

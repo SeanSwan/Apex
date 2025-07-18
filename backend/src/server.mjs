@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { initializeEnhancedWebSocket } from '../services/websocket/index.mjs';
+import { initializeSocketIO } from './socket.js';
 import { log, error, setupGlobalErrorHandlers } from './debug.mjs';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
@@ -147,13 +147,16 @@ const startServer = async () => {
       // Continue anyway to allow exploring other functionality
     }
 
-    // Initialize Enhanced WebSocket Server before importing routes
-    const websocketInstance = initializeEnhancedWebSocket(server, allowedOrigins);
-    console.log('🚀 Enhanced WebSocket Server initialized with advanced features');
+    // Initialize Sprint 4 Enhanced WebSocket Server with AI Engine integration
+    const io = initializeSocketIO(server, allowedOrigins);
+    console.log('✅ Sprint 4 WebSocket Server initialized with AI Engine integration');
+    
+    // Import additional socket utilities
+    const { getAIEngineStatus, isConnectedToAI } = await import('./socket.js');
 
     // Enhanced health check route with security status
     app.get('/api/health', (req, res) => {
-      const wsStats = websocketInstance.getStats();
+      const aiEngineStatus = getAIEngineStatus();
       res.json({ 
         status: 'Server is running',
         timestamp: new Date().toISOString(),
@@ -165,14 +168,18 @@ const startServer = async () => {
           validation_active: true
         },
         websocket: {
-          enhanced_server: true,
-          connected_clients: wsStats.connectedClients,
-          messages_processed: wsStats.messagesProcessed,
-          ai_engine_connected: wsStats.clients.some(c => c.type === 'ai_engine'),
-          uptime: wsStats.uptime
+          sprint4_integration: true,
+          ai_engine_connected: isConnectedToAI(),
+          ai_engine_status: aiEngineStatus,
+          features: {
+            visual_alerts: true,
+            spatial_audio: true,
+            ai_conversation: true,
+            master_threat_coordinator: true
+          }
         },
         corsOrigins: allowedOrigins,
-        version: '2.0.0-enhanced-websocket'
+        version: '3.0.0-sprint4-integration'
       });
     });
 

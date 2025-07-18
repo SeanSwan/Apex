@@ -1,8 +1,15 @@
 /**
- * LIVE AI MONITOR - MAIN COMPONENT
- * ================================
- * Core component for real-time AI-powered security monitoring
+ * LIVE AI MONITOR - MAIN COMPONENT WITH SPRINT 4 INTEGRATION
+ * =========================================================
+ * Enhanced core component for real-time AI-powered security monitoring
  * Features: Camera grid, AI detection overlays, event feed, quick actions
+ * 
+ * SPRINT 4 ENHANCEMENTS:
+ * - Visual Alert System with blinking borders and threat overlays
+ * - Spatial Audio Alert Controller with 3D positioning
+ * - AI Conversation Management with 2-way voice communication
+ * - Master Threat Detection Coordination
+ * - Enhanced WebSocket integration with AI engine
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -11,15 +18,31 @@ import CameraGrid from './CameraGrid';
 import AIEventFeed from './AIEventFeed';
 import QuickActionPanel from './QuickActionPanel';
 
+// SPRINT 4: Import Alert System Components
+import AlertManager from '../VisualAlerts/AlertManager';
+import AudioAlertController from '../AudioControls/AudioAlertController';
+import VoiceResponsePanel from '../AudioControls/VoiceResponsePanel';
+
 const MonitorContainer = styled.div`
   width: 100%;
   height: 100%;
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: 1fr 320px 320px;
   grid-template-rows: 1fr auto;
   gap: ${props => props.theme.spacing.md};
   padding: ${props => props.theme.spacing.md};
   background-color: ${props => props.theme.colors.background};
+  
+  /* Sprint 4: Responsive layout for alert systems */
+  @media (max-width: 1400px) {
+    grid-template-columns: 1fr 320px;
+    grid-template-rows: 1fr auto auto;
+  }
+  
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto auto auto;
+  }
 `;
 
 const MainViewArea = styled.div`
@@ -105,6 +128,40 @@ const SidePanel = styled.div`
   min-height: 0;
 `;
 
+// SPRINT 4: Alert System Panels
+const AlertSystemPanel = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${props => props.theme.spacing.md};
+  grid-row: 1 / -1;
+  min-height: 0;
+  
+  @media (max-width: 1400px) {
+    grid-row: auto;
+    grid-column: 1 / -1;
+  }
+`;
+
+const VoiceControlContainer = styled.div`
+  background-color: ${props => props.theme.colors.backgroundCard};
+  border-radius: ${props => props.theme.borderRadius.lg};
+  border: 1px solid ${props => props.theme.colors.border};
+  overflow: hidden;
+  max-height: 500px;
+  
+  ${props => !props.expanded && `
+    height: 200px;
+  `}
+`;
+
+const AudioControlContainer = styled.div`
+  background-color: ${props => props.theme.colors.backgroundCard};
+  border-radius: ${props => props.theme.borderRadius.lg};
+  border: 1px solid ${props => props.theme.colors.border};
+  overflow: hidden;
+  max-height: 400px;
+`;
+
 const AIEventContainer = styled.div`
   flex: 1;
   background-color: ${props => props.theme.colors.backgroundCard};
@@ -129,6 +186,27 @@ function LiveAIMonitor() {
   const [detections, setDetections] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [focusedCamera, setFocusedCamera] = useState(null);
+  
+  // SPRINT 4: Enhanced state management
+  const [visualAlerts, setVisualAlerts] = useState([]);
+  const [audioAlerts, setAudioAlerts] = useState([]);
+  const [activeConversations, setActiveConversations] = useState([]);
+  const [threatAlerts, setThreatAlerts] = useState([]);
+  const [sprint4Status, setSprint4Status] = useState({
+    visualAlerts: false,
+    spatialAudio: false,
+    aiConversation: false,
+    masterCoordinator: false
+  });
+  const [audioControlsExpanded, setAudioControlsExpanded] = useState(false);
+  const [voiceControlExpanded, setVoiceControlExpanded] = useState(false);
+  const [alertStats, setAlertStats] = useState({
+    total: 0,
+    critical: 0,
+    high: 0,
+    medium: 0,
+    low: 0
+  });
   
   // Demo cameras configuration
   const demoCameras = [
@@ -229,8 +307,250 @@ function LiveAIMonitor() {
         handleCameraStatus(message.data);
         break;
       
+      // SPRINT 4: Visual Alert Events
+      case 'visual_alert':
+        handleVisualAlert(message.data);
+        break;
+        
+      case 'visual_overlay_data':
+        handleVisualOverlayData(message.data);
+        break;
+        
+      case 'visual_stats':
+        handleVisualStats(message.data);
+        break;
+      
+      // SPRINT 4: Audio Alert Events
+      case 'audio_alert':
+        handleAudioAlert(message.data);
+        break;
+        
+      case 'audio_stats':
+        handleAudioStats(message.data);
+        break;
+      
+      // SPRINT 4: AI Conversation Events
+      case 'ai_conversation_started':
+        handleConversationStarted(message.data);
+        break;
+        
+      case 'conversation_started':
+        handleConversationEvent('started', message.data);
+        break;
+        
+      case 'conversation_stopped':
+        handleConversationEvent('stopped', message.data);
+        break;
+        
+      case 'active_conversations':
+        setActiveConversations(message.data || []);
+        break;
+        
+      case 'conversation_history':
+        // Handle conversation history if needed
+        break;
+      
+      // SPRINT 4: Master Threat Alert
+      case 'threat_alert':
+        handleThreatAlert(message.data);
+        break;
+        
+      // SPRINT 4: AI Engine Status
+      case 'ai_engine_status':
+        handleAIEngineStatus(message.data);
+        break;
+        
+      case 'ai_status_update':
+        handleAIStatusUpdate(message.data);
+        break;
+      
       default:
         console.log('📝 Unhandled AI message:', message);
+    }
+  };
+
+  // SPRINT 4: Enhanced event handlers
+  const handleVisualAlert = (alertData) => {
+    console.log('🎨 Visual alert received:', alertData);
+    
+    const visualAlert = {
+      alertId: alertData.alert_id,
+      zoneId: alertData.zone_id,
+      region: alertData.overlay_data?.alerts?.[0]?.region || { x: 0, y: 0, width: 100, height: 100 },
+      threatLevel: alertData.threat_data?.threat_level || 'MEDIUM',
+      threatType: alertData.threat_data?.type || 'unknown',
+      description: alertData.threat_data?.description || 'Threat detected',
+      confidence: alertData.threat_data?.confidence || 0.5,
+      timestamp: new Date().toISOString(),
+      isVisible: true,
+      opacity: 0.8
+    };
+    
+    setVisualAlerts(prev => {
+      // Remove existing alert for same zone
+      const filtered = prev.filter(alert => alert.zoneId !== visualAlert.zoneId);
+      return [...filtered, visualAlert];
+    });
+    
+    // Also add to main alerts for event feed
+    setAlerts(prev => [{
+      id: visualAlert.alertId,
+      type: 'visual_alert',
+      message: `Visual alert: ${visualAlert.description}`,
+      timestamp: visualAlert.timestamp,
+      severity: visualAlert.threatLevel.toLowerCase(),
+      camera_id: alertData.threat_data?.camera_id
+    }, ...prev.slice(0, 49)]);
+  };
+  
+  const handleVisualOverlayData = (overlayData) => {
+    console.log('📋 Visual overlay data received:', overlayData);
+    // Process overlay data for specific monitors if needed
+  };
+  
+  const handleVisualStats = (stats) => {
+    console.log('📊 Visual stats received:', stats);
+    // Update visual alert statistics
+  };
+  
+  const handleAudioAlert = (alertData) => {
+    console.log('🔊 Audio alert received:', alertData);
+    
+    const audioAlert = {
+      alertId: alertData.alert_id,
+      zoneId: alertData.zone_id,
+      threatType: alertData.threat_type,
+      threatLevel: alertData.threat_level,
+      timestamp: new Date().toISOString(),
+      audioStats: alertData.audio_stats
+    };
+    
+    setAudioAlerts(prev => [audioAlert, ...prev.slice(0, 19)]); // Keep last 20
+    
+    // Add to main alerts for event feed
+    setAlerts(prev => [{
+      id: audioAlert.alertId,
+      type: 'audio_alert',
+      message: `Audio alert: ${audioAlert.threatType} (${audioAlert.threatLevel})`,
+      timestamp: audioAlert.timestamp,
+      severity: audioAlert.threatLevel.toLowerCase()
+    }, ...prev.slice(0, 49)]);
+  };
+  
+  const handleAudioStats = (stats) => {
+    console.log('📊 Audio stats received:', stats);
+    // Update audio alert statistics
+  };
+  
+  const handleConversationStarted = (conversationData) => {
+    console.log('🎙️ AI conversation started:', conversationData);
+    
+    const conversation = {
+      id: conversationData.conversation_id,
+      zoneId: conversationData.zone_id,
+      threatType: conversationData.threat_type,
+      threatLevel: conversationData.threat_level,
+      timestamp: new Date().toISOString(),
+      status: 'active'
+    };
+    
+    setActiveConversations(prev => [conversation, ...prev]);
+    
+    // Add to main alerts for event feed
+    setAlerts(prev => [{
+      id: conversation.id,
+      type: 'ai_conversation',
+      message: `AI conversation started: ${conversation.threatType} (${conversation.threatLevel})`,
+      timestamp: conversation.timestamp,
+      severity: conversation.threatLevel.toLowerCase()
+    }, ...prev.slice(0, 49)]);
+    
+    // Expand voice control panel when conversation starts
+    setVoiceControlExpanded(true);
+  };
+  
+  const handleConversationEvent = (eventType, data) => {
+    console.log(`🎙️ Conversation ${eventType}:`, data);
+    
+    if (eventType === 'stopped') {
+      setActiveConversations(prev => 
+        prev.filter(conv => conv.id !== data.conversation_id)
+      );
+      
+      // Collapse voice control if no active conversations
+      setActiveConversations(current => {
+        if (current.length <= 1) {
+          setVoiceControlExpanded(false);
+        }
+        return current.filter(conv => conv.id !== data.conversation_id);
+      });
+    }
+  };
+  
+  const handleThreatAlert = (alertData) => {
+    console.log('🚨 Master threat alert received:', alertData);
+    
+    const threatAlert = {
+      id: `threat_${Date.now()}`,
+      alertType: alertData.alert_type,
+      threatLevel: alertData.threat_level,
+      zoneId: alertData.zone_id,
+      cameraId: alertData.camera_id,
+      description: alertData.description,
+      confidence: alertData.confidence,
+      timestamp: alertData.timestamp,
+      enginesTriggered: alertData.engines_triggered
+    };
+    
+    setThreatAlerts(prev => [threatAlert, ...prev.slice(0, 29)]); // Keep last 30
+    
+    // Add to main alerts for event feed with high priority
+    setAlerts(prev => [{
+      id: threatAlert.id,
+      type: 'threat_alert',
+      message: `${threatAlert.alertType}: ${threatAlert.description}`,
+      timestamp: threatAlert.timestamp,
+      severity: threatAlert.threatLevel.toLowerCase(),
+      camera_id: threatAlert.cameraId
+    }, ...prev.slice(0, 49)]);
+    
+    // Update alert statistics
+    setAlertStats(prev => ({
+      ...prev,
+      total: prev.total + 1,
+      [threatAlert.threatLevel.toLowerCase()]: prev[threatAlert.threatLevel.toLowerCase()] + 1
+    }));
+    
+    // Focus camera if not already focused
+    if (viewMode !== 'focus' && threatAlert.cameraId) {
+      const camera = activeCameras.find(cam => cam.id === threatAlert.cameraId);
+      if (camera) {
+        handleCameraFocus(camera);
+      }
+    }
+  };
+  
+  const handleAIEngineStatus = (statusData) => {
+    console.log('🤖 AI Engine status:', statusData);
+    
+    setSprint4Status({
+      visualAlerts: statusData.connected && statusData.sprint4_engines?.visual_alerts,
+      spatialAudio: statusData.connected && statusData.sprint4_engines?.spatial_audio,
+      aiConversation: statusData.connected && statusData.sprint4_engines?.ai_conversation,
+      masterCoordinator: statusData.connected && statusData.sprint4_engines?.master_coordinator
+    });
+    
+    setAIStatus(statusData.connected ? 'connected' : 'disconnected');
+  };
+  
+  const handleAIStatusUpdate = (statusData) => {
+    console.log('📊 AI Status update:', statusData);
+    
+    if (statusData.sprint4_engines) {
+      setSprint4Status(prev => ({
+        ...prev,
+        ...statusData.sprint4_engines
+      }));
     }
   };
 
