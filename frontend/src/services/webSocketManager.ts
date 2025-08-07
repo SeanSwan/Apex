@@ -5,7 +5,7 @@
 
 import io, { Socket } from 'socket.io-client';
 
-// Message types - imported from the original hook
+// Message types - imported from the original hook + Voice AI additions
 export const MESSAGE_TYPES = {
   CONNECTION_ESTABLISHED: 'connection_established',
   HEARTBEAT: 'heartbeat',
@@ -25,6 +25,16 @@ export const MESSAGE_TYPES = {
   
   SYSTEM_STATUS_UPDATE: 'system_status_update',
   AI_ENGINE_STATUS: 'ai_engine_status',
+  
+  // VOICE AI MESSAGE TYPES (NEW)
+  VOICE_CALL_STARTED: 'call_started',
+  VOICE_CALL_ENDED: 'call_ended',
+  VOICE_CALL_UPDATE: 'call_update',
+  VOICE_TRANSCRIPTION: 'transcription_update',
+  VOICE_AI_RESPONSE: 'ai_response',
+  VOICE_HUMAN_TAKEOVER: 'call_takeover',
+  VOICE_EMERGENCY_ALERT: 'emergency_alert',
+  VOICE_SYSTEM_STATUS: 'system_status',
   
   ERROR: 'error',
   CAMERA_ONLINE: 'camera_online',
@@ -55,6 +65,38 @@ export interface StreamRequest {
   quality?: 'thumbnail' | 'preview' | 'standard' | 'hd';
 }
 
+// Voice AI specific interfaces
+export interface VoiceAICall {
+  call_id: string;
+  twilio_call_sid: string;
+  caller_phone: string;
+  property_id?: string;
+  call_state: string;
+  created_at: string;
+  updated_at: string;
+  conversation_turns?: number;
+  incident_id?: string;
+  escalation_reason?: string;
+}
+
+export interface CallTranscription {
+  call_id: string;
+  speaker: 'caller' | 'ai';
+  message: string;
+  timestamp: string;
+  confidence: number;
+}
+
+export interface VoiceAIMetrics {
+  totalCalls: number;
+  aiHandledCalls: number;
+  humanEscalations: number;
+  averageCallDuration: number;
+  successfulResolutions: number;
+  activeCalls: number;
+  timestamp: string;
+}
+
 // Event handler type
 type EventHandler = (...args: any[]) => void;
 
@@ -68,6 +110,8 @@ class WebSocketManager {
   private reconnectAttempts = 0;
   private isManualDisconnect = false;
   private isConnecting = false;
+  private voiceAISocket: Socket | null = null;
+  private voiceAIAuthenticated = false;
 
   constructor() {
     // Default configuration
@@ -238,6 +282,13 @@ class WebSocketManager {
       this.socket = null;
     }
     
+    // Disconnect Voice AI socket
+    if (this.voiceAISocket) {
+      this.voiceAISocket.disconnect();
+      this.voiceAISocket = null;
+      this.voiceAIAuthenticated = false;
+    }
+    
     this.stats.status = 'disconnected';
     this.emitToHandlers('disconnect', { reason: 'manual' });
   }
@@ -299,6 +350,241 @@ class WebSocketManager {
 
   public unsubscribeFromCamera(camera_id: string): boolean {
     return this.emit('unsubscribe_camera', { camera_id });
+  }
+
+  // Voice AI WebSocket Connection
+  public connectVoiceAI(authToken?: string, userRole?: string): void {
+    if (this.voiceAISocket?.connected) {
+      console.log('🎤 [VOICE AI] Already connected');
+      return;
+    }
+
+    console.log('🎤 [VOICE AI] Connecting to Voice AI namespace...');
+
+    this.voiceAISocket = io(`${this.config.serverUrl}/voice-ai`, {
+      transports: ['websocket', 'polling'],
+      timeout: 10000,
+      autoConnect: true,
+    });
+
+    // Voice AI connection successful
+    this.voiceAISocket.on('connect', () => {
+      console.log('✅ [VOICE AI] WebSocket connected');
+      
+      // Authenticate if token provided
+      if (authToken && userRole) {
+        this.authenticateVoiceAI(authToken, userRole);
+      }
+      
+      this.emitToHandlers('voice_ai_connected', {});
+    });
+
+    // Authentication result
+    this.voiceAISocket.on('authentication_result', (data) => {
+      if (data.success) {
+        console.log('🔐 [VOICE AI] Authenticated:', data.userRole);
+        this.voiceAIAuthenticated = true;
+        this.emitToHandlers('voice_ai_authenticated', data);
+      } else {
+        console.error('❌ [VOICE AI] Authentication failed:', data.error);
+        this.emitToHandlers('voice_ai_auth_failed', data);
+      }
+    });
+
+    // System status
+    this.voiceAISocket.on('system_status', (data) => {
+      this.emitToHandlers(MESSAGE_TYPES.VOICE_SYSTEM_STATUS, data);
+    });
+
+    // Call events
+    this.voiceAISocket.on('call_started', (data) => {
+      this.emitToHandlers(MESSAGE_TYPES.VOICE_CALL_STARTED, data);
+    });
+
+    this.voiceAISocket.on('call_ended', (data) => {
+      this.emitToHandlers(MESSAGE_TYPES.VOICE_CALL_ENDED, data);
+    });
+
+    this.voiceAISocket.on('call_update', (data) => {
+      this.emitToHandlers(MESSAGE_TYPES.VOICE_CALL_UPDATE, data);
+    });
+
+    this.voiceAISocket.on('call_takeover', (data) => {
+      this.emitToHandlers(MESSAGE_TYPES.VOICE_HUMAN_TAKEOVER, data);
+    });
+
+    // Transcription events
+    this.voiceAISocket.on('transcription_update', (data) => {
+      this.emitToHandlers(MESSAGE_TYPES.VOICE_TRANSCRIPTION, data);
+    });
+
+    // Emergency events
+    this.voiceAISocket.on('emergency_alert', (data) => {
+      this.emitToHandlers(MESSAGE_TYPES.VOICE_EMERGENCY_ALERT, data);
+    });
+
+    // Active calls updates
+    this.voiceAISocket.on('active_calls_update', (data) => {
+      this.emitToHandlers('voice_active_calls_update', data);
+    });
+
+    // Error handling
+    this.voiceAISocket.on('error', (error) => {
+      console.error('❌ [VOICE AI] WebSocket error:', error);
+      this.emitToHandlers('voice_ai_error', error);
+    });
+
+    // Disconnect handling
+    this.voiceAISocket.on('disconnect', (reason) => {
+      console.log('🎤 [VOICE AI] WebSocket disconnected:', reason);
+      this.voiceAIAuthenticated = false;
+      this.emitToHandlers('voice_ai_disconnected', { reason });
+    });
+  }
+
+  // Voice AI Authentication
+  public authenticateVoiceAI(token: string, userRole: string): void {
+    if (!this.voiceAISocket?.connected) {
+      console.warn('⚠️ [VOICE AI] Cannot authenticate: not connected');
+      return;
+    }
+
+    this.voiceAISocket.emit('authenticate', {
+      token: token,
+      userRole: userRole
+    });
+  }
+
+  // Voice AI Call Management
+  public subscribeToCall(callId: string): boolean {
+    if (!this.voiceAISocket?.connected || !this.voiceAIAuthenticated) {
+      console.warn('⚠️ [VOICE AI] Cannot subscribe: not connected or authenticated');
+      return false;
+    }
+
+    this.voiceAISocket.emit('subscribe_to_call', { callId });
+    return true;
+  }
+
+  public unsubscribeFromCall(callId: string): boolean {
+    if (!this.voiceAISocket?.connected) {
+      console.warn('⚠️ [VOICE AI] Cannot unsubscribe: not connected');
+      return false;
+    }
+
+    this.voiceAISocket.emit('unsubscribe_from_call', { callId });
+    return true;
+  }
+
+  public subscribeToAllCalls(): boolean {
+    if (!this.voiceAISocket?.connected || !this.voiceAIAuthenticated) {
+      console.warn('⚠️ [VOICE AI] Cannot subscribe to all calls: not connected or authenticated');
+      return false;
+    }
+
+    this.voiceAISocket.emit('subscribe_to_all_calls', {});
+    return true;
+  }
+
+  public requestTakeover(callId: string, reason?: string): boolean {
+    if (!this.voiceAISocket?.connected || !this.voiceAIAuthenticated) {
+      console.warn('⚠️ [VOICE AI] Cannot request takeover: not connected or authenticated');
+      return false;
+    }
+
+    this.voiceAISocket.emit('request_takeover', {
+      callId: callId,
+      operator_id: this.generateRequestId(),
+      reason: reason || 'Human intervention requested'
+    });
+    return true;
+  }
+
+  public endCall(callId: string, reason?: string): boolean {
+    if (!this.voiceAISocket?.connected || !this.voiceAIAuthenticated) {
+      console.warn('⚠️ [VOICE AI] Cannot end call: not connected or authenticated');
+      return false;
+    }
+
+    this.voiceAISocket.emit('end_call', {
+      callId: callId,
+      reason: reason || 'Manual termination'
+    });
+    return true;
+  }
+
+  public getActiveCalls(): boolean {
+    if (!this.voiceAISocket?.connected || !this.voiceAIAuthenticated) {
+      console.warn('⚠️ [VOICE AI] Cannot get active calls: not connected or authenticated');
+      return false;
+    }
+
+    this.voiceAISocket.emit('get_active_calls', {});
+    return true;
+  }
+
+  public getCallDetails(callId: string): boolean {
+    if (!this.voiceAISocket?.connected || !this.voiceAIAuthenticated) {
+      console.warn('⚠️ [VOICE AI] Cannot get call details: not connected or authenticated');
+      return false;
+    }
+
+    this.voiceAISocket.emit('get_call_details', { callId });
+    return true;
+  }
+
+  public getSystemMetrics(): boolean {
+    if (!this.voiceAISocket?.connected || !this.voiceAIAuthenticated) {
+      console.warn('⚠️ [VOICE AI] Cannot get system metrics: not connected or authenticated');
+      return false;
+    }
+
+    this.voiceAISocket.emit('get_system_metrics', {});
+    return true;
+  }
+
+  public requestTranscript(callId: string): boolean {
+    if (!this.voiceAISocket?.connected || !this.voiceAIAuthenticated) {
+      console.warn('⚠️ [VOICE AI] Cannot request transcript: not connected or authenticated');
+      return false;
+    }
+
+    this.voiceAISocket.emit('request_transcript', { callId });
+    return true;
+  }
+
+  public emergencyEscalate(callId: string, emergencyType: string, details?: string): boolean {
+    if (!this.voiceAISocket?.connected || !this.voiceAIAuthenticated) {
+      console.warn('⚠️ [VOICE AI] Cannot emergency escalate: not connected or authenticated');
+      return false;
+    }
+
+    this.voiceAISocket.emit('emergency_escalate', {
+      callId: callId,
+      emergencyType: emergencyType,
+      details: details || 'Emergency escalation requested'
+    });
+    return true;
+  }
+
+  // Voice AI Status Checks
+  public isVoiceAIConnected(): boolean {
+    return this.voiceAISocket?.connected || false;
+  }
+
+  public isVoiceAIAuthenticated(): boolean {
+    return this.voiceAIAuthenticated;
+  }
+
+  // Disconnect Voice AI
+  public disconnectVoiceAI(): void {
+    if (this.voiceAISocket) {
+      console.log('🎤 [VOICE AI] Disconnecting...');
+      this.voiceAISocket.disconnect();
+      this.voiceAISocket = null;
+      this.voiceAIAuthenticated = false;
+      this.emitToHandlers('voice_ai_disconnected', { reason: 'manual' });
+    }
   }
 
   // Private methods
@@ -363,3 +649,4 @@ export const webSocketManager = new WebSocketManager();
 
 // NOTE: Auto-initialization removed to prevent unnecessary connections
 // WebSocket will initialize only when Live Monitoring components are loaded
+// Voice AI WebSocket will initialize only when Voice AI components are loaded

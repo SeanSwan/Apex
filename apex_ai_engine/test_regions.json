@@ -1,0 +1,65 @@
+{
+  "regions": {
+    "Front_Entrance": {
+      "name": "Front_Entrance",
+      "x": 0,
+      "y": 0,
+      "width": 640,
+      "height": 480,
+      "monitor_id": 0,
+      "enabled": true,
+      "ai_model_filter": "all",
+      "confidence_threshold": 0.5,
+      "created_timestamp": 1753383364.6231656,
+      "last_modified": 1753383364.6231658
+    },
+    "Parking_Lot": {
+      "name": "Parking_Lot",
+      "x": 640,
+      "y": 0,
+      "width": 640,
+      "height": 480,
+      "monitor_id": 0,
+      "enabled": true,
+      "ai_model_filter": "all",
+      "confidence_threshold": 0.5,
+      "created_timestamp": 1753383364.6233282,
+      "last_modified": 1753383364.6233284
+    },
+    "Lobby_Area": {
+      "name": "Lobby_Area",
+      "x": 0,
+      "y": 480,
+      "width": 640,
+      "height": 480,
+      "monitor_id": 0,
+      "enabled": true,
+      "ai_model_filter": "all",
+      "confidence_threshold": 0.5,
+      "created_timestamp": 1753383364.6235323,
+      "last_modified": 1753383364.6235325
+    },
+    "Rear_Exit": {
+      "name": "Rear_Exit",
+      "x": 640,
+      "y": 480,
+      "width": 640,
+      "height": 480,
+      "monitor_id": 0,
+      "enabled": true,
+      "ai_model_filter": "all",
+      "confidence_threshold": 0.5,
+      "created_timestamp": 1753383364.623755,
+      "last_modified": 1753383364.6237555
+    }
+  },
+  "monitor_regions": {
+    "0": [
+      "Front_Entrance",
+      "Parking_Lot",
+      "Lobby_Area",
+      "Rear_Exit"
+    ]
+  },
+  "saved_timestamp": 1753383364.6240277
+}

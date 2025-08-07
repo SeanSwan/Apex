@@ -309,7 +309,67 @@ const startServer = async () => {
           console.log('⚠️ AI Notification routes not available:', aiNotificationError.message);
         }
         
+        // ===========================================
+        // CLIENT PORTAL ROUTES (NEW SPRINT 4)
+        // ===========================================
+        
+        try {
+          console.log('Importing Client Portal Authentication routes...');
+          const { default: clientAuthRoutes } = await import('../routes/client/v1/auth.mjs');
+          app.use('/api/client/v1/auth', clientAuthRoutes);
+          console.log('✅ Client Portal Auth routes loaded successfully');
+        } catch (clientAuthError) {
+          console.log('⚠️ Client Portal Auth routes not available:', clientAuthError.message);
+        }
+        
+        try {
+          console.log('Importing Client Portal Dashboard routes...');
+          const { default: clientDashboardRoutes } = await import('../routes/client/v1/dashboard.mjs');
+          app.use('/api/client/v1/dashboard', clientDashboardRoutes);
+          console.log('✅ Client Portal Dashboard routes loaded successfully');
+        } catch (clientDashboardError) {
+          console.log('⚠️ Client Portal Dashboard routes not available:', clientDashboardError.message);
+        }
+        
+        try {
+          console.log('Importing Client Portal Incidents routes...');
+          const { default: clientIncidentsRoutes } = await import('../routes/client/v1/incidents.mjs');
+          app.use('/api/client/v1/incidents', clientIncidentsRoutes);
+          console.log('✅ Client Portal Incidents routes loaded successfully');
+        } catch (clientIncidentsError) {
+          console.log('⚠️ Client Portal Incidents routes not available:', clientIncidentsError.message);
+        }
+        
+        try {
+          console.log('Importing Client Portal Evidence routes...');
+          const { default: clientEvidenceRoutes } = await import('../routes/client/v1/evidence.mjs');
+          app.use('/api/client/v1/evidence', clientEvidenceRoutes);
+          console.log('✅ Client Portal Evidence routes loaded successfully');
+        } catch (clientEvidenceError) {
+          console.log('⚠️ Client Portal Evidence routes not available:', clientEvidenceError.message);
+        }
+        
+        // ===========================================
+        // VOICE AI DISPATCHER ROUTES (NEW SPRINT 3)
+        // ===========================================
+        
+        try {
+          console.log('Importing Voice AI Dispatcher routes...');
+          const { default: voiceAiRoutes } = await import('../routes/voice-ai.mjs');
+          app.use('/api/voice-ai', voiceAiRoutes);
+          console.log('✅ Voice AI Dispatcher routes loaded successfully');
+          
+          // Initialize Voice AI WebSocket handlers
+          const { initializeVoiceAIWebSocket } = await import('./voiceAISocket.mjs');
+          initializeVoiceAIWebSocket(io);
+          console.log('✅ Voice AI WebSocket handlers initialized');
+          
+        } catch (voiceAiError) {
+          console.log('⚠️ Voice AI routes not available:', voiceAiError.message);
+        }
+        
         console.log('🚀 APEX AI Platform routes integration complete with PRODUCTION SECURITY!');
+        console.log('🎯 Sprint 4: Client Portal routes integrated successfully!');
         console.log('🔒 Security Features Active:');
         console.log('   ✅ Helmet security headers');
         console.log('   ✅ API rate limiting');

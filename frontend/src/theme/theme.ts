@@ -1,5 +1,6 @@
 // APEX AI STYLED-COMPONENTS THEME
 // Migrated from TailwindCSS configuration to preserve design tokens
+// Enhanced with dynamic font system support
 
 export const theme = {
   // Color System (Preserved from TailwindCSS config)
@@ -62,6 +63,42 @@ export const theme = {
       900: '#FF8F00',
     },
     
+    // IRIDESCENT TEAL SYSTEM - Award-winning holographic colors
+    teal: {
+      50: '#F0FDFA',   // Lightest teal
+      100: '#CCFBF1',  // Very light teal
+      200: '#99F6E4',  // Light teal
+      300: '#5EEAD4',  // Medium light teal
+      400: '#2DD4BF',  // Main teal
+      500: '#14B8A6',  // Primary iridescent teal
+      600: '#0D9488',  // Darker teal
+      700: '#0F766E',  // Deep teal
+      800: '#115E59',  // Very dark teal
+      900: '#134E4A',  // Darkest teal
+    },
+    
+    // HOLOGRAPHIC GRADIENT COLORS
+    holographic: {
+      cyan: '#00FFFF',        // Electric cyan
+      teal: '#14B8A6',        // Primary teal
+      mint: '#10F2C5',        // Mint green
+      purple: '#8B5CF6',      // Electric purple
+      pink: '#EC4899',        // Hot pink
+      blue: '#3B82F6',        // Electric blue
+      green: '#10B981',       // Neon green
+    },
+    
+    // NEON GLOW COLORS
+    neon: {
+      teal: '#14B8A6',        // Primary neon teal
+      cyan: '#06B6D4',        // Neon cyan
+      purple: '#A855F7',      // Neon purple
+      pink: '#EC4899',        // Neon pink
+      green: '#10B981',       // Neon green
+      blue: '#3B82F6',        // Neon blue
+      white: '#FFFFFF',       // Neon white
+    },
+
     silver: {
       50: '#F9FAFB',
       100: '#F3F4F6',
@@ -101,11 +138,15 @@ export const theme = {
     '4xl': '6rem',    // 96px
   },
 
-  // Typography
+  // Typography (Enhanced for dynamic font system)
   typography: {
     fontFamily: {
+      // Primary font - can be dynamically overridden by FontProvider
       primary: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      // Monospace font - used for code and technical displays
       mono: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+      // System fallback - always available as backup
+      system: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif',
     },
     fontSize: {
       xs: '0.75rem',
@@ -175,10 +216,42 @@ export const theme = {
     fast: '150ms ease-in-out',
     base: '250ms ease-in-out',
     slow: '350ms ease-in-out',
+    glow: '300ms ease-in-out',
+    rainbow: '2s linear infinite',
+    holographic: '4s ease-in-out infinite',
+  },
+  
+  // AWARD-WINNING ANIMATIONS & EFFECTS
+  animations: {
+    // Holographic rainbow gradient keyframes
+    holographicShift: 'holographicShift 6s ease-in-out infinite',
+    neonPulse: 'neonPulse 2s ease-in-out infinite alternate',
+    rainbowFlow: 'rainbowFlow 8s linear infinite',
+    glowPulse: 'glowPulse 3s ease-in-out infinite',
+    iridescent: 'iridescent 10s ease-in-out infinite',
+  },
+  
+  // GLOW EFFECTS
+  glowEffects: {
+    teal: '0 0 20px rgba(20, 184, 166, 0.5), 0 0 40px rgba(20, 184, 166, 0.3), 0 0 60px rgba(20, 184, 166, 0.1)',
+    cyan: '0 0 20px rgba(6, 182, 212, 0.5), 0 0 40px rgba(6, 182, 212, 0.3), 0 0 60px rgba(6, 182, 212, 0.1)',
+    purple: '0 0 20px rgba(168, 85, 247, 0.5), 0 0 40px rgba(168, 85, 247, 0.3), 0 0 60px rgba(168, 85, 247, 0.1)',
+    rainbow: '0 0 30px rgba(20, 184, 166, 0.4), 0 0 60px rgba(139, 92, 246, 0.3), 0 0 90px rgba(236, 72, 153, 0.2)',
+  },
+  
+  // HOLOGRAPHIC GRADIENTS
+  gradients: {
+    holographic: 'linear-gradient(45deg, #14B8A6, #8B5CF6, #EC4899, #10B981, #3B82F6, #14B8A6)',
+    iridescent: 'linear-gradient(90deg, #00FFFF, #14B8A6, #8B5CF6, #EC4899, #10B981, #3B82F6)',
+    neonTeal: 'linear-gradient(135deg, #14B8A6, #06B6D4, #10F2C5)',
+    cyberpunk: 'linear-gradient(45deg, #14B8A6, #A855F7, #EC4899, #3B82F6)',
   },
 } as const;
 
 export type Theme = typeof theme;
+
+// Base theme for dynamic font system - exported for createDynamicTheme utility
+export const baseTheme = theme;
 
 // Dark mode theme (for future use)
 export const darkTheme: Theme = {

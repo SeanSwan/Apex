@@ -27,10 +27,18 @@ import PropertyAssignment from './propertyAssignment.mjs';
 // Import function-based models (need sequelize parameter)
 import ClientFunction from './client.mjs';
 import ContactFunction from './contact.mjs';
+// NEW: Voice AI Dispatcher models - Master Prompt v49.0
+import CallLogFunction from './callLog.mjs';
+import StandardOperatingProcedureFunction from './standardOperatingProcedure.mjs';
+import ContactListFunction from './contactList.mjs';
 
 // Initialize function-based models
 const Client = ClientFunction(sequelize);
 const Contact = ContactFunction(sequelize);
+// NEW: Initialize Voice AI Dispatcher models
+const CallLog = CallLogFunction(sequelize);
+const StandardOperatingProcedure = StandardOperatingProcedureFunction(sequelize);
+const ContactList = ContactListFunction(sequelize);
 
 // === MODEL ASSOCIATIONS ===
 
@@ -261,6 +269,128 @@ CheckpointScan.belongsTo(Patrol, {
   as: 'patrol'
 });
 
+// === NEW: VOICE AI DISPATCHER ASSOCIATIONS - MASTER PROMPT v49.0 ===
+
+// CallLog Associations
+CallLog.belongsTo(Property, {
+  foreignKey: 'property_id',
+  as: 'property'
+});
+Property.hasMany(CallLog, {
+  foreignKey: 'property_id',
+  as: 'callLogs'
+});
+
+CallLog.belongsTo(Incident, {
+  foreignKey: 'incident_id',
+  as: 'incident'
+});
+Incident.hasMany(CallLog, {
+  foreignKey: 'incident_id',
+  as: 'callLogs'
+});
+
+CallLog.belongsTo(User, {
+  foreignKey: 'human_operator_id',
+  as: 'humanOperator'
+});
+User.hasMany(CallLog, {
+  foreignKey: 'human_operator_id',
+  as: 'operatedCalls'
+});
+
+CallLog.belongsTo(StandardOperatingProcedure, {
+  foreignKey: 'sop_used',
+  as: 'sop'
+});
+StandardOperatingProcedure.hasMany(CallLog, {
+  foreignKey: 'sop_used',
+  as: 'callLogs'
+});
+
+// StandardOperatingProcedure Associations
+StandardOperatingProcedure.belongsTo(Property, {
+  foreignKey: 'property_id',
+  as: 'property'
+});
+Property.hasMany(StandardOperatingProcedure, {
+  foreignKey: 'property_id',
+  as: 'sops'
+});
+
+StandardOperatingProcedure.belongsTo(User, {
+  foreignKey: 'created_by',
+  as: 'creator'
+});
+User.hasMany(StandardOperatingProcedure, {
+  foreignKey: 'created_by',
+  as: 'createdSops'
+});
+
+StandardOperatingProcedure.belongsTo(User, {
+  foreignKey: 'approved_by',
+  as: 'approver'
+});
+User.hasMany(StandardOperatingProcedure, {
+  foreignKey: 'approved_by',
+  as: 'approvedSops'
+});
+
+StandardOperatingProcedure.belongsTo(ContactList, {
+  foreignKey: 'primary_contact_list_id',
+  as: 'primaryContacts'
+});
+ContactList.hasMany(StandardOperatingProcedure, {
+  foreignKey: 'primary_contact_list_id',
+  as: 'primarySops'
+});
+
+StandardOperatingProcedure.belongsTo(ContactList, {
+  foreignKey: 'emergency_contact_list_id',
+  as: 'emergencyContacts'
+});
+ContactList.hasMany(StandardOperatingProcedure, {
+  foreignKey: 'emergency_contact_list_id',
+  as: 'emergencySops'
+});
+
+// ContactList Associations
+ContactList.belongsTo(Property, {
+  foreignKey: 'property_id',
+  as: 'property'
+});
+Property.hasMany(ContactList, {
+  foreignKey: 'property_id',
+  as: 'contactLists'
+});
+
+ContactList.belongsTo(User, {
+  foreignKey: 'created_by',
+  as: 'creator'
+});
+User.hasMany(ContactList, {
+  foreignKey: 'created_by',
+  as: 'createdContactLists'
+});
+
+ContactList.belongsTo(User, {
+  foreignKey: 'managed_by',
+  as: 'manager'
+});
+User.hasMany(ContactList, {
+  foreignKey: 'managed_by',
+  as: 'managedContactLists'
+});
+
+ContactList.belongsTo(User, {
+  foreignKey: 'last_updated_by',
+  as: 'lastUpdater'
+});
+User.hasMany(ContactList, {
+  foreignKey: 'last_updated_by',
+  as: 'updatedContactLists'
+});
+
 // Export all models
 const db = {
   sequelize,
@@ -284,7 +414,11 @@ const db = {
   Key,
   MaintenanceRequest,
   ReportComment,
-  ReportTemplate
+  ReportTemplate,
+  // NEW: Voice AI Dispatcher models - Master Prompt v49.0
+  CallLog,
+  StandardOperatingProcedure,
+  ContactList
 };
 
 // Test database connection
@@ -298,7 +432,11 @@ const testDbConnection = async () => {
       { model: 'Users', table: 'Users' },
       { model: 'Clients', table: 'Clients' },
       { model: 'Properties', table: 'Properties' },
-      { model: 'Reports', table: 'Reports' }
+      { model: 'Reports', table: 'Reports' },
+      // NEW: Voice AI Dispatcher tables
+      { model: 'CallLogs', table: 'call_logs' },
+      { model: 'StandardOperatingProcedures', table: 'standard_operating_procedures' },
+      { model: 'ContactLists', table: 'contact_lists' }
     ];
     
     for (const check of tableChecks) {

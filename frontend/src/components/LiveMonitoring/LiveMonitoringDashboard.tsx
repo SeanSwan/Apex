@@ -1,6 +1,6 @@
 // APEX AI LIVE MONITORING DASHBOARD
-// Master Prompt v29.1-APEX Implementation
-// Phase 2A: Live Monitoring Interface
+// Master Prompt v36.0-APEX Implementation
+// Phase 2A: Live Monitoring Interface with Visual Alerts Integration
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styled, { createGlobalStyle, ThemeProvider } from 'styled-components';
@@ -15,7 +15,9 @@ import {
   Navigation,
   Eye,
   Target,
-  Radio
+  Radio,
+  Settings,
+  Activity
 } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 
@@ -25,6 +27,17 @@ import { Button } from '../ui/button';
 
 // Import enhanced AI dispatch system
 import { useEnhancedAIDispatchSystem } from './EnhancedAIDispatchSystem';
+
+// Import Visual Alerts components with functionality
+import { 
+  BlinkingBorderOverlay, 
+  AlertManager, 
+  ThreatLevels, 
+  THREAT_COLORS 
+} from '../VisualAlerts';
+
+// Import holographic animations
+import '../../styles/holographicAnimations.css';
 
 // Add missing state setters for enhanced system integration
 interface AlertState {
@@ -83,13 +96,48 @@ interface GuardStatus {
   active_alerts: number;
 }
 
+// PROFESSIONAL TEAL THEME - Matching Homepage
+const colors = {
+  // PRIMARY TEAL SYSTEM - Matching homepage exactly
+  primary: '#14B8A6',        // Main teal - professional
+  primaryLight: '#2DD4BF',   // Light teal accent
+  primaryDark: '#0D9488',    // Dark teal for depth
+  
+  // ACCENT SYSTEM
+  accent: '#8B5CF6',         // Professional purple
+  success: '#10B981',        // Professional green
+  warning: '#F59E0B',        // Professional amber
+  danger: '#EF4444',         // Professional red
+  
+  // NEUTRAL TONES
+  white: '#FFFFFF',
+  black: '#000000',
+  darkBg: '#0A0A0A',
+  cardBg: 'rgba(0, 0, 0, 0.95)',
+  
+  // GLOW EFFECTS - Subtle and professional
+  primaryGlow: 'rgba(20, 184, 166, 0.3)',
+  textGlow: 'rgba(20, 184, 166, 0.4)',
+  
+  // GRAYS
+  gray100: '#F8FAFC',
+  gray200: '#E2E8F0',
+  gray300: '#CBD5E1',
+  gray400: '#94A3B8',
+  gray500: '#64748B',
+  gray600: '#475569',
+  gray700: '#334155',
+  gray800: '#1E293B',
+  gray900: '#0F172A',
+};
+
 // Styled Components
 const GlobalStyle = createGlobalStyle`
   body {
     margin: 0;
     font-family: 'Inter', sans-serif;
-    background-color: #0a0a0a;
-    color: #ffffff;
+    background-color: ${colors.darkBg};
+    color: ${colors.white};
     overflow: hidden;
   }
 `;
@@ -107,8 +155,9 @@ const TopBar = styled.div`
   align-items: center;
   padding: 0 2rem;
   background: rgba(20, 20, 20, 0.95);
-  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+  border-bottom: 1px solid ${colors.primary};
   backdrop-filter: blur(10px);
+  box-shadow: 0 2px 10px rgba(20, 184, 166, 0.1);
 `;
 
 const LogoSection = styled.div`
@@ -119,8 +168,10 @@ const LogoSection = styled.div`
   h1 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #FFD700;
+    color: ${colors.primary};
     margin: 0;
+    text-shadow: 0 0 8px ${colors.textGlow};
+    font-family: 'Orbitron', sans-serif;
   }
 `;
 
@@ -136,18 +187,29 @@ const StatusItem = styled.div<{ status: 'online' | 'offline' | 'warning' }>`
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(20, 184, 166, 0.1);
+  border: 1px solid rgba(20, 184, 166, 0.2);
   font-size: 0.9rem;
+  transition: all 0.3s ease;
   
   .indicator {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     background: ${props => 
-      props.status === 'online' ? '#10B981' : 
-      props.status === 'warning' ? '#F59E0B' : '#EF4444'
+      props.status === 'online' ? colors.success : 
+      props.status === 'warning' ? colors.warning : colors.danger
     };
     animation: ${props => props.status === 'online' ? 'pulse 2s infinite' : 'none'};
+    box-shadow: ${props => 
+      props.status === 'online' ? `0 0 8px ${colors.success}` : 
+      props.status === 'warning' ? `0 0 8px ${colors.warning}` : `0 0 8px ${colors.danger}`
+    };
+  }
+  
+  &:hover {
+    background: rgba(20, 184, 166, 0.15);
+    border-color: ${colors.primary};
   }
   
   @keyframes pulse {
@@ -173,7 +235,7 @@ const CameraGrid = styled.div`
   overflow-y: auto;
   padding-right: 0.5rem;
   
-  /* Custom scrollbar */
+  /* Professional teal scrollbar */
   &::-webkit-scrollbar {
     width: 6px;
   }
@@ -184,30 +246,46 @@ const CameraGrid = styled.div`
   }
   
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 215, 0, 0.5);
+    background: linear-gradient(135deg, ${colors.primary}, ${colors.primaryLight});
     border-radius: 3px;
+    box-shadow: 0 0 5px ${colors.primaryGlow};
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, ${colors.primaryLight}, ${colors.primary});
   }
 `;
 
-const CameraFeed = styled.div<{ alertLevel?: string }>`
+const CameraFeed = styled.div<{ alertLevel?: string; hasAlert?: boolean }>`
   position: relative;
-  background: rgba(30, 30, 30, 0.9);
+  background: ${colors.cardBg};
   border-radius: 12px;
   overflow: hidden;
   border: 2px solid ${props => {
-    switch(props.alertLevel) {
-      case 'critical': return '#EF4444';
-      case 'high': return '#F59E0B'; 
-      case 'medium': return '#3B82F6';
-      default: return 'rgba(255, 215, 0, 0.3)';
+    if (props.hasAlert) {
+      switch(props.alertLevel) {
+        case 'WEAPON': return colors.danger;
+        case 'CRITICAL': return colors.danger;
+        case 'HIGH': return colors.warning;
+        case 'MEDIUM': return colors.accent;
+        case 'LOW': return colors.primary;
+        default: return colors.primary;
+      }
     }
+    return colors.primary;
   }};
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: 300px;
+  backdrop-filter: blur(10px);
   
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    transform: translateY(-4px);
+    box-shadow: ${props => 
+      props.hasAlert 
+        ? `0 8px 32px rgba(239, 68, 68, 0.3), 0 0 20px ${colors.primaryGlow}`
+        : `0 8px 25px rgba(0, 0, 0, 0.3), 0 0 15px ${colors.primaryGlow}`
+    };
+    border-color: ${props => props.hasAlert ? colors.danger : colors.primaryLight};
   }
 `;
 
@@ -227,12 +305,14 @@ const CameraHeader = styled.div`
     
     .name {
       font-weight: 600;
-      color: #FFD700;
+      color: ${colors.primary};
+      text-shadow: 0 0 8px ${colors.textGlow};
+      font-family: 'Orbitron', sans-serif;
     }
     
     .location {
       font-size: 0.85rem;
-      color: #B0B0B0;
+      color: ${colors.gray300};
     }
   }
   
@@ -352,29 +432,50 @@ const RightPanel = styled.div`
   gap: 1rem;
   height: 100%;
   overflow: hidden;
+  min-width: 350px;
+  max-width: 400px;
+  
+  @media (max-width: 1400px) {
+    min-width: 320px;
+    max-width: 320px;
+  }
+  
+  @media (max-width: 1200px) {
+    min-width: 300px;
+    max-width: 300px;
+  }
 `;
 
 const AlertFeed = styled.div`
   flex: 1;
-  background: rgba(30, 30, 30, 0.9);
+  background: ${colors.cardBg};
   border-radius: 12px;
-  border: 1px solid rgba(255, 215, 0, 0.3);
+  border: 1px solid ${colors.primary};
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(20, 184, 166, 0.1);
+  
+  /* Ensure proper height allocation */
+  min-height: 400px;
+  max-height: calc(100vh - 200px);
 `;
 
 const AlertHeader = styled.div`
   padding: 1rem;
-  border-bottom: 1px solid rgba(255, 215, 0, 0.3);
-  background: rgba(255, 215, 0, 0.1);
+  border-bottom: 1px solid ${colors.primary};
+  background: rgba(20, 184, 166, 0.1);
+  backdrop-filter: blur(5px);
   
   h3 {
     margin: 0;
-    color: #FFD700;
+    color: ${colors.primary};
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 0 0 8px ${colors.textGlow};
   }
 `;
 
@@ -383,41 +484,52 @@ const AlertList = styled.div`
   overflow-y: auto;
   padding: 0.5rem;
   
+  /* Professional scrollbar */
   &::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
   }
   
   &::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
+    background: rgba(20, 184, 166, 0.1);
+    border-radius: 4px;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 215, 0, 0.5);
-    border-radius: 3px;
+    background: linear-gradient(135deg, ${colors.primary}, ${colors.primaryLight});
+    border-radius: 4px;
+    box-shadow: 0 0 5px ${colors.primaryGlow};
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, ${colors.primaryLight}, ${colors.primary});
   }
 `;
 
 const AlertItem = styled.div<{ priority: string; status: string }>`
-  background: rgba(40, 40, 40, 0.9);
+  background: rgba(30, 30, 30, 0.95);
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 0.5rem;
   border-left: 4px solid ${props => {
     switch(props.priority) {
-      case 'critical': return '#EF4444';
-      case 'high': return '#F59E0B';
-      case 'medium': return '#3B82F6';
-      default: return '#6B7280';
+      case 'critical': return colors.danger;
+      case 'high': return colors.warning;
+      case 'medium': return colors.accent;
+      case 'low': return colors.primary;
+      default: return colors.gray500;
     }
   }};
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   opacity: ${props => props.status === 'resolved' ? 0.7 : 1};
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(20, 184, 166, 0.1);
   
   &:hover {
-    background: rgba(50, 50, 50, 0.9);
-    transform: translateX(2px);
+    background: rgba(20, 184, 166, 0.05);
+    transform: translateX(4px) translateY(-2px);
+    border-color: ${colors.primary};
+    box-shadow: 0 4px 15px rgba(20, 184, 166, 0.2);
   }
   
   .alert-header {
@@ -428,19 +540,21 @@ const AlertItem = styled.div<{ priority: string; status: string }>`
     
     .type {
       font-weight: 600;
-      color: #FFD700;
+      color: ${colors.primary};
+      font-family: 'Orbitron', sans-serif;
     }
     
     .time {
       font-size: 0.8rem;
-      color: #B0B0B0;
+      color: ${colors.gray400};
     }
   }
   
   .description {
     font-size: 0.9rem;
-    color: #E0E0E0;
+    color: ${colors.gray200};
     margin-bottom: 0.5rem;
+    line-height: 1.4;
   }
   
   .actions {
@@ -457,43 +571,70 @@ const ActionButton = styled.button<{ variant: 'primary' | 'secondary' | 'danger'
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   
   background: ${props => {
     switch(props.variant) {
-      case 'primary': return '#FFD700';
-      case 'secondary': return 'rgba(255, 255, 255, 0.1)';
-      case 'danger': return '#EF4444';
+      case 'primary': return `linear-gradient(135deg, ${colors.primary}, ${colors.primaryLight})`;
+      case 'secondary': return 'rgba(20, 184, 166, 0.1)';
+      case 'danger': return `linear-gradient(135deg, ${colors.danger}, #FF6B6B)`;
     }
   }};
   
   color: ${props => {
     switch(props.variant) {
-      case 'primary': return '#000';
-      case 'secondary': return '#fff';
-      case 'danger': return '#fff';
+      case 'primary': return colors.white;
+      case 'secondary': return colors.primary;
+      case 'danger': return colors.white;
+    }
+  }};
+  
+  border: 1px solid ${props => {
+    switch(props.variant) {
+      case 'primary': return colors.primary;
+      case 'secondary': return colors.primary;
+      case 'danger': return colors.danger;
     }
   }};
   
   &:hover {
-    transform: translateY(-1px);
-    opacity: 0.9;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: ${props => {
+      switch(props.variant) {
+        case 'primary': return `0 4px 15px ${colors.primaryGlow}`;
+        case 'secondary': return `0 4px 15px ${colors.primaryGlow}`;
+        case 'danger': return '0 4px 15px rgba(239, 68, 68, 0.3)';
+      }
+    }};
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
   }
 `;
 
 const GuardPanel = styled.div`
-  background: rgba(30, 30, 30, 0.9);
+  background: ${colors.cardBg};
   border-radius: 12px;
-  border: 1px solid rgba(255, 215, 0, 0.3);
+  border: 1px solid ${colors.primary};
   padding: 1rem;
   height: 300px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(20, 184, 166, 0.1);
   
   h3 {
     margin: 0 0 1rem 0;
-    color: #FFD700;
+    color: ${colors.primary};
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 0 0 8px ${colors.textGlow};
   }
 `;
 
@@ -510,26 +651,35 @@ const GuardItem = styled.div<{ status: string }>`
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem;
-  background: rgba(40, 40, 40, 0.7);
+  background: rgba(30, 30, 30, 0.8);
   border-radius: 8px;
   border-left: 3px solid ${props => {
     switch(props.status) {
-      case 'on_duty': return '#22C55E';
-      case 'responding': return '#F59E0B';
-      case 'break': return '#3B82F6';
-      default: return '#6B7280';
+      case 'on_duty': return colors.success;
+      case 'responding': return colors.warning;
+      case 'break': return colors.accent;
+      default: return colors.gray500;
     }
   }};
+  border: 1px solid rgba(20, 184, 166, 0.1);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: rgba(20, 184, 166, 0.05);
+    border-color: ${colors.primary};
+    transform: translateX(2px);
+  };
   
   .guard-info {
     .name {
       font-weight: 500;
-      color: #E0E0E0;
+      color: ${colors.gray100};
+      font-family: 'Orbitron', sans-serif;
     }
     
     .zone {
       font-size: 0.8rem;
-      color: #B0B0B0;
+      color: ${colors.gray400};
     }
   }
   
@@ -563,6 +713,18 @@ const GuardItem = styled.div<{ status: string }>`
   }
 `;
 
+// Visual Alert Integration Types
+interface VisualAlert {
+  id: string;
+  zoneId: string;
+  threatLevel: keyof typeof ThreatLevels;
+  threatType: string;
+  confidence: number;
+  position: { x: number; y: number; width: number; height: number };
+  timestamp: number;
+  cameraId: string;
+}
+
 // Main Component
 const LiveMonitoringDashboard: React.FC = () => {
   const { toast } = useToast();
@@ -587,6 +749,10 @@ const LiveMonitoringDashboard: React.FC = () => {
     processing: false
   });
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
+  
+  // Visual Alerts State
+  const [visualAlerts, setVisualAlerts] = useState<VisualAlert[]>([]);
+  const [alertManagerEnabled, setAlertManagerEnabled] = useState(true);
 
   // Initialize demo data
   useEffect(() => {
@@ -812,6 +978,78 @@ const LiveMonitoringDashboard: React.FC = () => {
     });
   }, [handleEnhancedAIVoiceResponse]);
 
+  // Visual Alert Management Functions
+  const createVisualAlert = useCallback((alertData: Partial<VisualAlert>) => {
+    const newAlert: VisualAlert = {
+      id: `visual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      zoneId: alertData.zoneId || 'CAM-01',
+      threatLevel: alertData.threatLevel || 'LOW',
+      threatType: alertData.threatType || 'Detection',
+      confidence: alertData.confidence || 75,
+      position: alertData.position || { x: 0, y: 0, width: 100, height: 100 },
+      timestamp: Date.now(),
+      cameraId: alertData.cameraId || '',
+    };
+    
+    setVisualAlerts(prev => [...prev, newAlert]);
+    
+    // Auto-remove after timeout based on threat level
+    const timeout = {
+      'WEAPON': 120000,
+      'CRITICAL': 60000,
+      'HIGH': 30000,
+      'MEDIUM': 15000,
+      'LOW': 10000,
+      'SAFE': 5000
+    }[newAlert.threatLevel] || 10000;
+    
+    setTimeout(() => {
+      setVisualAlerts(prev => prev.filter(alert => alert.id !== newAlert.id));
+    }, timeout);
+    
+    return newAlert;
+  }, []);
+
+  const handleAlertClick = useCallback((alertData: any) => {
+    console.log('🎯 Alert clicked for processing:', alertData);
+    
+    // Create a corresponding AI alert if needed
+    const correspondingAlert = alerts.find(alert => alert.camera_id === alertData.cameraId);
+    if (correspondingAlert) {
+      handleAcknowledgeAlert(correspondingAlert.alert_id);
+    }
+    
+    toast({
+      title: "🚨 Alert Clicked",
+      description: `Processing ${alertData.threatLevel} alert in ${alertData.zoneId}`,
+      variant: "default"
+    });
+  }, [alerts, handleAcknowledgeAlert, toast]);
+
+  // Test function to create demo visual alerts
+  const createDemoVisualAlert = useCallback((cameraId: string) => {
+    const demoAlerts = [
+      { threatLevel: 'HIGH' as const, threatType: 'Person Detected', confidence: 87 },
+      { threatLevel: 'MEDIUM' as const, threatType: 'Package Theft', confidence: 72 },
+      { threatLevel: 'CRITICAL' as const, threatType: 'Violence Detected', confidence: 93 },
+      { threatLevel: 'WEAPON' as const, threatType: 'Weapon Detected', confidence: 95 }
+    ];
+    
+    const randomAlert = demoAlerts[Math.floor(Math.random() * demoAlerts.length)];
+    const stream = cameraStreams.find(s => s.camera_id === cameraId);
+    
+    if (stream) {
+      createVisualAlert({
+        zoneId: stream.camera_id,
+        threatLevel: randomAlert.threatLevel,
+        threatType: randomAlert.threatType,
+        confidence: randomAlert.confidence,
+        position: { x: 0, y: 0, width: 100, height: 100 }, // Relative to camera feed
+        cameraId: stream.camera_id
+      });
+    }
+  }, [cameraStreams, createVisualAlert]);
+
   // Memoized computed values
   const onlineStreams = useMemo(() => 
     cameraStreams.filter(stream => stream.status === 'online').length, 
@@ -832,10 +1070,45 @@ const LiveMonitoringDashboard: React.FC = () => {
     <ThemeProvider theme={{}}>
       <GlobalStyle />
       <DashboardContainer>
+        {/* Visual Alert Manager - Professional Integration */}
+        {alertManagerEnabled && (
+          <AlertManager
+            enableAudio={true}
+            enableVisual={true}
+            showControlPanel={true}
+            maxAlerts={16}
+            onAlertInteraction={(alertData) => {
+              console.log('🚨 Alert interaction:', alertData);
+              // Handle alert interactions
+            }}
+          />
+        )}
+
+        {/* Visual Alert Overlays for Camera Feeds */}
+        {visualAlerts.map(alert => (
+          <BlinkingBorderOverlay
+            key={alert.id}
+            zoneId={alert.zoneId}
+            threatLevel={alert.threatLevel}
+            threatType={alert.threatType}
+            confidence={alert.confidence}
+            position={alert.position}
+            intensity={alert.threatLevel === 'WEAPON' ? 2 : 1}
+            showIndicator={true}
+            showConfidence={true}
+            showZoneId={true}
+            isActive={true}
+            onAlertClick={(alertData) => {
+              console.log('🖱️ Visual alert clicked:', alertData);
+              handleAlertClick(alertData);
+            }}
+          />
+        ))}
+
         {/* Top Navigation Bar */}
         <TopBar>
           <LogoSection>
-            <Shield size={24} color="#FFD700" />
+            <Shield size={24} color={colors.primary} />
             <h1>APEX AI Live Monitoring</h1>
           </LogoSection>
           
@@ -843,6 +1116,11 @@ const LiveMonitoringDashboard: React.FC = () => {
             <StatusItem status={connectionStatus === 'connected' ? 'online' : 'offline'}>
               <div className="indicator" />
               AI System: {connectionStatus}
+            </StatusItem>
+            
+            <StatusItem status={alertManagerEnabled ? 'online' : 'offline'}>
+              <Activity size={16} />
+              Visual Alerts: {alertManagerEnabled ? 'ON' : 'OFF'}
             </StatusItem>
             
             <StatusItem status={onlineStreams > 0 ? 'online' : 'offline'}>
@@ -873,9 +1151,17 @@ const LiveMonitoringDashboard: React.FC = () => {
               const alertLevel = hasActiveAlert ? 
                 alerts.find(alert => alert.camera_id === stream.camera_id)?.priority : 
                 undefined;
+              
+              // Check for visual alerts on this camera
+              const hasVisualAlert = visualAlerts.some(alert => alert.cameraId === stream.camera_id);
+              const visualAlert = visualAlerts.find(alert => alert.cameraId === stream.camera_id);
 
               return (
-                <CameraFeed key={stream.camera_id} alertLevel={alertLevel}>
+                <CameraFeed 
+                  key={stream.camera_id} 
+                  alertLevel={alertLevel || visualAlert?.threatLevel} 
+                  hasAlert={hasActiveAlert || hasVisualAlert}
+                >
                   <CameraHeader>
                     <div className="camera-info">
                       <div>
@@ -889,9 +1175,10 @@ const LiveMonitoringDashboard: React.FC = () => {
                           onClick={() => handleDigitalZoom(stream.camera_id, alerts.find(a => a.camera_id === stream.camera_id)?.detection_details)}
                           disabled={processingStates[`zoom_${stream.camera_id}`]}
                           title="AI-Enhanced Digital Zoom"
+                          style={{ color: colors.primary, border: `1px solid ${colors.primary}` }}
                         >
                           {processingStates[`zoom_${stream.camera_id}`] ? (
-                            <div className="animate-spin w-3 h-3 border border-cyan-500 rounded-full border-t-transparent" />
+                            <div className="animate-spin w-3 h-3 border border-teal-500 rounded-full border-t-transparent" />
                           ) : (
                             <Maximize2 size={14} />
                           )}
@@ -899,12 +1186,22 @@ const LiveMonitoringDashboard: React.FC = () => {
                         <Button 
                           variant="ghost" 
                           size="sm"
+                          onClick={() => createDemoVisualAlert(stream.camera_id)}
+                          title="Create Demo Visual Alert"
+                          style={{ color: colors.warning, border: `1px solid ${colors.warning}` }}
+                        >
+                          <Target size={14} />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
                           onClick={() => handleAIVoiceResponse(stream.camera_id, "🚨 SECURITY ALERT: This area is under surveillance. Please identify yourself immediately or leave the premises.")}
                           disabled={processingStates[`voice_${stream.camera_id}`]}
                           title="AI Voice Warning System"
+                          style={{ color: colors.accent, border: `1px solid ${colors.accent}` }}
                         >
                           {processingStates[`voice_${stream.camera_id}`] ? (
-                            <div className="animate-spin w-3 h-3 border border-cyan-500 rounded-full border-t-transparent" />
+                            <div className="animate-spin w-3 h-3 border border-purple-500 rounded-full border-t-transparent" />
                           ) : (
                             <Volume2 size={14} />
                           )}
@@ -914,8 +1211,13 @@ const LiveMonitoringDashboard: React.FC = () => {
                     
                     <div className="status-badges">
                       {stream.status === 'online' && <StatusBadge type="ai">AI Active</StatusBadge>}
-                      {hasActiveAlert && <StatusBadge type="alert">Alert</StatusBadge>}
+                      {(hasActiveAlert || hasVisualAlert) && (
+                        <StatusBadge type="alert">
+                          {visualAlert?.threatLevel || alertLevel || 'Alert'}
+                        </StatusBadge>
+                      )}
                       <StatusBadge type="guard">{stream.guard_zone}</StatusBadge>
+                      {alertManagerEnabled && <StatusBadge type="ai">Visual Alerts</StatusBadge>}
                     </div>
                   </CameraHeader>
 
@@ -973,6 +1275,20 @@ const LiveMonitoringDashboard: React.FC = () => {
                   <AlertTriangle size={20} />
                   Live Alerts ({pendingAlerts} pending)
                 </h3>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setAlertManagerEnabled(!alertManagerEnabled)}
+                    title="Toggle Visual Alert System"
+                    style={{ 
+                      color: alertManagerEnabled ? colors.success : colors.gray500,
+                      border: `1px solid ${alertManagerEnabled ? colors.success : colors.gray500}`
+                    }}
+                  >
+                    <Settings size={12} />
+                  </Button>
+                </div>
               </AlertHeader>
               
               <AlertList>

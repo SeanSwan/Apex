@@ -134,3 +134,93 @@ export interface CameraControlsProps {
   onFullscreen?: () => void;
   onPTZ?: (direction: 'up' | 'down' | 'left' | 'right') => void;
 }
+
+// === ALERT SYSTEM TYPES === //
+
+export interface SecurityAlert {
+  alert_id: string;
+  timestamp: string;
+  alert_type: 'unknown_person' | 'suspicious_activity' | 'weapon_detected' | 'perimeter_breach' | 'loitering_detected' | 'ai_detection' | 'face_detection';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  camera_id: string;
+  camera_name: string;
+  location: string;
+  property_name: string;
+  description: string;
+  confidence: number;
+  status: 'active' | 'acknowledged' | 'dismissed' | 'resolved';
+  acknowledged_by?: string;
+  acknowledged_at?: string;
+  resolved_at?: string;
+  metadata?: {
+    detection?: AIDetection;
+    face?: FaceDetection;
+    bounding_box?: BoundingBox;
+    snapshot?: string;
+  };
+}
+
+export interface AlertFilters {
+  alertType: 'all' | SecurityAlert['alert_type'];
+  severity: 'all' | SecurityAlert['severity'];
+  status: 'all' | SecurityAlert['status'];
+  camera: 'all' | string;
+  property: 'all' | string;
+  timeRange: 'all' | '1h' | '6h' | '24h' | '7d';
+}
+
+export interface AlertPanelProps {
+  alerts: SecurityAlert[];
+  cameras: CameraFeed[];
+  properties: Property[];
+  selectedCamera: string | null;
+  onCameraSelect: (cameraId: string) => void;
+  onAlertAcknowledge: (alertId: string) => void;
+  onAlertDismiss: (alertId: string) => void;
+  isVisible: boolean;
+  onToggleVisibility: () => void;
+}
+
+export interface AlertListProps {
+  alerts: SecurityAlert[];
+  cameras: CameraFeed[];
+  onAlertSelect: (alert: SecurityAlert) => void;
+  onAlertAcknowledge: (alertId: string) => void;
+  onAlertDismiss: (alertId: string) => void;
+  selectedAlertId?: string;
+}
+
+export interface AlertCardProps {
+  alert: SecurityAlert;
+  camera?: CameraFeed;
+  onSelect: (alert: SecurityAlert) => void;
+  onAcknowledge: (alertId: string) => void;
+  onDismiss: (alertId: string) => void;
+  isSelected: boolean;
+}
+
+export interface AlertFiltersProps {
+  filters: AlertFilters;
+  properties: Property[];
+  cameras: CameraFeed[];
+  onFiltersChange: (filters: AlertFilters) => void;
+  totalAlerts: number;
+  filteredCount: number;
+}
+
+export interface AlertSoundsProps {
+  isEnabled: boolean;
+  volume: number;
+  onToggle: () => void;
+  onVolumeChange: (volume: number) => void;
+  currentAlert?: SecurityAlert;
+}
+
+export interface AlertHistoryProps {
+  alerts: SecurityAlert[];
+  cameras: CameraFeed[];
+  onAlertSelect: (alert: SecurityAlert) => void;
+  onLoadMore: () => void;
+  hasMore: boolean;
+  isLoading: boolean;
+}

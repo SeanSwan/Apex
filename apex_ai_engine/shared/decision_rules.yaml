@@ -1,0 +1,299 @@
+# APEX AI DECISION MATRIX RULES
+# ==============================
+# Configuration file for autonomous decision making in Autopilot mode
+# 
+# This file defines the rules that the Decision Matrix Engine uses to
+# automatically respond to detected threats and security events.
+#
+# Rule Structure:
+# - rule_id: Unique identifier for the rule
+# - name: Human-readable name
+# - description: Detailed description of when this rule applies
+# - conditions: Criteria that must be met to trigger this rule
+# - actions: List of actions to take when rule is triggered
+# - priority: Rule priority (low, medium, high, critical, emergency)
+# - confidence_threshold: Minimum confidence required to trigger
+# - enabled: Whether this rule is active
+# - cooldown_seconds: Minimum time between rule executions
+# - max_executions_per_hour: Rate limiting
+
+rules:
+  - rule_id: "weapon_detection_critical"
+    name: "Weapon Detection - Critical Response"
+    description: "Immediate response to weapon detection with high confidence"
+    conditions:
+      threat_type: 
+        contains: "weapon"
+      confidence: 
+        gte: 0.9
+      threat_level: 
+        in: ["HIGH", "CRITICAL", "WEAPON"]
+    actions:
+      - type: "trigger_alert"
+        urgency: "critical"
+        sound: true
+        visual: true
+      - type: "voice_response"
+        script: "WEAPON_DETECTED"
+        immediate: true
+      - type: "evidence_capture"
+        duration: 30
+        priority: "high"
+      - type: "notify_authorities"
+        delay: 0
+      - type: "human_escalation"
+        reason: "Weapon detected - immediate attention required"
+    priority: "emergency"
+    confidence_threshold: 0.9
+    enabled: true
+    cooldown_seconds: 10
+    max_executions_per_hour: 0
+
+  - rule_id: "violence_detection_high"
+    name: "Violence Detection - High Priority"
+    description: "Response to violence or physical altercation"
+    conditions:
+      threat_type:
+        contains: "violence"
+      confidence:
+        gte: 0.8
+    actions:
+      - type: "trigger_alert"
+        urgency: "high"
+        sound: true
+        visual: true
+      - type: "voice_response"
+        script: "DE_ESCALATION"
+        delay: 2
+      - type: "evidence_capture"
+        duration: 60
+        priority: "high"
+      - type: "monitor_escalation"
+        timeout: 30
+    priority: "high"
+    confidence_threshold: 0.8
+    enabled: true
+    cooldown_seconds: 30
+    max_executions_per_hour: 10
+
+  - rule_id: "trespassing_standard"
+    name: "Trespassing - Standard Response"
+    description: "Standard response to trespassing detection"
+    conditions:
+      threat_type:
+        contains: "trespassing"
+      confidence:
+        gte: 0.7
+    actions:
+      - type: "trigger_alert"
+        urgency: "medium"
+        sound: true
+        visual: true
+      - type: "voice_response"
+        script: "TRESPASSING"
+        delay: 5
+      - type: "evidence_capture"
+        duration: 30
+        priority: "medium"
+    priority: "medium"
+    confidence_threshold: 0.7
+    enabled: true
+    cooldown_seconds: 60
+    max_executions_per_hour: 20
+
+  - rule_id: "package_theft_response"
+    name: "Package Theft - Active Response"
+    description: "Response to package theft detection"
+    conditions:
+      threat_type:
+        contains: "package_theft"
+      confidence:
+        gte: 0.75
+    actions:
+      - type: "trigger_alert"
+        urgency: "high"
+        sound: true
+        visual: true
+      - type: "voice_response"
+        script: "PACKAGE_THEFT"
+        delay: 1
+      - type: "evidence_capture"
+        duration: 45
+        priority: "high"
+      - type: "track_suspect"
+        duration: 120
+    priority: "high"
+    confidence_threshold: 0.75
+    enabled: true
+    cooldown_seconds: 120
+    max_executions_per_hour: 5
+
+  - rule_id: "loitering_warning"
+    name: "Loitering - Warning Response"
+    description: "Response to loitering or suspicious behavior"
+    conditions:
+      threat_type:
+        contains: "loitering"
+      confidence:
+        gte: 0.6
+    actions:
+      - type: "trigger_alert"
+        urgency: "low"
+        sound: false
+        visual: true
+      - type: "voice_response"
+        script: "GREETING"
+        delay: 10
+      - type: "evidence_capture"
+        duration: 20
+        priority: "low"
+    priority: "low"
+    confidence_threshold: 0.6
+    enabled: true
+    cooldown_seconds: 300
+    max_executions_per_hour: 10
+
+  - rule_id: "blacklisted_person_high"
+    name: "Blacklisted Person - High Priority"
+    description: "Response when a blacklisted person is detected"
+    conditions:
+      threat_type:
+        contains: "blacklisted_person"
+      confidence:
+        gte: 0.8
+    actions:
+      - type: "trigger_alert"
+        urgency: "high"
+        sound: true
+        visual: true
+      - type: "evidence_capture"
+        duration: 60
+        priority: "high"
+      - type: "notify_authorities"
+        delay: 5
+      - type: "human_escalation"
+        reason: "Blacklisted person detected"
+    priority: "high"
+    confidence_threshold: 0.8
+    enabled: true
+    cooldown_seconds: 60
+    max_executions_per_hour: 0
+
+  - rule_id: "vandalism_response"
+    name: "Vandalism - Property Protection"
+    description: "Response to vandalism or property damage"
+    conditions:
+      threat_type:
+        contains: "vandalism"
+      confidence:
+        gte: 0.7
+    actions:
+      - type: "trigger_alert"
+        urgency: "medium"
+        sound: true
+        visual: true
+      - type: "voice_response"
+        script: "FINAL_WARNING"
+        delay: 3
+      - type: "evidence_capture"
+        duration: 40
+        priority: "medium"
+      - type: "monitor_escalation"
+        timeout: 60
+    priority: "medium"
+    confidence_threshold: 0.7
+    enabled: true
+    cooldown_seconds: 180
+    max_executions_per_hour: 8
+
+  - rule_id: "unknown_person_greeting"
+    name: "Unknown Person - Friendly Greeting"
+    description: "Friendly greeting for unknown persons in public areas"
+    conditions:
+      threat_type:
+        contains: "person"
+      confidence:
+        gte: 0.5
+      zone_id:
+        in: ["CAM-01", "CAM-03"]  # Front entrance and lobby
+    actions:
+      - type: "voice_response"
+        script: "GREETING"
+        delay: 5
+      - type: "evidence_capture"
+        duration: 15
+        priority: "low"
+    priority: "low"
+    confidence_threshold: 0.5
+    enabled: true
+    cooldown_seconds: 600
+    max_executions_per_hour: 20
+
+  - rule_id: "night_intrusion_elevated"
+    name: "Night Time Intrusion - Elevated Response"
+    description: "Enhanced response for any intrusion during night hours"
+    conditions:
+      threat_type:
+        contains: "person"
+      confidence:
+        gte: 0.6
+      time_of_day:
+        between: ["22:00", "06:00"]
+    actions:
+      - type: "trigger_alert"
+        urgency: "high"
+        sound: true
+        visual: true
+      - type: "voice_response"
+        script: "TRESPASSING"
+        delay: 2
+      - type: "evidence_capture"
+        duration: 45
+        priority: "high"
+      - type: "human_escalation"
+        reason: "Night time intrusion detected"
+    priority: "high"
+    confidence_threshold: 0.6
+    enabled: true
+    cooldown_seconds: 120
+    max_executions_per_hour: 5
+
+  - rule_id: "fallback_human_escalation"
+    name: "Fallback - Human Escalation"
+    description: "Fallback rule for unrecognized threats"
+    conditions:
+      threat_type:
+        exists: true
+      confidence:
+        gte: 0.8
+    actions:
+      - type: "trigger_alert"
+        urgency: "medium"
+        sound: true
+        visual: true
+      - type: "evidence_capture"
+        duration: 30
+        priority: "medium"
+      - type: "human_escalation"
+        reason: "Unrecognized high-confidence threat"
+    priority: "medium"
+    confidence_threshold: 0.8
+    enabled: true
+    cooldown_seconds: 300
+    max_executions_per_hour: 10
+
+# Rule execution settings
+execution_settings:
+  max_concurrent_rules: 3
+  global_cooldown_seconds: 5
+  escalation_threshold: 2  # Number of failed actions before escalation
+  logging_level: "INFO"
+  audit_all_decisions: true
+
+# Emergency overrides
+emergency_overrides:
+  enable_emergency_mode: false
+  emergency_contact: "security@apex-ai.com"
+  emergency_phone: "+1-555-SECURITY"
+  auto_call_authorities: false
+  panic_button_zones: ["CAM-01", "CAM-03"]

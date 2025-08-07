@@ -38,6 +38,30 @@ class Incident extends Model {
   involvesAlarm() {
     return this.incident_type === 'alarm' || this.alarm_triggered;
   }
+  
+  // Check if incident was created via voice call
+  isVoiceGenerated() {
+    return this.voice_generated === true;
+  }
+  
+  // Get voice call information
+  getVoiceCallInfo() {
+    if (!this.voice_generated) return null;
+    
+    return {
+      call_id: this.voice_call_id,
+      caller_phone: this.caller_phone,
+      call_duration: this.call_duration_seconds,
+      recording_url: this.call_recording_url,
+      transcript: this.call_transcript,
+      ai_confidence: this.ai_confidence_score
+    };
+  }
+  
+  // Check if call recording is available
+  hasCallRecording() {
+    return this.call_recording_url && this.call_recording_url.length > 0;
+  }
 }
 
 Incident.init({
@@ -393,6 +417,71 @@ Incident.init({
     type: DataTypes.JSON, // Object of custom fields
     defaultValue: {}
   },
+  // VOICE AI DISPATCHER FIELDS - MASTER PROMPT v49.0
+  // ================================================
+  // Revolutionary Voice AI Dispatcher integration
+  voice_generated: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    comment: 'True if incident was created via Voice AI Dispatcher'
+  },
+  voice_call_id: {
+    type: DataTypes.STRING,
+    comment: 'Unique identifier for the voice call'
+  },
+  caller_phone: {
+    type: DataTypes.STRING,
+    comment: 'Phone number of the caller'
+  },
+  caller_name: {
+    type: DataTypes.STRING,
+    comment: 'Name of the caller if provided during call'
+  },
+  call_duration_seconds: {
+    type: DataTypes.INTEGER,
+    comment: 'Total duration of the voice call in seconds'
+  },
+  call_recording_url: {
+    type: DataTypes.STRING,
+    comment: 'URL to the call recording (Twilio recording)'
+  },
+  call_transcript: {
+    type: DataTypes.JSON, // Array of transcript entries
+    defaultValue: [],
+    comment: 'Full conversation transcript with timestamps'
+  },
+  ai_responses: {
+    type: DataTypes.JSON, // Array of AI responses
+    defaultValue: [],
+    comment: 'All AI-generated responses during the call'
+  },
+  ai_confidence_score: {
+    type: DataTypes.DECIMAL(3, 2),
+    defaultValue: 0.0,
+    validate: {
+      min: 0.0,
+      max: 1.0
+    },
+    comment: 'AI confidence score for incident classification (0.0-1.0)'
+  },
+  human_takeover: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    comment: 'True if human dispatcher took over the call'
+  },
+  takeover_time: {
+    type: DataTypes.DATE,
+    comment: 'Timestamp when human took over the call'
+  },
+  sop_executed: {
+    type: DataTypes.STRING,
+    comment: 'Standard Operating Procedure ID that was executed'
+  },
+  autonomous_actions: {
+    type: DataTypes.JSON, // Array of actions taken automatically
+    defaultValue: [],
+    comment: 'List of autonomous actions taken by Voice AI (guard dispatch, police call, etc.)'
+  },
   // System fields
   created_at: {
     type: DataTypes.DATE,
@@ -467,7 +556,13 @@ Incident.init({
     { fields: ['priority'] },
     { fields: ['reported_at'] },
     { fields: ['reported_by'] },
-    { fields: ['assigned_to'] }
+    { fields: ['assigned_to'] },
+    // Voice AI Dispatcher indexes
+    { fields: ['voice_generated'] },
+    { fields: ['voice_call_id'] },
+    { fields: ['caller_phone'] },
+    { fields: ['human_takeover'] },
+    { fields: ['ai_confidence_score'] }
   ]
 });
 

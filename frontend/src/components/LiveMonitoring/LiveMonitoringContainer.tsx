@@ -11,6 +11,7 @@ import { useEnhancedWebSocket, DEFAULT_WEBSOCKET_CONFIG, MESSAGE_TYPES, webSocke
 import { StatusBar } from './StatusBar';
 import { ControlsBar } from './ControlsBar';
 import { CameraGrid } from './CameraGrid';
+import { AlertPanel } from './AlertPanel';
 
 // Import types
 import {
@@ -18,7 +19,8 @@ import {
   GridConfig,
   StreamingMessage,
   MonitoringStats,
-  Property
+  Property,
+  SecurityAlert
 } from './types';
 
 // === WEBSOCKET INITIALIZATION - MODULE LEVEL (STRICTMODE IMMUNE) ===
@@ -101,6 +103,10 @@ const LiveMonitoringContainer: React.FC = () => {
   const [autoSwitchTimer, setAutoSwitchTimer] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   
+  // Alert management state
+  const [alerts, setAlerts] = useState<SecurityAlert[]>([]);
+  const [alertPanelVisible, setAlertPanelVisible] = useState(false);
+  
   // Refs
   const autoSwitchIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const cameraFeedsInitializedRef = useRef(false);
@@ -115,6 +121,108 @@ const LiveMonitoringContainer: React.FC = () => {
       case '12x12': return 144;
       default: return 36;
     }
+  }, []);
+
+  // Generate demo alerts for testing
+  const generateDemoAlerts = useCallback((cameras: CameraFeed[]) => {
+    const alertTypes: SecurityAlert['alert_type'][] = [
+      'unknown_person', 'suspicious_activity', 'weapon_detected', 
+      'perimeter_breach', 'loitering_detected', 'ai_detection', 'face_detection'
+    ];
+    
+    const severities: SecurityAlert['severity'][] = ['low', 'medium', 'high', 'critical'];
+    const statuses: SecurityAlert['status'][] = ['active', 'acknowledged', 'dismissed'];
+    
+    const demoAlerts: SecurityAlert[] = [];
+    const now = Date.now();
+    
+    // Generate 8-12 demo alerts
+    const numAlerts = Math.floor(Math.random() * 5) + 8;
+    
+    for (let i = 0; i < numAlerts; i++) {
+      const camera = cameras[Math.floor(Math.random() * Math.min(cameras.length, 6))];
+      const alertType = alertTypes[Math.floor(Math.random() * alertTypes.length)];
+      const severity = severities[Math.floor(Math.random() * severities.length)];
+      const status = i < 3 ? 'active' : statuses[Math.floor(Math.random() * statuses.length)];
+      
+      // Create timestamps from last 24 hours
+      const hoursAgo = Math.random() * 24;
+      const timestamp = new Date(now - (hoursAgo * 60 * 60 * 1000)).toISOString();
+      
+      const alert: SecurityAlert = {
+        alert_id: `demo_alert_${i}_${Date.now()}`,
+        timestamp,
+        alert_type: alertType,
+        severity,
+        camera_id: camera.camera_id,
+        camera_name: camera.name,
+        location: camera.location,
+        property_name: camera.property_name,
+        description: generateAlertDescription(alertType, severity, camera.name),
+        confidence: Math.random() * 0.3 + 0.7, // 70-100% confidence
+        status,
+        ...(status === 'acknowledged' && {
+          acknowledged_by: 'Demo User',
+          acknowledged_at: new Date(now - Math.random() * 3600000).toISOString()
+        })
+      };
+      
+      demoAlerts.push(alert);
+    }
+    
+    // Sort by timestamp (newest first)
+    demoAlerts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    setAlerts(demoAlerts);
+  }, []);
+  
+  // Generate alert descriptions
+  const generateAlertDescription = useCallback((type: SecurityAlert['alert_type'], severity: SecurityAlert['severity'], cameraName: string) => {
+    const descriptions = {
+      'unknown_person': [
+        `Unidentified individual detected at ${cameraName}`,
+        `Unknown person spotted in restricted area`,
+        `Unauthorized personnel detected`
+      ],
+      'suspicious_activity': [
+        `Suspicious behavior patterns observed`,
+        `Unusual movement detected at ${cameraName}`,
+        `Potential security concern identified`
+      ],
+      'weapon_detected': [
+        `Potential weapon identified at ${cameraName}`,
+        `Security threat: possible weapon detected`,
+        `Weapon detection alert - immediate attention required`
+      ],
+      'perimeter_breach': [
+        `Perimeter security breach detected`,
+        `Unauthorized access to restricted area`,
+        `Security boundary violation`
+      ],
+      'loitering_detected': [
+        `Extended loitering detected at ${cameraName}`,
+        `Individual remaining in area beyond normal time`,
+        `Potential loitering security concern`
+      ],
+      'ai_detection': [
+        `AI system detected anomaly at ${cameraName}`,
+        `Automated detection alert`,
+        `AI analysis flagged unusual activity`
+      ],
+      'face_detection': [
+        `Face recognition alert at ${cameraName}`,
+        `Known individual detected`,
+        `Person of interest identified`
+      ]
+    };
+    
+    const typeDescriptions = descriptions[type] || descriptions['suspicious_activity'];
+    const baseDescription = typeDescriptions[Math.floor(Math.random() * typeDescriptions.length)];
+    
+    const severityPrefix = severity === 'critical' ? 'CRITICAL: ' : 
+                          severity === 'high' ? 'HIGH PRIORITY: ' : '';
+    
+    return severityPrefix + baseDescription;
   }, []);
 
   // Initialize camera feeds function (SINGLE DECLARATION)
@@ -303,13 +411,38 @@ const LiveMonitoringContainer: React.FC = () => {
   });
 
   const handleAlertTriggered = useRef((data: any) => {
-    const { type, camera_id, severity } = data;
+    const { type, camera_id, severity, alert_data } = data;
     
+    // Create new SecurityAlert from WebSocket data
+    const newAlert: SecurityAlert = {
+      alert_id: `alert_${camera_id}_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      alert_type: type as SecurityAlert['alert_type'],
+      severity: severity as SecurityAlert['severity'],
+      camera_id: camera_id,
+      camera_name: alert_data?.camera_name || camera_id,
+      location: alert_data?.location || 'Unknown Location',
+      property_name: alert_data?.property_name || 'Unknown Property',
+      description: alert_data?.description || `${type.replace('_', ' ').toUpperCase()} detected`,
+      confidence: alert_data?.confidence || 0.85,
+      status: 'active',
+      metadata: alert_data
+    };
+    
+    // Add alert to state
+    setAlerts(prev => [newAlert, ...prev.slice(0, 99)]); // Keep last 100 alerts
+    
+    // Show toast notification
     toastRef.current({
-      title: `🚨 ${type.toUpperCase()} Alert`,
-      description: `Alert triggered on camera ${camera_id}`,
+      title: `🚨 ${type.replace('_', ' ').toUpperCase()} Alert`,
+      description: `Alert on ${newAlert.camera_name} - ${newAlert.location}`,
       variant: severity === 'high' || severity === 'critical' ? 'destructive' : 'default'
     });
+    
+    // Auto-show alert panel for critical alerts
+    if (severity === 'critical') {
+      setAlertPanelVisible(true);
+    }
   });
 
   // Initialize WebSocket message handlers - FIXED: Stable dependencies only
@@ -382,6 +515,9 @@ const LiveMonitoringContainer: React.FC = () => {
       }
       
       setCameraFeeds(demoFeeds);
+      
+      // Generate demo alerts for testing
+      generateDemoAlerts(demoFeeds);
       
       // Start streams for visible cameras
       demoFeeds.slice(0, gridSize).forEach(camera => {
@@ -545,6 +681,33 @@ const LiveMonitoringContainer: React.FC = () => {
     setSelectedCamera(camera_id);
   }, []);
 
+  // Alert management handlers
+  const handleAlertAcknowledge = useCallback((alertId: string) => {
+    setAlerts(prev => prev.map(alert => 
+      alert.alert_id === alertId 
+        ? { ...alert, status: 'acknowledged' as const, acknowledged_at: new Date().toISOString() }
+        : alert
+    ));
+    
+    // Send acknowledgment to backend if needed
+    websocket.emit('alert_acknowledge', { alert_id: alertId });
+  }, [websocket]);
+
+  const handleAlertDismiss = useCallback((alertId: string) => {
+    setAlerts(prev => prev.map(alert => 
+      alert.alert_id === alertId 
+        ? { ...alert, status: 'dismissed' as const }
+        : alert
+    ));
+    
+    // Send dismissal to backend if needed
+    websocket.emit('alert_dismiss', { alert_id: alertId });
+  }, [websocket]);
+
+  const handleToggleAlertPanel = useCallback(() => {
+    setAlertPanelVisible(prev => !prev);
+  }, []);
+
   return (
     <ThemeProvider theme={{}}>
       <GlobalStyle />
@@ -584,6 +747,18 @@ const LiveMonitoringContainer: React.FC = () => {
             selectedCamera={selectedCamera}
             onCameraSelect={handleCameraSelect}
             onQualityChange={handleQualityChange}
+          />
+          
+          <AlertPanel
+            alerts={alerts}
+            cameras={cameraFeeds}
+            properties={properties}
+            selectedCamera={selectedCamera}
+            onCameraSelect={handleCameraSelect}
+            onAlertAcknowledge={handleAlertAcknowledge}
+            onAlertDismiss={handleAlertDismiss}
+            isVisible={alertPanelVisible}
+            onToggleVisibility={handleToggleAlertPanel}
           />
         </MainContent>
 

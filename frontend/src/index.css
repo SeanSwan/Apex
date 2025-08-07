@@ -1,13 +1,16 @@
-/* APEX AI Security Platform - Global Styles */
-/* Master Prompt v29.1-APEX Implementation */
+/* APEX IQ SECURITY AI PLATFORM - Global Styles */
+/* Award-winning iridescent teal theme with holographic animations */
+/* Master Prompt v36.0-APEX Implementation */
 
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+@import './styles/holographicAnimations.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* CSS Variables for consistent theming */
+/* CSS Variables for APEX IQ holographic theming */
 :root {
+  /* Legacy colors for backwards compatibility */
   --color-gold: #D4AF37;
   --color-light-gold: #F4D160;
   --color-black: #000000;
@@ -15,6 +18,33 @@
   --color-silver: #C0C0C0;
   --color-light-silver: #E8E8E8;
   --color-white: #FFFFFF;
+  
+  /* NEW IRIDESCENT TEAL SYSTEM */
+  --color-teal: #14B8A6;
+  --color-teal-light: #2DD4BF;
+  --color-teal-dark: #0D9488;
+  --color-teal-glow: rgba(20, 184, 166, 0.6);
+  
+  /* HOLOGRAPHIC ACCENT COLORS */
+  --color-cyan: #00FFFF;
+  --color-purple: #8B5CF6;
+  --color-pink: #EC4899;
+  --color-neon-green: #10B981;
+  --color-electric-blue: #3B82F6;
+  
+  /* GLOW EFFECTS */
+  --glow-teal: 0 0 20px rgba(20, 184, 166, 0.5), 0 0 40px rgba(20, 184, 166, 0.3);
+  --glow-purple: 0 0 20px rgba(139, 92, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
+  --glow-pink: 0 0 20px rgba(236, 72, 153, 0.5), 0 0 40px rgba(236, 72, 153, 0.3);
+  --glow-rainbow: 0 0 30px rgba(20, 184, 166, 0.4), 0 0 60px rgba(139, 92, 246, 0.3), 0 0 90px rgba(236, 72, 153, 0.2);
+  
+  /* HOLOGRAPHIC GRADIENTS */
+  --gradient-holographic: linear-gradient(45deg, #14B8A6, #8B5CF6, #EC4899, #10B981, #3B82F6, #14B8A6);
+  --gradient-iridescent: linear-gradient(90deg, #00FFFF, #14B8A6, #8B5CF6, #EC4899, #10B981, #3B82F6);
+  --gradient-neon-teal: linear-gradient(135deg, #14B8A6, #06B6D4, #10F2C5);
+  --gradient-cyberpunk: linear-gradient(45deg, #14B8A6, #A855F7, #EC4899, #3B82F6);
+  
+  /* Gray scale for UI elements */
   --color-gray-900: #1a1a1a;
   --color-gray-800: #2a2a2a;
   --color-gray-700: #3a3a3a;
@@ -54,7 +84,7 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
+/* Enhanced holographic scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -64,12 +94,14 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-gold);
+  background: var(--gradient-neon-teal);
   border-radius: 4px;
+  box-shadow: 0 0 10px var(--color-teal-glow);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-light-gold);
+  background: var(--gradient-holographic);
+  box-shadow: var(--glow-rainbow);
 }
 
 /* App container styles */
@@ -92,7 +124,7 @@ html {
   font-family: 'Inter', sans-serif;
 }
 
-/* Gold text utility */
+/* Legacy gold text utilities */
 .text-gold {
   color: var(--color-gold);
 }
@@ -107,6 +139,31 @@ html {
 
 .text-light-silver {
   color: var(--color-light-silver);
+}
+
+/* NEW HOLOGRAPHIC TEXT UTILITIES */
+.text-teal {
+  color: var(--color-teal);
+  text-shadow: 0 0 10px var(--color-teal-glow);
+}
+
+.text-teal-light {
+  color: var(--color-teal-light);
+}
+
+.text-cyan {
+  color: var(--color-cyan);
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+}
+
+.text-purple {
+  color: var(--color-purple);
+  text-shadow: 0 0 8px rgba(139, 92, 246, 0.6);
+}
+
+.text-pink {
+  color: var(--color-pink);
+  text-shadow: 0 0 8px rgba(236, 72, 153, 0.6);
 }
 
 /* Background utilities */
@@ -159,7 +216,7 @@ html {
   animation: shimmer 2s infinite linear;
 }
 
-/* Button styles */
+/* Enhanced holographic button styles */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -172,8 +229,11 @@ html {
   cursor: pointer;
   border: none;
   outline: none;
+  position: relative;
+  overflow: hidden;
 }
 
+/* Legacy gold button */
 .btn-gold {
   background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-light-gold) 100%);
   color: var(--color-black);
@@ -186,24 +246,57 @@ html {
   background: linear-gradient(135deg, var(--color-light-gold) 0%, var(--color-gold) 100%);
 }
 
-.btn-outline-gold {
+/* NEW HOLOGRAPHIC BUTTONS */
+.btn-teal {
+  background: var(--gradient-neon-teal);
+  color: var(--color-white);
+  box-shadow: var(--glow-teal);
+  border: 1px solid var(--color-teal);
+}
+
+.btn-teal:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--glow-rainbow);
+  background: var(--gradient-holographic);
+  animation: neonPulse 1s ease-in-out;
+}
+
+.btn-holographic {
+  background: var(--gradient-holographic);
+  background-size: 200% 200%;
+  color: var(--color-white);
+  box-shadow: var(--glow-rainbow);
+  animation: iridescent 3s ease-in-out infinite;
+  border: 1px solid var(--color-teal);
+}
+
+.btn-holographic:hover {
+  transform: translateY(-4px) scale(1.05);
+  animation: holographicShift 1s ease-in-out, neonPulse 2s ease-in-out infinite;
+}
+
+.btn-outline-teal {
   background: transparent;
-  color: var(--color-gold);
-  border: 2px solid var(--color-gold);
+  color: var(--color-teal);
+  border: 2px solid var(--color-teal);
+  text-shadow: 0 0 8px var(--color-teal-glow);
 }
 
-.btn-outline-gold:hover {
-  background-color: var(--color-gold);
-  color: var(--color-black);
+.btn-outline-teal:hover {
+  background: var(--gradient-neon-teal);
+  color: var(--color-white);
+  box-shadow: var(--glow-teal);
+  text-shadow: none;
 }
 
-/* Card styles */
+/* Enhanced holographic card styles */
 .card {
   background: rgba(30, 30, 30, 0.95);
   border-radius: 1rem;
   padding: 1.5rem;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(212, 175, 55, 0.2);
+  transition: all 0.3s ease;
 }
 
 .card:hover {
@@ -211,14 +304,61 @@ html {
   box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
 }
 
-/* Focus styles for accessibility */
+/* NEW HOLOGRAPHIC CARDS */
+.card-holographic {
+  background: rgba(30, 30, 30, 0.95);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  backdrop-filter: blur(15px);
+  border: 1px solid var(--color-teal);
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-holographic::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient-holographic);
+  opacity: 0.05;
+  z-index: -1;
+  animation: iridescent 8s ease-in-out infinite;
+}
+
+.card-holographic:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: var(--color-cyan);
+  box-shadow: var(--glow-rainbow);
+}
+
+.card-holographic:hover::before {
+  opacity: 0.1;
+}
+
+.card-glass {
+  background: rgba(20, 184, 166, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(20, 184, 166, 0.3);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Enhanced focus styles for accessibility */
 button:focus,
 a:focus,
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 2px solid var(--color-gold);
+  outline: 2px solid var(--color-teal);
   outline-offset: 2px;
+  box-shadow: 0 0 15px var(--color-teal-glow);
 }
 
 /* Disabled styles */

@@ -1,20 +1,46 @@
-// APEX AI SECURITY PLATFORM - INTEGRATED HOMEPAGE
-// Combines original branding with new platform modules
-// Master Prompt v29.1-APEX Implementation
+// APEX IQ SECURITY AI PLATFORM - INTEGRATED HOMEPAGE
+// Award-winning iridescent teal theme with holographic animations
+// Master Prompt v36.0-APEX Implementation
 
 import React from 'react';
 import { motion } from 'framer-motion';
 import securityVideo from '../../assets/security.mp4';
+import '../../styles/holographicAnimations.css';
 
-// Color palette matching header component
+// AWARD-WINNING PROFESSIONAL CYBERPUNK COLOR PALETTE
 const colors = {
-  gold: '#D4AF37', // Primary color
-  lightGold: '#F4D160', // Lighter gold for hover effects
-  black: '#000000', // Secondary color
-  darkBlack: '#0A0A0A', // Slightly lighter black for contrast
-  silver: '#C0C0C0', // Tertiary color
-  lightSilver: '#E8E8E8', // Lighter silver for hover effects
-  white: '#FFFFFF', // For text and contrast
+  // REFINED PRIMARY SYSTEM - More professional, less "rainbow"
+  primary: '#14B8A6',        // Main teal - professional
+  primaryLight: '#2DD4BF',   // Light teal accent
+  primaryDark: '#0D9488',    // Dark teal for depth
+  
+  // SOPHISTICATED ACCENT SYSTEM
+  accent: '#8B5CF6',         // Professional purple
+  accentSecondary: '#EC4899', // Refined pink - less intense
+  success: '#10B981',        // Professional green
+  warning: '#F59E0B',        // Professional amber
+  
+  // NEUTRAL PROFESSIONAL TONES
+  white: '#FFFFFF',
+  black: '#000000',
+  darkBg: '#0A0A0A',
+  cardBg: 'rgba(0, 0, 0, 0.95)', // Back to black as requested
+  
+  // SUBTLE GLOW EFFECTS - Much more refined
+  primaryGlow: 'rgba(20, 184, 166, 0.3)', // Reduced intensity
+  accentGlow: 'rgba(139, 92, 246, 0.25)', // More subtle
+  textGlow: 'rgba(20, 184, 166, 0.4)',   // Refined text glow
+  
+  // PROFESSIONAL GRAYS
+  gray100: '#F8FAFC',
+  gray200: '#E2E8F0',
+  gray300: '#CBD5E1',
+  gray400: '#94A3B8',
+  gray500: '#64748B',
+  gray600: '#475569',
+  gray700: '#334155',
+  gray800: '#1E293B',
+  gray900: '#0F172A',
 };
 
 // Module Card Component with enhanced styling
@@ -23,11 +49,21 @@ function ModuleCard(props) {
   
   function getPriorityColor() {
     switch(priority) {
-      case 'ready': return '#22C55E';
-      case 'high': return '#EF4444';
-      case 'medium': return '#F59E0B';
-      case 'future': return '#6B7280';
-      default: return '#3B82F6';
+      case 'ready': return colors.success;
+      case 'high': return colors.primary;
+      case 'medium': return colors.accent;
+      case 'future': return colors.gray500;
+      default: return colors.primary;
+    }
+  }
+  
+  function getPriorityGlow() {
+    switch(priority) {
+      case 'ready': return `0 0 15px rgba(16, 185, 129, 0.2), 0 0 30px rgba(16, 185, 129, 0.1)`;
+      case 'high': return `0 0 15px ${colors.primaryGlow}`;
+      case 'medium': return `0 0 15px ${colors.accentGlow}`;
+      case 'future': return 'none';
+      default: return `0 0 15px ${colors.primaryGlow}`;
     }
   }
 
@@ -42,11 +78,19 @@ function ModuleCard(props) {
   function handleMouseEnter(e) {
     if (isClickable) {
       e.currentTarget.style.transform = 'translateY(-4px)';
-      e.currentTarget.style.boxShadow = `0 8px 25px rgba(${
-        priority === 'ready' ? '34, 197, 94' :
-        priority === 'high' ? '239, 68, 68' :
-        priority === 'medium' ? '245, 158, 11' : '59, 130, 246'
-      }, 0.3)`;
+      e.currentTarget.style.boxShadow = getPriorityGlow();
+      e.currentTarget.style.borderColor = getPriorityColor();
+      
+      // Subtle professional glow effect
+      if (priority !== 'future') {
+        e.currentTarget.style.background = `
+          linear-gradient(135deg, 
+            ${colors.cardBg} 0%, 
+            rgba(20, 184, 166, 0.02) 50%,
+            ${colors.cardBg} 100%
+          )
+        `;
+      }
     }
   }
 
@@ -54,6 +98,8 @@ function ModuleCard(props) {
     if (isClickable) {
       e.currentTarget.style.transform = 'translateY(0)';
       e.currentTarget.style.boxShadow = 'none';
+      e.currentTarget.style.background = colors.cardBg;
+      e.currentTarget.style.borderColor = getPriorityColor();
     }
   }
 
@@ -63,14 +109,16 @@ function ModuleCard(props) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.1 }}
       style={{
-        background: 'rgba(30, 30, 30, 0.95)',
+        background: colors.cardBg,
         border: `1px solid ${getPriorityColor()}`,
         borderRadius: '16px',
         padding: '2rem',
         cursor: isClickable ? 'pointer' : 'default',
-        transition: 'all 0.3s ease',
-        opacity: priority === 'future' ? 0.8 : 1,
-        backdropFilter: 'blur(10px)',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        opacity: priority === 'future' ? 0.7 : 1,
+        backdropFilter: 'blur(20px)',
+        position: 'relative',
+        overflow: 'hidden',
       }}
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
@@ -80,9 +128,10 @@ function ModuleCard(props) {
         <h3 style={{ 
           margin: '0 0 0.5rem 0', 
           fontSize: '1.3rem', 
-          color: colors.gold,
+          color: isClickable ? colors.primary : colors.gray500,
           fontWeight: '600',
-          fontFamily: 'Orbitron, sans-serif'
+          fontFamily: 'Orbitron, sans-serif',
+          textShadow: isClickable ? `0 0 8px ${colors.textGlow}` : 'none',
         }}>
           {title}
         </h3>
@@ -98,7 +147,7 @@ function ModuleCard(props) {
       </div>
       
       <p style={{ 
-        color: colors.lightSilver, 
+        color: colors.gray300, 
         lineHeight: '1.5', 
         marginBottom: '1.5rem',
         fontSize: '0.95rem'
@@ -110,7 +159,7 @@ function ModuleCard(props) {
         listStyle: 'none', 
         padding: 0, 
         margin: 0,
-        color: colors.silver,
+        color: colors.gray400,
         fontSize: '0.9rem'
       }}>
         {features.map((feature, index) => (
@@ -130,12 +179,12 @@ function ModuleCard(props) {
         <div style={{
           marginTop: '1rem',
           padding: '0.75rem',
-          background: 'rgba(107, 114, 128, 0.2)',
+          background: 'rgba(71, 85, 105, 0.15)',
           borderRadius: '8px',
-          border: '1px solid rgba(107, 114, 128, 0.3)',
+          border: '1px solid rgba(100, 116, 139, 0.2)',
           textAlign: 'center',
           fontSize: '0.8rem',
-          color: '#9CA3AF'
+          color: colors.gray500
         }}>
           Coming in Phase 3
         </div>
@@ -163,7 +212,7 @@ export default function IntegratedHomePage() {
         Your browser does not support the video tag.
       </video>
 
-      {/* Enhanced Gradient Overlay for better text readability */}
+      {/* Professional Gradient Overlay */}
       <div 
         className="absolute top-0 left-0 w-full h-full z-5"
         style={{
@@ -171,9 +220,11 @@ export default function IntegratedHomePage() {
             linear-gradient(
               135deg, 
               rgba(0, 0, 0, 0.85) 0%, 
+              rgba(15, 23, 42, 0.02) 15%,
               rgba(0, 0, 0, 0.75) 25%,
-              rgba(10, 10, 10, 0.8) 50%,
+              rgba(20, 184, 166, 0.01) 50%,
               rgba(0, 0, 0, 0.75) 75%,
+              rgba(15, 23, 42, 0.02) 85%,
               rgba(0, 0, 0, 0.85) 100%
             )
           `
@@ -203,19 +254,44 @@ export default function IntegratedHomePage() {
               animate={{ scale: 1, rotate: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               style={{
-                width: '64px',
-                height: '64px',
-                background: `linear-gradient(135deg, ${colors.gold} 0%, ${colors.lightGold} 100%)`,
-                borderRadius: '16px',
+                width: '72px',
+                height: '72px',
+                borderRadius: '18px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '32px',
                 fontWeight: 'bold',
-                color: colors.black,
-                boxShadow: `0 8px 25px rgba(212, 175, 55, 0.4)`
+                color: colors.white,
+                background: `
+                  linear-gradient(135deg, 
+                    ${colors.primary} 0%, 
+                    ${colors.primaryLight} 50%, 
+                    ${colors.accent} 100%
+                  )
+                `,
+                boxShadow: `
+                  0 0 20px ${colors.primaryGlow},
+                  0 8px 32px rgba(0, 0, 0, 0.4),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.1)
+                `,
+                border: `1px solid rgba(255, 255, 255, 0.1)`,
+                backdropFilter: 'blur(10px)',
+                position: 'relative',
+                overflow: 'hidden'
               }}
             >
+              {/* Subtle animated accent */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: `linear-gradient(45deg, transparent, ${colors.primaryGlow}, transparent)`,
+                animation: 'shimmer 3s ease-in-out infinite',
+                borderRadius: '18px'
+              }} />
               🛡️
             </motion.div>
             <div>
@@ -225,15 +301,34 @@ export default function IntegratedHomePage() {
                 transition={{ duration: 0.8, delay: 0.3 }}
                 style={{ 
                   margin: 0, 
-                  fontSize: '3rem', 
+                  fontSize: '3.2rem', 
                   fontWeight: '700', 
-                  color: colors.gold,
                   fontFamily: 'Orbitron, sans-serif',
-                  textShadow: `2px 2px 4px rgba(0, 0, 0, 0.8)`,
-                  lineHeight: '1.1'
+                  lineHeight: '1.1',
+                  // ELEGANT SILVER CHROME - More refined and less boxy
+                  background: `linear-gradient(180deg, 
+                    #E8E8E8 0%, 
+                    #F5F5F5 25%, 
+                    #FFFFFF 50%, 
+                    #D3D3D3 75%, 
+                    #A9A9A9 100%
+                  )`,
+                  WebkitBackgroundClip: 'text',
+                  backgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  // Refined chrome text shadows - less harsh
+                  textShadow: `
+                    0 1px 0 rgba(255, 255, 255, 0.4),
+                    0 -1px 0 rgba(0, 0, 0, 0.2),
+                    0 0 15px rgba(192, 192, 192, 0.3)
+                  `,
+                  // Fallback for browsers without gradient text support
+                  color: '#C0C0C0',
+                  // Remove the drop-shadow that was making it boxy
+                  filter: 'none'
                 }}
               >
-                APEX AI Security Platform
+                APEX IQ SECURITY AI PLATFORM
               </motion.h1>
               <motion.div
                 initial={{ x: 50, opacity: 0 }}
@@ -241,11 +336,14 @@ export default function IntegratedHomePage() {
                 transition={{ duration: 0.8, delay: 0.4 }}
                 style={{
                   fontSize: '1rem',
-                  color: colors.silver,
+                  color: colors.primaryLight,
                   marginTop: '0.5rem',
                   fontFamily: 'Orbitron, sans-serif',
                   letterSpacing: '2px',
-                  textTransform: 'uppercase'
+                  textTransform: 'uppercase',
+                  textShadow: `0 0 8px ${colors.primaryGlow}`,
+                  fontWeight: '400',
+                  opacity: 0.9
                 }}
               >
                 Defense International
@@ -259,11 +357,12 @@ export default function IntegratedHomePage() {
             transition={{ duration: 0.8, delay: 0.5 }}
             style={{ 
               fontSize: '1.3rem', 
-              color: colors.lightSilver, 
+              color: colors.gray200, 
               margin: 0,
-              maxWidth: '700px',
+              maxWidth: '750px',
               textShadow: `1px 1px 2px rgba(0, 0, 0, 0.8)`,
-              lineHeight: '1.4'
+              lineHeight: '1.4',
+              fontWeight: '400'
             }}
           >
             AI-Powered Security Operations & Guard Management System
@@ -275,10 +374,12 @@ export default function IntegratedHomePage() {
             transition={{ duration: 0.8, delay: 0.6 }}
             style={{ 
               fontSize: '1rem', 
-              color: colors.silver, 
+              color: colors.gray400, 
               margin: '1rem 0 0 0',
-              maxWidth: '600px',
-              textShadow: `1px 1px 2px rgba(0, 0, 0, 0.8)`
+              maxWidth: '650px',
+              textShadow: `1px 1px 2px rgba(0, 0, 0, 0.8)`,
+              fontWeight: '400',
+              letterSpacing: '0.3px'
             }}
           >
             Transforming Security Operations with AI-Augmented Guard Services
@@ -361,23 +462,52 @@ export default function IntegratedHomePage() {
           />
         </motion.div>
 
-        {/* Footer */}
+        {/* Professional Footer */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 1 }}
           style={{ 
-            marginTop: '2rem', 
+            marginTop: '3rem', 
             textAlign: 'center', 
-            color: colors.silver,
             fontSize: '0.9rem',
             textShadow: `1px 1px 2px rgba(0, 0, 0, 0.8)`
           }}
         >
-          <p style={{ margin: '0.5rem 0' }}>Master Prompt v29.1-APEX Implementation</p>
-          <p style={{ margin: '0.5rem 0', color: colors.gold }}>
-            Revolutionizing Security Operations with Cutting-Edge AI Technology
+          <p style={{ 
+            margin: '0.5rem 0',
+            color: colors.gray400,
+            fontFamily: 'Inter, sans-serif',
+            letterSpacing: '0.5px',
+            fontSize: '0.85rem'
+          }}>
+            Master Prompt v36.0-APEX Implementation
           </p>
+          <motion.p 
+            style={{ 
+              margin: '0.5rem 0', 
+              fontSize: '1rem',
+              fontWeight: '500',
+              color: colors.primary,
+              textShadow: `0 0 6px ${colors.textGlow}`,
+              fontFamily: 'Inter, sans-serif'
+            }}
+          >
+            Revolutionizing Security Operations with Cutting-Edge AI Technology
+          </motion.p>
+          
+          {/* Professional Accent Line */}
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: '150px', opacity: 0.4 }}
+            transition={{ duration: 1.2, delay: 1.5 }}
+            style={{
+              height: '1px',
+              margin: '1rem auto',
+              background: `linear-gradient(90deg, transparent, ${colors.primary}, transparent)`,
+              borderRadius: '1px'
+            }}
+          />
         </motion.div>
       </div>
     </div>

@@ -4,17 +4,15 @@
 
 import { Server } from 'socket.io';
 import http from 'http';
-import WebSocket from 'ws';
 
 // Create a singleton pattern for Socket.io
 class SocketService {
   static instance;
   io = null;
-  aiEngineWS = null;
+  aiEngineSocket = null;
   isConnectedToAI = false;
-  aiEnginePort = 8765;
-  reconnectInterval = 5000; // 5 seconds
   messageQueue = [];
+  connectedClients = new Map(); // Track client types
 
   constructor() {
     // Private constructor to enforce singleton
@@ -42,28 +40,27 @@ class SocketService {
     });
 
     this.io.on('connection', (socket) => {
-      console.log('🔌 Frontend client connected:', socket.id);
+      console.log('🔌 New client connected:', socket.id);
       
-      // Send current AI engine status
+      // Wait for client to identify itself
+      socket.on('client_identification', (data) => {
+        this.handleClientIdentification(socket, data);
+      });
+      
+      // Send current AI engine status to frontend clients
       socket.emit('ai_engine_status', {
         connected: this.isConnectedToAI,
         timestamp: new Date().toISOString()
       });
       
-      // Handle frontend to AI engine commands
-      this.setupFrontendHandlers(socket);
-      
       socket.on('disconnect', () => {
-        console.log('🔌 Frontend client disconnected:', socket.id);
+        this.handleClientDisconnect(socket);
       });
       
       socket.on('error', (error) => {
         console.error('❌ Socket error:', error);
       });
     });
-
-    // Initialize connection to AI engine
-    this.connectToAIEngine();
 
     console.log('✅ Socket.io initialized with Sprint 4 integration');
     return this.io;
@@ -85,39 +82,87 @@ class SocketService {
     this.io.emit(event, data);
   }
 
-  // SPRINT 4: AI Engine Connection Management
-  connectToAIEngine() {
-    const wsUrl = `ws://localhost:${this.aiEnginePort}`;
-    console.log(`🤖 Attempting to connect to AI Engine at ${wsUrl}...`);
-
-    try {
-      this.aiEngineWS = new WebSocket(wsUrl);
-
-      this.aiEngineWS.on('open', () => {
-        console.log('✅ Connected to AI Engine successfully');
-        this.isConnectedToAI = true;
-        
-        // Notify all frontend clients
-        this.io.emit('ai_engine_status', {
-          connected: true,
-          timestamp: new Date().toISOString()
-        });
-
-        // Send any queued messages
-        this.flushMessageQueue();
-      });
-
-      this.aiEngineWS.on('message', (data) => {
-        try {
-          const message = JSON.parse(data.toString());
-          this.handleAIEngineMessage(message);
-        } catch (error) {
-          console.error('❌ Error parsing AI engine message:', error);
-        }
-      });
-
-      this.aiEngineWS.on('close', () => {
-        console.log('⚠️ Connection to AI Engine closed');
+  // Handle client identification (AI Engine vs Frontend)
+  handleClientIdentification(socket, data) {
+    const { client_type, client_info } = data;
+    
+    console.log(`🏷️ Client identified as: ${client_type}`);
+    
+    this.connectedClients.set(socket.id, { 
+      type: client_type, 
+      info: client_info,
+      socket: socket 
+    });
+    
+    if (client_type === 'ai_engine') {
+      this.handleAIEngineConnection(socket, client_info);
+    } else if (client_type === 'frontend') {
+      this.handleFrontendConnection(socket, client_info);
+    }
+  }
+  
+  // Handle AI Engine connection
+  handleAIEngineConnection(socket, info) {
+    console.log('🤖 AI Engine connected successfully!');
+    this.aiEngineSocket = socket;
+    this.isConnectedToAI = true;
+    
+    // Setup AI Engine message handlers
+    socket.on('ai_detection_result', (data) => {
+      this.handleAIEngineMessage({ type: 'ai_detection_result', data });
+    });
+    
+    socket.on('visual_alert', (data) => {
+      this.handleAIEngineMessage({ type: 'visual_alert', data });
+    });
+    
+    socket.on('audio_alert', (data) => {
+      this.handleAIEngineMessage({ type: 'audio_alert', data });
+    });
+    
+    socket.on('threat_alert', (data) => {
+      this.handleAIEngineMessage({ type: 'threat_alert', data });
+    });
+    
+    socket.on('ai_status_update', (data) => {
+      this.handleAIEngineMessage({ type: 'status', data });
+    });
+    
+    socket.on('face_detection', (data) => {
+      this.handleAIEngineMessage({ type: 'face_detection', data });
+    });
+    
+    socket.on('object_detection', (data) => {
+      this.handleAIEngineMessage({ type: 'object_detection', data });
+    });
+    
+    // Notify all frontend clients
+    this.io.emit('ai_engine_status', {
+      connected: true,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Send any queued messages
+    this.flushMessageQueue();
+  }
+  
+  // Handle Frontend connection
+  handleFrontendConnection(socket, info) {
+    console.log('📱 Frontend client connected');
+    
+    // Setup frontend handlers
+    this.setupFrontendHandlers(socket);
+  }
+  
+  // Handle client disconnection
+  handleClientDisconnect(socket) {
+    const clientInfo = this.connectedClients.get(socket.id);
+    
+    if (clientInfo) {
+      console.log(`🔌 ${clientInfo.type} client disconnected:`, socket.id);
+      
+      if (clientInfo.type === 'ai_engine') {
+        this.aiEngineSocket = null;
         this.isConnectedToAI = false;
         
         // Notify frontend clients
@@ -125,32 +170,15 @@ class SocketService {
           connected: false,
           timestamp: new Date().toISOString()
         });
-
-        // Attempt to reconnect
-        setTimeout(() => {
-          this.connectToAIEngine();
-        }, this.reconnectInterval);
-      });
-
-      this.aiEngineWS.on('error', (error) => {
-        console.error('❌ AI Engine WebSocket error:', error.message);
-        this.isConnectedToAI = false;
-        
-        // Attempt to reconnect
-        setTimeout(() => {
-          this.connectToAIEngine();
-        }, this.reconnectInterval);
-      });
-
-    } catch (error) {
-      console.error('❌ Failed to create AI Engine WebSocket:', error);
+      }
       
-      // Retry connection
-      setTimeout(() => {
-        this.connectToAIEngine();
-      }, this.reconnectInterval);
+      this.connectedClients.delete(socket.id);
+    } else {
+      console.log('🔌 Unknown client disconnected:', socket.id);
     }
   }
+
+
 
   // SPRINT 4: Handle messages from AI Engine and relay to frontend
   handleAIEngineMessage(message) {
@@ -354,9 +382,9 @@ class SocketService {
       data
     };
 
-    if (this.isConnectedToAI && this.aiEngineWS && this.aiEngineWS.readyState === WebSocket.OPEN) {
+    if (this.isConnectedToAI && this.aiEngineSocket) {
       try {
-        this.aiEngineWS.send(JSON.stringify(message));
+        this.aiEngineSocket.emit(command, data);
         console.log(`📤 Sent to AI Engine: ${command}`);
       } catch (error) {
         console.error(`❌ Error sending to AI Engine: ${error.message}`);
@@ -377,7 +405,7 @@ class SocketService {
       while (this.messageQueue.length > 0) {
         const message = this.messageQueue.shift();
         try {
-          this.aiEngineWS.send(JSON.stringify(message));
+          this.aiEngineSocket.emit(message.command, message.data);
         } catch (error) {
           console.error(`❌ Error flushing message: ${error.message}`);
           // Put message back at front of queue

@@ -10,6 +10,7 @@ import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import LiveAIMonitor from './components/LiveAIMonitor/LiveAIMonitor';
 import AIAlertLog from './components/AIAlertLog/AIAlertLog';
 import CTOAIConsole from './components/CTOAIConsole/CTOAIConsole';
+import GeofenceManager from './components/RulesConfiguration/GeofenceManager';
 import StatusBar from './components/StatusBar/StatusBar';
 
 // Theme for the application
@@ -170,6 +171,12 @@ function App() {
       label: 'AI Alert Log',
       icon: '🚨',
       component: AIAlertLog
+    },
+    {
+      id: 'rules-config',
+      label: 'Rules Configuration',
+      icon: '🛡️',
+      component: GeofenceManager
     },
     {
       id: 'cto-console',

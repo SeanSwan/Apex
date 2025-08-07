@@ -11,6 +11,7 @@
  * - Alert history and statistics
  * - Performance monitoring and optimization
  * - Multi-zone alert handling
+ * - Face detection alert integration (Phase 1 Enhancement)
  * 
  * Priority: P1 HIGH - Central alert coordination system
  */
@@ -18,6 +19,9 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import BlinkingBorderOverlay, { useVisualAlerts, ThreatColors, PatternTypes } from './BlinkingBorderOverlay';
+
+// PHASE 1: Import face detection components
+import PersonTypeIndicator from '../FaceDetection/PersonTypeIndicator';
 
 // Styled components
 const AlertManagerContainer = styled.div`
@@ -279,6 +283,17 @@ const AlertManager = ({
   const [visualEnabled, setVisualEnabled] = useState(enableVisualAlerts);
   const [controlPanelVisible, setControlPanelVisible] = useState(false);
   const [alertHistory, setAlertHistory] = useState([]);
+  
+  // PHASE 1: Face Detection alert state
+  const [faceAlerts, setFaceAlerts] = useState([]);
+  const [faceDetectionEnabled, setFaceDetectionEnabled] = useState(true);
+  const [faceAlertStats, setFaceAlertStats] = useState({
+    totalFaceAlerts: 0,
+    knownPersons: 0,
+    unknownPersons: 0,
+    blacklistAlerts: 0,
+    vipAlerts: 0
+  });
   
   // Refs
   const websocketRef = useRef(null);

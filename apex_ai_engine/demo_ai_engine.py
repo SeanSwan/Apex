@@ -1,14 +1,23 @@
 """
-APEX AI ENGINE - INTEGRATED DEMO SCRIPT
-=======================================
-Complete AI processing engine with enhanced WebSocket communication
-Integrates YOLOv8 detection, face recognition, and real-time streaming
+APEX AI ENGINE - INTEGRATED DEMO SCRIPT (LEGACY VERSION)
+========================================================
+⚠️  IMPORTANT: This is the legacy demo script with simulated video processing.
+⬆️  For REAL VIDEO PROCESSING use: enhanced_ai_engine_with_video.py
 
-This script demonstrates the full AI pipeline for the July 28th demo:
+The enhanced version includes:
+✅ Real-time screen capture from DVR monitors
+✅ RTSP stream processing for direct camera feeds
+✅ Actual AI threat detection on real video frames
+✅ Automatic failover between video sources
+✅ Performance monitoring and optimization
+
+This legacy script demonstrates:
 - Enhanced WebSocket communication with backend
-- Real-time AI detection processing
-- Face recognition alerts
+- Simulated AI detection processing
+- Face recognition alerts (demo data)
 - Robust error handling and reconnection
+
+For the July 28th demo, use: enhanced_ai_engine_with_video.py
 """
 
 import asyncio
@@ -34,7 +43,7 @@ try:
     FACE_RECOGNITION_AVAILABLE = True
 except ImportError:
     FACE_RECOGNITION_AVAILABLE = False
-    print("⚠️ Face recognition not available. Install with: pip install face_recognition")
+    print("⚠️ Face recognition not available (using simulated mode for Python 3.13 compatibility)")
 
 # Configure logging
 logging.basicConfig(
@@ -49,9 +58,9 @@ class ApexAIDemoEngine:
     """
     
     def __init__(self):
-        # Enhanced WebSocket client
+        # Enhanced WebSocket client - Connect to Socket.io backend
         self.websocket_client = EnhancedWebSocketClient(
-            server_url="ws://localhost:5000",
+            server_url="http://localhost:5000",  # HTTP for Socket.io connection
             auth_token="apex_ai_engine_2024"
         )
         

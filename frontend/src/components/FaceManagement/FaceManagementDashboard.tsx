@@ -39,15 +39,16 @@ const DashboardContainer = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, ${props => props.theme.colors.black} 0%, ${props => props.theme.colors.gray[900]} 100%);
+  color: ${props => props.theme.colors.white};
+  font-family: ${props => props.theme.typography.fontFamily.primary};
 `;
 
 const Header = styled.div`
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.3);
   padding: 1rem 2rem;
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid ${props => props.theme.colors.gold[500]}40;
   
   display: flex;
   justify-content: space-between;
@@ -61,9 +62,10 @@ const Title = styled.h1`
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
   
   svg {
-    color: #4ade80;
+    color: ${props => props.theme.colors.gold[500]};
   }
 `;
 
@@ -74,9 +76,9 @@ const HeaderActions = styled.div`
 `;
 
 const ActionButton = styled.button`
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid ${props => props.theme.colors.gold[500]}40;
+  color: ${props => props.theme.colors.white};
   padding: 0.75rem 1rem;
   border-radius: 8px;
   cursor: pointer;
@@ -85,24 +87,27 @@ const ActionButton = styled.button`
   align-items: center;
   gap: 0.5rem;
   font-weight: 500;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
   
   &:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.3);
+    border-color: ${props => props.theme.colors.gold[500]};
     transform: translateY(-1px);
   }
   
   &.primary {
-    background: #4ade80;
-    border-color: #4ade80;
+    background: ${props => props.theme.colors.gold[500]};
+    border-color: ${props => props.theme.colors.gold[500]};
+    color: ${props => props.theme.colors.black};
     
     &:hover {
-      background: #22c55e;
+      background: ${props => props.theme.colors.gold[400]};
     }
   }
   
   &.danger {
-    background: #ef4444;
-    border-color: #ef4444;
+    background: ${props => props.theme.colors.destructive.DEFAULT};
+    border-color: ${props => props.theme.colors.destructive.DEFAULT};
     
     &:hover {
       background: #dc2626;
@@ -111,19 +116,21 @@ const ActionButton = styled.button`
 `;
 
 const StatsBar = styled.div`
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.2);
   padding: 1rem 2rem;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid ${props => props.theme.colors.gold[500]}40;
 `;
 
 const StatCard = styled.div`
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
   padding: 1rem;
   border-radius: 8px;
   backdrop-filter: blur(10px);
+  border: 1px solid ${props => props.theme.colors.gold[500]}20;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
   
   .stat-header {
     display: flex;
@@ -142,6 +149,7 @@ const StatCard = styled.div`
     font-size: 1.5rem;
     font-weight: 600;
     margin: 0;
+    color: ${props => props.theme.colors.gold[400]};
   }
   
   .stat-change {
@@ -149,11 +157,11 @@ const StatCard = styled.div`
     margin-top: 0.25rem;
     
     &.positive {
-      color: #4ade80;
+      color: ${props => props.theme.colors.gold[500]};
     }
     
     &.negative {
-      color: #f87171;
+      color: ${props => props.theme.colors.destructive.DEFAULT};
     }
   }
 `;
@@ -181,16 +189,17 @@ const Tab = styled.button`
   align-items: center;
   gap: 0.5rem;
   font-weight: 500;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
   
   &:hover {
-    color: white;
-    background: rgba(255, 255, 255, 0.05);
+    color: ${props => props.theme.colors.white};
+    background: rgba(0, 0, 0, 0.1);
   }
   
   &.active {
-    color: white;
-    border-bottom-color: #4ade80;
-    background: rgba(255, 255, 255, 0.1);
+    color: ${props => props.theme.colors.white};
+    border-bottom-color: ${props => props.theme.colors.gold[500]};
+    background: rgba(0, 0, 0, 0.2);
   }
 `;
 
@@ -213,10 +222,11 @@ const AlertBanner = styled.div`
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid ${props => props.theme.colors.gold[500]}40;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
   
   .alert-icon {
-    color: white;
+    color: ${props => props.theme.colors.white};
   }
   
   .alert-text {
@@ -225,16 +235,17 @@ const AlertBanner = styled.div`
   }
   
   .alert-action {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid ${props => props.theme.colors.gold[500]}40;
+    color: ${props => props.theme.colors.white};
     padding: 0.5rem 1rem;
     border-radius: 4px;
     cursor: pointer;
     font-weight: 500;
     
     &:hover {
-      background: rgba(255, 255, 255, 0.3);
+      background: rgba(0, 0, 0, 0.3);
+      border-color: ${props => props.theme.colors.gold[500]};
     }
   }
 `;
@@ -433,7 +444,7 @@ const FaceManagementDashboard: React.FC<FaceManagementDashboardProps> = ({ class
             <Eye size={20} style={{ opacity: 0.7 }} />
           </div>
           <p className="stat-value" style={{ 
-            color: stats.systemStatus === 'online' ? '#4ade80' : '#f87171' 
+            color: stats.systemStatus === 'online' ? props => props.theme ? props.theme.colors.gold[500] : '#FFD700' : props => props.theme ? props.theme.colors.destructive.DEFAULT : '#ef4444'
           }}>
             {stats.systemStatus.toUpperCase()}
           </p>

@@ -29,8 +29,14 @@ import aiServicesRoutes from './ai/aiServicesRoutes.mjs';
 import aiRoutingRoutes from './ai/routingRoutes.mjs';
 import aiNotificationRoutes from './ai/notificationRoutes.mjs';
 
+// Import Voice AI Dispatcher - MASTER PROMPT v49.0
+import voiceRoutes from './ai/voiceRoutes.mjs';
+
 // Import Face Recognition API
 import faceManagementRoutes from './face_management_api.mjs';
+
+// Import Rules Configuration API
+import rulesConfigurationRoutes from './rulesConfiguration.mjs';
 
 const router = Router();
 
@@ -73,10 +79,19 @@ router.use('/cameras', aiCameraRoutes);
 // Features: TTS, executive briefings, AI model management
 router.use('/ai', aiServicesRoutes);
 
+// Voice AI Dispatcher - MASTER PROMPT v49.0 P0 FEATURE
+// Features: Inbound call handling, voice transcription, incident creation,
+// autonomous action protocols, human takeover, emergency services dispatch
+router.use('/voice', voiceRoutes);
+
 // Face Recognition & Management
 // Features: Face enrollment, detection tracking, analytics
 router.use('/faces', faceManagementRoutes);
 router.use('/face', faceManagementRoutes); // Alternative path for enrollment
+
+// Rules Configuration & Geofencing Management
+// Features: Interactive zone creation, dynamic rules engine, real-time configuration
+router.use('/rules-config', rulesConfigurationRoutes);
 
 // Route Optimization & GPS
 // Features: Real-time routing, ETA calculation, emergency routes
@@ -109,7 +124,16 @@ router.get('/health', (req, res) => {
       security_logging: true,
       face_recognition: true,
       face_enrollment: true,
-      face_analytics: true
+      face_analytics: true,
+      rules_configuration: true,
+      dynamic_geofencing: true,
+      interactive_zones: true,
+      voice_ai_dispatcher: true,
+      telephony_integration: true,
+      speech_recognition: true,
+      voice_synthesis: true,
+      autonomous_response: true,
+      emergency_dispatch: true
     },
     message: 'APEX AI Security Platform - Proactive Intelligence Active'
   });
@@ -125,7 +149,11 @@ router.get('/status', async (req, res) => {
       websockets: 'connected',
       camera_systems: 'monitoring',
       guard_network: 'active',
-      notification_service: 'operational'
+      notification_service: 'operational',
+      voice_ai_dispatcher: 'ready',
+      twilio_telephony: 'connected',
+      speech_services: 'active',
+      llm_engine: 'operational'
     };
 
     res.json({

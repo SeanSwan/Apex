@@ -1,0 +1,244 @@
+/* APEX IQ SECURITY AI PLATFORM - HOLOGRAPHIC ANIMATIONS
+   Award-winning iridescent teal theme with cyberpunk aesthetics */
+
+/* PROFESSIONAL SUBTLE SHIFT ANIMATION - Much more refined */
+@keyframes subtleShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* PROFESSIONAL SHIMMER EFFECT */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* HOLOGRAPHIC SHIFT ANIMATION - Creates shifting rainbow effect */
+@keyframes holographicShift {
+  0% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg);
+  }
+  25% {
+    background-position: 100% 50%;
+    filter: hue-rotate(90deg);
+  }
+  50% {
+    background-position: 100% 0%;
+    filter: hue-rotate(180deg);
+  }
+  75% {
+    background-position: 0% 0%;
+    filter: hue-rotate(270deg);
+  }
+  100% {
+    background-position: 0% 50%;
+    filter: hue-rotate(360deg);
+  }
+}
+
+/* NEON PULSE ANIMATION - Creates pulsing glow effect */
+@keyframes neonPulse {
+  0% {
+    text-shadow: 
+      0 0 5px rgba(20, 184, 166, 0.8),
+      0 0 10px rgba(20, 184, 166, 0.6),
+      0 0 15px rgba(20, 184, 166, 0.4),
+      0 0 20px rgba(20, 184, 166, 0.3),
+      0 0 35px rgba(20, 184, 166, 0.2);
+    box-shadow: 
+      0 0 10px rgba(20, 184, 166, 0.4),
+      0 0 20px rgba(20, 184, 166, 0.3),
+      0 0 30px rgba(20, 184, 166, 0.2);
+  }
+  100% {
+    text-shadow: 
+      0 0 10px rgba(20, 184, 166, 1),
+      0 0 20px rgba(20, 184, 166, 0.8),
+      0 0 30px rgba(20, 184, 166, 0.6),
+      0 0 40px rgba(20, 184, 166, 0.4),
+      0 0 70px rgba(20, 184, 166, 0.3);
+    box-shadow: 
+      0 0 20px rgba(20, 184, 166, 0.6),
+      0 0 40px rgba(20, 184, 166, 0.4),
+      0 0 60px rgba(20, 184, 166, 0.3);
+  }
+}
+
+/* RAINBOW FLOW ANIMATION - Creates flowing rainbow gradient */
+@keyframes rainbowFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* GLOW PULSE ANIMATION - Creates subtle glow pulsing */
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(20, 184, 166, 0.3),
+      0 0 40px rgba(139, 92, 246, 0.2),
+      0 0 60px rgba(236, 72, 153, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(20, 184, 166, 0.5),
+      0 0 60px rgba(139, 92, 246, 0.3),
+      0 0 90px rgba(236, 72, 153, 0.2);
+  }
+}
+
+/* IRIDESCENT ANIMATION - Creates color-shifting iridescent effect */
+@keyframes iridescent {
+  0% {
+    background: linear-gradient(45deg, #14B8A6, #8B5CF6, #EC4899, #10B981, #3B82F6);
+    background-size: 400% 400%;
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 100% 50%;
+  }
+  50% {
+    background: linear-gradient(45deg, #8B5CF6, #EC4899, #10B981, #3B82F6, #14B8A6);
+    background-size: 400% 400%;
+    background-position: 100% 0%;
+  }
+  75% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background: linear-gradient(45deg, #14B8A6, #8B5CF6, #EC4899, #10B981, #3B82F6);
+    background-size: 400% 400%;
+    background-position: 0% 50%;
+  }
+}
+
+/* CYBERPUNK FLICKER ANIMATION - Creates realistic neon flickering */
+@keyframes cyberpunkFlicker {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% {
+    text-shadow: 
+      0 0 4px rgba(255, 255, 255, 1),
+      0 0 11px rgba(255, 255, 255, 1),
+      0 0 19px rgba(255, 255, 255, 1),
+      0 0 40px rgba(20, 184, 166, 1),
+      0 0 80px rgba(20, 184, 166, 1),
+      0 0 90px rgba(20, 184, 166, 1),
+      0 0 100px rgba(20, 184, 166, 1),
+      0 0 150px rgba(20, 184, 166, 1);
+  }
+  20%, 24%, 55% {
+    text-shadow: none;
+  }
+}
+
+/* HOLOGRAPHIC BORDER ANIMATION - Creates animated holographic border */
+@keyframes holographicBorder {
+  0% {
+    border-image: linear-gradient(45deg, #14B8A6, #8B5CF6, #EC4899, #10B981) 1;
+  }
+  25% {
+    border-image: linear-gradient(90deg, #8B5CF6, #EC4899, #10B981, #14B8A6) 1;
+  }
+  50% {
+    border-image: linear-gradient(135deg, #EC4899, #10B981, #14B8A6, #8B5CF6) 1;
+  }
+  75% {
+    border-image: linear-gradient(180deg, #10B981, #14B8A6, #8B5CF6, #EC4899) 1;
+  }
+  100% {
+    border-image: linear-gradient(45deg, #14B8A6, #8B5CF6, #EC4899, #10B981) 1;
+  }
+}
+
+/* FLOATING GLOW ANIMATION - Creates floating light orbs effect */
+@keyframes floatingGlow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.6;
+  }
+  33% {
+    transform: translateY(-10px) rotate(120deg);
+    opacity: 0.8;
+  }
+  66% {
+    transform: translateY(5px) rotate(240deg);
+    opacity: 0.4;
+  }
+}
+
+/* UTILITY CLASSES FOR EASY APPLICATION */
+.holographic-text {
+  background: linear-gradient(45deg, #14B8A6, #8B5CF6, #EC4899, #10B981, #3B82F6, #14B8A6);
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: holographicShift 6s ease-in-out infinite;
+}
+
+.neon-glow {
+  animation: neonPulse 2s ease-in-out infinite alternate;
+}
+
+.iridescent-bg {
+  background: linear-gradient(45deg, #14B8A6, #8B5CF6, #EC4899, #10B981, #3B82F6);
+  background-size: 400% 400%;
+  animation: iridescent 10s ease-in-out infinite;
+}
+
+.cyberpunk-flicker {
+  animation: cyberpunkFlicker 4s infinite;
+}
+
+.rainbow-flow {
+  background: linear-gradient(90deg, #00FFFF, #14B8A6, #8B5CF6, #EC4899, #10B981, #3B82F6);
+  background-size: 200% 200%;
+  animation: rainbowFlow 8s linear infinite;
+}
+
+/* GLASSMORPHISM EFFECTS */
+.glass-morphism {
+  background: rgba(20, 184, 166, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(20, 184, 166, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* RESPONSIVE ANIMATIONS - Respect user preferences */
+@media (prefers-reduced-motion: reduce) {
+  .holographic-text,
+  .neon-glow,
+  .iridescent-bg,
+  .cyberpunk-flicker,
+  .rainbow-flow {
+    animation: none;
+  }
+  
+  .holographic-text {
+    background: linear-gradient(45deg, #14B8A6, #8B5CF6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}

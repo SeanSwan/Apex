@@ -1,6 +1,6 @@
 /**
- * LIVE AI MONITOR - MAIN COMPONENT WITH SPRINT 4 INTEGRATION
- * =========================================================
+ * LIVE AI MONITOR - MAIN COMPONENT WITH SPRINT 4 + FACE DETECTION INTEGRATION
+ * ==========================================================================
  * Enhanced core component for real-time AI-powered security monitoring
  * Features: Camera grid, AI detection overlays, event feed, quick actions
  * 
@@ -10,6 +10,12 @@
  * - AI Conversation Management with 2-way voice communication
  * - Master Threat Detection Coordination
  * - Enhanced WebSocket integration with AI engine
+ *
+ * PHASE 1 FACE DETECTION ENHANCEMENTS:
+ * - Real-time face detection and recognition
+ * - Person identification and classification
+ * - Face-based alert generation and management
+ * - Integration with video input manager
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -22,6 +28,10 @@ import QuickActionPanel from './QuickActionPanel';
 import AlertManager from '../VisualAlerts/AlertManager';
 import AudioAlertController from '../AudioControls/AudioAlertController';
 import VoiceResponsePanel from '../AudioControls/VoiceResponsePanel';
+
+// PHASE 1: Import Face Detection Components
+import VideoInputManager from '../VideoInput/VideoInputManager';
+import PersonTypeIndicator from '../FaceDetection/PersonTypeIndicator';
 
 const MonitorContainer = styled.div`
   width: 100%;
@@ -208,6 +218,22 @@ function LiveAIMonitor() {
     low: 0
   });
   
+  // PHASE 1: Face Detection state management
+  const [faceDetections, setFaceDetections] = useState([]);
+  const [faceAlerts, setFaceAlerts] = useState([]);
+  const [faceDetectionEnabled, setFaceDetectionEnabled] = useState(true);
+  const [recognizedPersons, setRecognizedPersons] = useState([]);
+  const [unknownPersons, setUnknownPersons] = useState([]);
+  const [faceDetectionStats, setFaceDetectionStats] = useState({
+    totalDetections: 0,
+    knownPersons: 0,
+    unknownPersons: 0,
+    blacklistedDetections: 0,
+    vipDetections: 0,
+    alertsGenerated: 0
+  });
+  const [selectedFaceDetection, setSelectedFaceDetection] = useState(null);
+  
   // Demo cameras configuration
   const demoCameras = [
     {
@@ -292,6 +318,174 @@ function LiveAIMonitor() {
       setAIStatus('error');
     }
   };
+  
+  // PHASE 1: Face Detection Event Handlers
+  const handleFaceDetection = (faceData) => {
+    console.log('🧠 Face detection received:', faceData);
+    
+    const faceDetection = {
+      id: `face_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      camera_id: faceData.camera_id,
+      person_name: faceData.person_name,
+      person_type: faceData.person_type,
+      confidence: faceData.confidence,
+      is_match: faceData.is_match,
+      face_location: faceData.face_location,
+      bounding_box: faceData.bounding_box,
+      face_quality_score: faceData.face_quality_score,
+      access_level: faceData.access_level,
+      alert_recommended: faceData.alert_recommended,
+      timestamp: faceData.timestamp || new Date().toISOString(),
+      detection_id: faceData.detection_id
+    };
+    
+    setFaceDetections(prev => [faceDetection, ...prev.slice(0, 49)]); // Keep last 50
+    
+    // Update statistics
+    setFaceDetectionStats(prev => ({
+      ...prev,
+      totalDetections: prev.totalDetections + 1,
+      knownPersons: faceData.is_match ? prev.knownPersons + 1 : prev.knownPersons,
+      unknownPersons: !faceData.is_match ? prev.unknownPersons + 1 : prev.unknownPersons,
+      alertsGenerated: faceData.alert_recommended ? prev.alertsGenerated + 1 : prev.alertsGenerated
+    }));
+    
+    // Add to event feed if alert recommended
+    if (faceData.alert_recommended) {
+      setAlerts(prev => [{
+        id: faceDetection.id,
+        type: 'face_alert',
+        message: `${faceData.is_match ? 'Known' : 'Unknown'} person detected: ${faceData.person_name}`,
+        timestamp: faceDetection.timestamp,
+        severity: faceData.person_type === 'blacklist' ? 'critical' : 'medium',
+        camera_id: faceData.camera_id,
+        face_data: faceDetection
+      }, ...prev.slice(0, 49)]);
+    }
+  };
+  
+  const handleFaceAlert = (alertData) => {
+    console.log('🚨 Face alert received:', alertData);
+    
+    const faceAlert = {
+      id: `face_alert_${Date.now()}`,
+      alert_type: alertData.alert_type,
+      person_data: alertData.person_data,
+      camera_id: alertData.camera_id,
+      timestamp: alertData.timestamp,
+      priority: alertData.priority,
+      recommended_actions: alertData.recommended_actions,
+      alert_message: alertData.alert_message
+    };
+    
+    setFaceAlerts(prev => [faceAlert, ...prev.slice(0, 29)]); // Keep last 30
+    
+    // Add to main alerts
+    setAlerts(prev => [{
+      id: faceAlert.id,
+      type: 'face_alert',
+      message: faceAlert.alert_message,
+      timestamp: faceAlert.timestamp,
+      severity: faceAlert.priority,
+      camera_id: faceAlert.camera_id
+    }, ...prev.slice(0, 49)]);
+  };
+  
+  const handlePersonRecognized = (personData) => {
+    console.log('👤 Person recognized:', personData);
+    
+    setRecognizedPersons(prev => {
+      const existingIndex = prev.findIndex(p => p.face_id === personData.face_id);
+      if (existingIndex >= 0) {
+        // Update existing person
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          last_seen: personData.timestamp,
+          detection_count: updated[existingIndex].detection_count + 1
+        };
+        return updated;
+      } else {
+        // Add new person
+        return [{
+          face_id: personData.face_id,
+          person_name: personData.person_name,
+          person_type: personData.person_type,
+          confidence: personData.confidence,
+          camera_id: personData.camera_id,
+          first_seen: personData.timestamp,
+          last_seen: personData.timestamp,
+          detection_count: 1
+        }, ...prev.slice(0, 19)];
+      }
+    });
+  };
+  
+  const handleUnknownPersonDetected = (personData) => {
+    console.log('❓ Unknown person detected:', personData);
+    
+    setUnknownPersons(prev => [{
+      id: `unknown_${Date.now()}`,
+      camera_id: personData.camera_id,
+      face_location: personData.face_location,
+      face_quality_score: personData.face_quality_score,
+      timestamp: personData.timestamp,
+      alert_recommended: personData.alert_recommended
+    }, ...prev.slice(0, 19)]);
+  };
+  
+  const handleFaceDetectionStats = (statsData) => {
+    console.log('📊 Face detection stats:', statsData);
+    setFaceDetectionStats(statsData);
+  };
+  
+  const handleBlacklistAlert = (alertData) => {
+    console.log('🚫 Blacklist alert:', alertData);
+    
+    setFaceDetectionStats(prev => ({
+      ...prev,
+      blacklistedDetections: prev.blacklistedDetections + 1
+    }));
+    
+    // High priority alert
+    setAlerts(prev => [{
+      id: `blacklist_${Date.now()}`,
+      type: 'blacklist_alert',
+      message: `CRITICAL: Blacklisted individual detected - ${alertData.person_name}`,
+      timestamp: alertData.timestamp,
+      severity: 'critical',
+      camera_id: alertData.camera_id
+    }, ...prev.slice(0, 49)]);
+  };
+  
+  const handleVIPDetection = (vipData) => {
+    console.log('⭐ VIP detection:', vipData);
+    
+    setFaceDetectionStats(prev => ({
+      ...prev,
+      vipDetections: prev.vipDetections + 1
+    }));
+    
+    setAlerts(prev => [{
+      id: `vip_${Date.now()}`,
+      type: 'vip_detection',
+      message: `VIP detected: ${vipData.person_name}`,
+      timestamp: vipData.timestamp,
+      severity: 'low',
+      camera_id: vipData.camera_id
+    }, ...prev.slice(0, 49)]);
+  };
+  
+  const handleFaceDetectionClick = (faceDetection, cameraId) => {
+    console.log('🎯 Face detection clicked:', faceDetection, cameraId);
+    setSelectedFaceDetection(faceDetection);
+    
+    // Focus camera if not already focused
+    const camera = activeCameras.find(cam => cam.id === cameraId);
+    if (camera) {
+      handleCameraFocus(camera);
+    }
+  };
 
   const handleAIMessage = (message) => {
     switch (message.type) {
@@ -362,6 +556,35 @@ function LiveAIMonitor() {
         
       case 'ai_status_update':
         handleAIStatusUpdate(message.data);
+        break;
+      
+      // PHASE 1: Face Detection Events
+      case 'face_detection':
+        handleFaceDetection(message.data);
+        break;
+        
+      case 'face_alert':
+        handleFaceAlert(message.data);
+        break;
+        
+      case 'person_recognized':
+        handlePersonRecognized(message.data);
+        break;
+        
+      case 'unknown_person_detected':
+        handleUnknownPersonDetected(message.data);
+        break;
+        
+      case 'face_detection_stats':
+        handleFaceDetectionStats(message.data);
+        break;
+        
+      case 'blacklist_alert':
+        handleBlacklistAlert(message.data);
+        break;
+        
+      case 'vip_detection':
+        handleVIPDetection(message.data);
         break;
       
       default:
@@ -631,7 +854,9 @@ function LiveAIMonitor() {
             viewMode={viewMode}
             focusedCamera={focusedCamera}
             detections={detections}
+            faceDetections={faceDetections} // Phase 1 Enhancement
             onCameraFocus={handleCameraFocus}
+            onFaceDetection={handleFaceDetectionClick} // Phase 1 Enhancement
           />
         </CameraGridContainer>
       </MainViewArea>

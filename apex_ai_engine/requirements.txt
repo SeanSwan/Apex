@@ -3,22 +3,24 @@
 # Core AI/ML dependencies for real-time security monitoring with face recognition
 
 # Computer Vision & AI
-ultralytics>=8.0.0          # YOLOv8 for object detection
+ultralytics>=8.3.0          # YOLOv8 for object detection (Python 3.13 compatible)
 opencv-python>=4.8.0        # Computer vision and video processing
 numpy>=1.21.0               # Numerical computing
 Pillow>=9.0.0               # Image processing
 
-# Face Recognition Dependencies
-face_recognition>=1.3.0     # Face recognition library
-dlib>=19.24.0               # Machine learning library (required by face_recognition)
-cmake>=3.12.0               # Build system (required for dlib compilation)
+# Face Recognition Dependencies - SIMPLIFIED FOR DEMO
+# Note: face_recognition has compilation issues on Python 3.13
+# Using simplified approach for demo
+# face_recognition>=1.3.0     # Face recognition library
+# dlib>=19.24.0               # Machine learning library (required by face_recognition)
+# cmake>=3.12.0               # Build system (required for dlib compilation)
 
 # Database Integration
 psycopg2-binary>=2.9.0      # PostgreSQL adapter for Python
 
 # Communication & Networking
 websockets>=12.0            # Enhanced WebSocket communication with backend
-asyncio                     # Asynchronous programming (built-in Python 3.7+)
+# asyncio                     # Built-in Python module (removed)
 
 # Data & Configuration
 pyyaml>=6.0                 # YAML configuration files
@@ -32,12 +34,12 @@ tqdm>=4.64.0                # Progress bars for model loading
 scipy>=1.9.0                # Scientific computing
 scikit-image>=0.19.0        # Image processing algorithms
 
-# Utility Libraries
-hashlib                     # Hashing (built-in)
-base64                      # Base64 encoding (built-in)
-datetime                    # Date and time (built-in)
-threading                   # Multi-threading (built-in)
-queue                       # Queue data structures (built-in)
+# Utility Libraries - BUILT-IN MODULES REMOVED
+# hashlib                     # Built-in Python module (removed)
+# base64                      # Built-in Python module (removed)
+# datetime                    # Built-in Python module (removed)
+# threading                   # Built-in Python module (removed)
+# queue                       # Built-in Python module (removed)
 
 # Optional: Advanced AI features (install if needed)
 # torch>=1.13.0             # PyTorch (will be installed by ultralytics)
@@ -48,14 +50,42 @@ queue                       # Queue data structures (built-in)
 # Development & Debugging
 colorama>=0.4.5             # Colored terminal output
 
+# VOICE AI DISPATCHER DEPENDENCIES - MASTER PROMPT v49.0
+# ========================================================
+# Revolutionary Voice AI Dispatcher - Core P0 Feature
+
+# Telephony Integration (Twilio)
+twilio>=8.10.0              # Programmable voice and SMS
+
+# Speech Recognition & Synthesis
+requests>=2.31.0            # HTTP client for API calls (Deepgram, ElevenLabs)
+websockets>=11.0.3          # WebSocket support for real-time voice streaming
+
+# Local LLM Integration (Ollama)
+# Ollama communicates via REST API, so requests library handles this
+
+# Enhanced Database Support
+psycopg2-binary>=2.9.0      # PostgreSQL adapter (already included)
+
+# Voice Processing Utilities
+pyaudio>=0.2.11             # Audio I/O (optional, for advanced voice features)
+speech_recognition>=3.10.0  # Fallback STT if Deepgram unavailable
+pyttsx3>=2.90               # Fallback TTS if ElevenLabs unavailable
+
 # Installation Notes:
 # ===================
-# 1. Install Visual Studio Build Tools on Windows for dlib compilation
-# 2. Install CMake: pip install cmake
-# 3. Install dlib: pip install dlib
-# 4. Install face_recognition: pip install face_recognition
-# 5. For better performance, install with GPU support:
+# 1. For Python 3.13 compatibility, some packages may be limited
+# 2. Face recognition disabled for now due to compilation complexity
+# 3. Voice AI Dispatcher requires:
+#    - Twilio account with phone number
+#    - Deepgram API key for STT
+#    - ElevenLabs API key for TTS
+#    - Local Ollama installation with LLM model
+# 4. For better performance, install with GPU support:
 #    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 #
 # Quick install command:
 # pip install -r requirements.txt
+#
+# Voice AI Setup:
+# pip install twilio requests websockets pyaudio speech_recognition pyttsx3

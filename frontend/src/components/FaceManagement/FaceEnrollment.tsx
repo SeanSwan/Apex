@@ -32,6 +32,7 @@ const EnrollmentContainer = styled.div`
   gap: 2rem;
   max-width: 800px;
   margin: 0 auto;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
 `;
 
 const Header = styled.div`
@@ -39,7 +40,7 @@ const Header = styled.div`
   margin-bottom: 1rem;
   
   h2 {
-    color: white;
+    color: ${props => props.theme.colors.white};
     font-size: 1.5rem;
     font-weight: 600;
     margin: 0 0 0.5rem 0;
@@ -47,6 +48,7 @@ const Header = styled.div`
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
+    font-family: ${props => props.theme.typography.fontFamily.primary};
   }
   
   p {
@@ -57,8 +59,8 @@ const Header = styled.div`
 `;
 
 const UploadSection = styled.div`
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px dashed rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.2);
+  border: 2px dashed ${props => props.theme.colors.gold[500]}40;
   border-radius: 12px;
   padding: 2rem;
   text-align: center;
@@ -67,19 +69,19 @@ const UploadSection = styled.div`
   position: relative;
   
   &:hover {
-    border-color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.15);
+    border-color: ${props => props.theme.colors.gold[500]}80;
+    background: rgba(0, 0, 0, 0.3);
   }
   
   &.dragover {
-    border-color: #4ade80;
-    background: rgba(74, 222, 128, 0.1);
+    border-color: ${props => props.theme.colors.gold[500]};
+    background: rgba(255, 215, 0, 0.1);
   }
   
   &.has-image {
     border-style: solid;
-    border-color: #4ade80;
-    background: rgba(74, 222, 128, 0.1);
+    border-color: ${props => props.theme.colors.gold[500]};
+    background: rgba(255, 215, 0, 0.1);
   }
 `;
 
@@ -94,7 +96,8 @@ const UploadIcon = styled.div`
 `;
 
 const UploadText = styled.div`
-  color: white;
+  color: ${props => props.theme.colors.white};
+  font-family: ${props => props.theme.typography.fontFamily.primary};
   
   .primary {
     font-size: 1.1rem;
@@ -122,7 +125,7 @@ const ImagePreview = styled.div`
     max-width: 200px;
     max-height: 200px;
     border-radius: 8px;
-    border: 2px solid #4ade80;
+    border: 2px solid ${props => props.theme.colors.gold[500]};
   }
   
   .remove-btn {
@@ -147,10 +150,11 @@ const ImagePreview = styled.div`
 `;
 
 const FormSection = styled.div`
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 12px;
   padding: 2rem;
   backdrop-filter: blur(10px);
+  border: 1px solid ${props => props.theme.colors.gold[500]}20;
 `;
 
 const FormGrid = styled.div`
@@ -174,22 +178,24 @@ const FormField = styled.div`
   }
   
   label {
-    color: white;
+    color: ${props => props.theme.colors.white};
     font-weight: 500;
     font-size: 0.9rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    font-family: ${props => props.theme.typography.fontFamily.primary};
   }
   
   input, select, textarea {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid ${props => props.theme.colors.gold[500]}40;
     border-radius: 8px;
     padding: 0.75rem;
-    color: white;
+    color: ${props => props.theme.colors.white};
     font-size: 0.9rem;
     transition: all 0.3s ease;
+    font-family: ${props => props.theme.typography.fontFamily.primary};
     
     &::placeholder {
       color: rgba(255, 255, 255, 0.5);
@@ -197,12 +203,12 @@ const FormField = styled.div`
     
     &:focus {
       outline: none;
-      border-color: #4ade80;
-      background: rgba(255, 255, 255, 0.15);
+      border-color: ${props => props.theme.colors.gold[500]};
+      background: rgba(0, 0, 0, 0.3);
     }
     
     &:invalid {
-      border-color: #ef4444;
+      border-color: ${props => props.theme.colors.destructive.DEFAULT};
     }
   }
   
@@ -220,10 +226,10 @@ const ButtonSection = styled.div`
 `;
 
 const Button = styled.button`
-  background: #4ade80;
+  background: ${props => props.theme.colors.gold[500]};
   border: none;
   border-radius: 8px;
-  color: white;
+  color: ${props => props.theme.colors.black};
   padding: 0.75rem 2rem;
   font-weight: 600;
   cursor: pointer;
@@ -233,9 +239,10 @@ const Button = styled.button`
   gap: 0.5rem;
   min-width: 120px;
   justify-content: center;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
   
   &:hover:not(:disabled) {
-    background: #22c55e;
+    background: ${props => props.theme.colors.gold[400]};
     transform: translateY(-1px);
   }
   
@@ -246,11 +253,13 @@ const Button = styled.button`
   }
   
   &.secondary {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid ${props => props.theme.colors.gold[500]}40;
+    color: ${props => props.theme.colors.white};
     
     &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.3);
+      border-color: ${props => props.theme.colors.gold[500]};
     }
   }
 `;
@@ -265,15 +274,15 @@ const StatusMessage = styled.div`
   font-weight: 500;
   
   &.success {
-    background: rgba(74, 222, 128, 0.2);
-    border: 1px solid #4ade80;
-    color: #4ade80;
+    background: rgba(255, 215, 0, 0.2);
+    border: 1px solid ${props => props.theme.colors.gold[500]};
+    color: ${props => props.theme.colors.gold[500]};
   }
   
   &.error {
     background: rgba(239, 68, 68, 0.2);
-    border: 1px solid #ef4444;
-    color: #ef4444;
+    border: 1px solid ${props => props.theme.colors.destructive.DEFAULT};
+    color: ${props => props.theme.colors.destructive.DEFAULT};
   }
   
   &.loading {
@@ -293,7 +302,7 @@ const ProgressBar = styled.div<{ progress: number }>`
   
   .progress-fill {
     height: 100%;
-    background: #4ade80;
+    background: ${props => props.theme.colors.gold[500]};
     transition: width 0.3s ease;
     width: ${props => props.progress || 0}%;
   }

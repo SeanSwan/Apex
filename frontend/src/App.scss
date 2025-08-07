@@ -25,16 +25,17 @@ body {
   -webkit-font-smoothing: antialiased; // Improves rendering of fonts on macOS and iOS
 }
 
-// Set base font properties
+// Set base font properties - DYNAMIC THEME INTEGRATION
 body, button, input, textarea, select {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; // Example generic font-family
-  font-size: 16px; // Establishes a base font size
-  color: #333; // Default text color
+  font-family: var(--apex-font-primary, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+  font-size: 16px;
+  color: #333;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-size: inherit;
   font-weight: normal;
+  font-family: var(--apex-font-primary, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
 }
 
 a {

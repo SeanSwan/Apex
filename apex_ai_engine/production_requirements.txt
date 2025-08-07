@@ -1,0 +1,52 @@
+# APEX AI ENGINE - PRODUCTION REQUIREMENTS (OPTIMIZED)
+# ========================================================
+# Optimized dependencies for Phase 2A-1: Multi-Monitor Correlation
+
+# CRITICAL AI/ML DEPENDENCIES
+ultralytics>=8.3.0          # YOLOv8 for object detection (Python 3.13 compatible)
+opencv-python>=4.8.0        # Computer vision and video processing
+numpy>=1.21.0               # Numerical computing foundation
+Pillow>=9.0.0               # Image processing and manipulation
+
+# DATABASE & BACKEND INTEGRATION
+psycopg2-binary>=2.9.0      # PostgreSQL adapter (required for correlation tables)
+
+# WEBSOCKET & COMMUNICATION
+python-socketio>=5.8.0      # Socket.io client for real-time frontend communication
+websockets>=12.0            # WebSocket protocol support
+aiohttp>=3.8.0              # Async HTTP client for RTSP streams
+
+# CONFIGURATION & DATA HANDLING
+pyyaml>=6.0                 # YAML configuration files
+python-dotenv>=1.0.0        # Environment variable management
+dataclasses>=0.6            # Enhanced data classes (built-in for Python 3.7+)
+
+# PERFORMANCE MONITORING
+psutil>=5.9.0               # System and process monitoring
+tqdm>=4.64.0                # Progress indicators for model loading
+
+# SCIENTIFIC COMPUTING (for correlation algorithms)
+scipy>=1.9.0                # Scientific computing library
+scikit-image>=0.19.0        # Advanced image processing
+
+# OPTIONAL: AUDIO PROCESSING (for spatial audio alerts)
+# Uncomment if audio hardware is available:
+# sounddevice>=0.4.5        # Audio device interface
+# librosa>=0.9.0            # Audio analysis library
+
+# WINDOWS-SPECIFIC DEPENDENCIES
+pywin32>=305                # Windows API access for screen capture
+colorama>=0.4.5            # Colored terminal output
+
+# DEVELOPMENT & DEBUGGING (remove in production)
+# pytest>=7.0.0             # Testing framework
+# black>=22.0.0             # Code formatter
+
+# INSTALLATION NOTES:
+# ===================
+# 1. This is the optimized requirements file for production deployment
+# 2. Face recognition is intentionally excluded due to Python 3.13 compatibility
+# 3. Audio dependencies are optional - uncomment if needed
+# 4. For GPU acceleration, add: torch torchvision --index-url https://download.pytorch.org/whl/cu118
+#
+# Quick install: pip install -r production_requirements.txt

@@ -3,10 +3,15 @@
  * ====================
  * Displays multiple video streams with AI detection overlays
  * Supports grid view, focus view, and investigation modes
+ * Enhanced with face detection overlays and person identification (Phase 1)
  */
 
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
+
+// Import face detection components (Phase 1 Enhancement)
+import FaceOverlayComponent from '../FaceDetection/FaceOverlayComponent';
+import PersonTypeIndicator from '../FaceDetection/PersonTypeIndicator';
 
 const GridContainer = styled.div`
   width: 100%;
@@ -40,6 +45,7 @@ const CameraContainer = styled.div`
   border: 2px solid ${props => {
     if (props.focused) return props.theme.colors.primary;
     if (props.hasAlert) return props.theme.colors.error;
+    if (props.hasFaceDetection) return '#4CAF50'; // Green for face detection active
     return props.theme.colors.border;
   }};
   cursor: pointer;
@@ -93,7 +99,79 @@ const CameraInfo = styled.div`
   padding: ${props => props.theme.spacing.xs} ${props => props.theme.spacing.sm};
   border-radius: ${props => props.theme.borderRadius.sm};
   font-size: ${props => props.theme.typography.fontSize.xs};
-  font-weight: ${props => props.theme.typography.fontWeight.medium};
+`;
+
+// Face detection overlay components (Phase 1 Enhancement)
+const FaceDetectionOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 15;
+`;
+
+// Face detection status indicator
+const FaceDetectionStatus = styled.div`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 4px;
+  font-size: 11px;
+  color: ${props => props.active ? '#4CAF50' : '#9E9E9E'};
+  border: 1px solid ${props => props.active ? '#4CAF50' : '#9E9E9E'};
+`;
+
+// Person count indicator
+const PersonCountIndicator = styled.div`
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 20;
+  padding: 4px 8px;
+  background-color: rgba(0, 0, 0, 0.8);
+  border-radius: 4px;
+  font-size: 12px;
+  color: #FFFFFF;
+  font-weight: 500;
+  display: ${props => props.count > 0 ? 'block' : 'none'};
+`;
+
+// Face detection info panel
+const FaceInfoPanel = styled.div`
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  z-index: 20;
+  background-color: rgba(0, 0, 0, 0.8);
+  border-radius: 4px;
+  padding: 8px;
+  display: ${props => props.visible ? 'block' : 'none'};
+  max-height: 80px;
+  overflow-y: auto;
+`;
+
+// Face detection list
+const FaceList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const FaceItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #FFFFFF;
 `;
 
 const StatusIndicator = styled.div`
@@ -165,9 +243,11 @@ const EmptyGridMessage = styled.div`
   gap: ${props => props.theme.spacing.md};
 `;
 
-function CameraGrid({ cameras, viewMode, focusedCamera, detections, onCameraFocus }) {
+function CameraGrid({ cameras, viewMode, focusedCamera, detections, onCameraFocus, faceDetections = [], onFaceDetection = null }) {
   const [loadedVideos, setLoadedVideos] = useState(new Set());
   const [videoErrors, setVideoErrors] = useState(new Set());
+  const [faceDetectionEnabled, setFaceDetectionEnabled] = useState(true);
+  const [showFaceInfo, setShowFaceInfo] = useState({});
   const videoRefs = useRef({});
 
   // Filter cameras based on view mode
@@ -180,6 +260,37 @@ function CameraGrid({ cameras, viewMode, focusedCamera, detections, onCameraFocu
     return detections
       .filter(detection => detection.camera_id === cameraId)
       .slice(0, 10); // Show only recent detections
+  };
+
+  // Get face detections for a specific camera (Phase 1 Enhancement)
+  const getCameraFaceDetections = (cameraId) => {
+    return faceDetections
+      .filter(detection => detection.camera_id === cameraId)
+      .slice(0, 5); // Show only recent face detections
+  };
+
+  // Handle face detection events (Phase 1 Enhancement)
+  const handleFaceClick = (faceDetection, cameraId) => {
+    if (onFaceDetection) {
+      onFaceDetection(faceDetection, cameraId);
+    }
+    
+    // Toggle face info panel
+    setShowFaceInfo(prev => ({
+      ...prev,
+      [cameraId]: !prev[cameraId]
+    }));
+  };
+
+  // Count faces by type for a camera
+  const getFaceStats = (cameraId) => {
+    const faces = getCameraFaceDetections(cameraId);
+    return {
+      total: faces.length,
+      known: faces.filter(f => f.is_match).length,
+      unknown: faces.filter(f => !f.is_match).length,
+      alerts: faces.filter(f => f.alert_recommended).length
+    };
   };
 
   const handleVideoLoad = (cameraId) => {
@@ -229,9 +340,12 @@ function CameraGrid({ cameras, viewMode, focusedCamera, detections, onCameraFocu
     >
       {displayCameras.map(camera => {
         const cameraDetections = getCameraDetections(camera.id);
+        const faceDetections = getCameraFaceDetections(camera.id); // Phase 1 Enhancement
+        const faceStats = getFaceStats(camera.id); // Phase 1 Enhancement
         const hasAlert = cameraDetections.some(d => 
           d.threat_level === 'threat' || d.alert_type === 'high_priority'
         );
+        const hasFaceAlert = faceDetections.some(f => f.alert_recommended); // Phase 1 Enhancement
         const isLoaded = loadedVideos.has(camera.id);
         const hasError = videoErrors.has(camera.id);
         const isFocused = focusedCamera?.id === camera.id;
@@ -240,7 +354,8 @@ function CameraGrid({ cameras, viewMode, focusedCamera, detections, onCameraFocu
           <CameraContainer
             key={camera.id}
             focused={isFocused}
-            hasAlert={hasAlert}
+            hasAlert={hasAlert || hasFaceAlert} // Include face alerts
+            hasFaceDetection={faceDetectionEnabled && faceStats.total > 0} // Phase 1 Enhancement
             viewMode={viewMode}
             onClick={() => onCameraFocus && onCameraFocus(camera)}
           >
@@ -282,6 +397,18 @@ function CameraGrid({ cameras, viewMode, focusedCamera, detections, onCameraFocu
               
               <StatusIndicator status={camera.status} />
 
+              {/* Face Detection Status Indicator (Phase 1 Enhancement) */}
+              {faceDetectionEnabled && (
+                <FaceDetectionStatus active={faceStats.total > 0}>
+                  🧠 {faceStats.total > 0 ? `${faceStats.total} faces` : 'No faces'}
+                </FaceDetectionStatus>
+              )}
+
+              {/* Person Count Indicator (Phase 1 Enhancement) */}
+              <PersonCountIndicator count={faceStats.total}>
+                👥 {faceStats.total} {faceStats.total === 1 ? 'person' : 'people'}
+              </PersonCountIndicator>
+
               {/* AI Detection Overlays */}
               {cameraDetections.map((detection, index) => (
                 <DetectionOverlay
@@ -297,6 +424,55 @@ function CameraGrid({ cameras, viewMode, focusedCamera, detections, onCameraFocu
                   </DetectionLabel>
                 </DetectionOverlay>
               ))}
+
+              {/* Face Detection Overlay (Phase 1 Enhancement) */}
+              {faceDetectionEnabled && faceDetections.length > 0 && (
+                <FaceDetectionOverlay>
+                  <FaceOverlayComponent
+                    faceDetections={faceDetections}
+                    frameSize={{ width: 1920, height: 1080 }}
+                    containerSize={{ 
+                      width: videoRefs.current[camera.id]?.clientWidth || 640, 
+                      height: videoRefs.current[camera.id]?.clientHeight || 360 
+                    }}
+                    overlayConfig={{
+                      showBoundingBox: true,
+                      showPersonName: true,
+                      showConfidence: true,
+                      showPersonTypeBadge: true,
+                      showQualityIndicator: false,
+                      animateAlerts: true
+                    }}
+                    onFaceClick={(faceDetection) => handleFaceClick(faceDetection, camera.id)}
+                  />
+                </FaceDetectionOverlay>
+              )}
+
+              {/* Face Detection Info Panel (Phase 1 Enhancement) */}
+              <FaceInfoPanel visible={showFaceInfo[camera.id] && faceDetections.length > 0}>
+                <FaceList>
+                  {faceDetections.slice(0, 3).map((face, index) => (
+                    <FaceItem key={index}>
+                      <PersonTypeIndicator
+                        personType={face.person_type}
+                        personName={face.person_name}
+                        confidence={face.confidence}
+                        isMatch={face.is_match}
+                        accessLevel={face.access_level}
+                        alertRecommended={face.alert_recommended}
+                        size="small"
+                        showConfidence={true}
+                        showAccessLevel={true}
+                      />
+                    </FaceItem>
+                  ))}
+                  {faceDetections.length > 3 && (
+                    <div style={{ fontSize: '10px', color: '#999', textAlign: 'center' }}>
+                      +{faceDetections.length - 3} more
+                    </div>
+                  )}
+                </FaceList>
+              </FaceInfoPanel>
             </CameraOverlay>
           </CameraContainer>
         );

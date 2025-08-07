@@ -61,5 +61,12 @@ export { default as PermissionEditor } from './PermissionEditor/PermissionEditor
 export { default as ProtectedRoutes } from './ProtectedRoutes/protected-routes.component';
 export { default as UserList } from './UserList/UserList.component';
 
+// === VISUAL ALERTS MODULE (TIER 2) ===
+export * from './VisualAlerts';
+export { default as BlinkingBorderOverlay } from './VisualAlerts/BlinkingBorderOverlay';
+export { default as AlertManager } from './VisualAlerts/AlertManager';
+export { default as AudioAlertController } from './VisualAlerts/AudioAlertController';
+export { default as VoiceResponsePanel } from './VisualAlerts/VoiceResponsePanel';
+
 // === ICONS ===
 export * from './icons';

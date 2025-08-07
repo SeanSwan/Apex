@@ -1,10 +1,10 @@
 """
-APEX AI ENGINE - ENHANCED WEBSOCKET CLIENT
+APEX AI ENGINE - ENHANCED WEBSOCKET CLIENT (SOCKET.IO)
 ==========================================
-Production-ready WebSocket client for reliable real-time communication
+Production-ready Socket.io client for reliable real-time communication
 Features: Auto-reconnection, message queuing, heartbeat monitoring, error recovery
 
-This client connects to the Enhanced WebSocket Server and handles:
+This client connects to the Socket.io Enhanced WebSocket Server and handles:
 - AI detection result streaming
 - Face recognition alerts
 - Camera stream management
@@ -14,7 +14,7 @@ This client connects to the Enhanced WebSocket Server and handles:
 import asyncio
 import json
 import logging
-import websockets
+import socketio
 import time
 import queue
 import threading
@@ -52,11 +52,11 @@ class WebSocketMessage:
 
 class EnhancedWebSocketClient:
     """
-    Enhanced WebSocket client with robust connection management
+    Enhanced Socket.io client with robust connection management
     """
     
     def __init__(self, 
-                 server_url: str = "ws://localhost:5000",
+                 server_url: str = "http://localhost:5000",
                  auth_token: str = "apex_ai_engine_2024",
                  max_reconnect_attempts: int = 5,
                  reconnect_delay: float = 2.0,
@@ -68,9 +68,17 @@ class EnhancedWebSocketClient:
         self.reconnect_delay = reconnect_delay
         self.heartbeat_interval = heartbeat_interval
         
+        # Initialize Socket.io client
+        self.sio = socketio.AsyncClient(
+            reconnection=True,
+            reconnection_attempts=max_reconnect_attempts,
+            reconnection_delay=reconnect_delay,
+            logger=True,
+            engineio_logger=True
+        )
+        
         # Connection state
         self.connection_state = ConnectionState.DISCONNECTED
-        self.websocket = None
         self.reconnect_count = 0
         self.last_heartbeat = 0
         self.client_id = None
@@ -97,10 +105,69 @@ class EnhancedWebSocketClient:
             'last_error': None
         }
         
-        # Setup default message handlers
+        # Setup Socket.io event handlers
+        self.setup_socketio_handlers()
         self.setup_default_handlers()
         
         logger.info(f"🤖 Enhanced WebSocket client initialized for {server_url}")
+    
+    def setup_socketio_handlers(self):
+        """Setup Socket.io event handlers"""
+        
+        @self.sio.event
+        async def connect():
+            logger.info("✅ Socket.io connected")
+            self.connection_state = ConnectionState.CONNECTED
+            self.stats['connected_at'] = time.time()
+            
+            # Send client identification
+            await self.sio.emit('client_identification', {
+                'client_type': 'ai_engine',
+                'client_info': {
+                    'auth_token': self.auth_token,
+                    'capabilities': {
+                        'object_detection': True,
+                        'face_recognition': True,
+                        'real_time_processing': True,
+                        'alert_generation': True
+                    },
+                    'version': '2.0.0'
+                }
+            })
+        
+        @self.sio.event
+        async def disconnect():
+            logger.info("🔌 Socket.io disconnected")
+            self.connection_state = ConnectionState.DISCONNECTED
+        
+        @self.sio.event
+        async def connect_error(data):
+            logger.error(f"❌ Socket.io connection error: {data}")
+            self.connection_state = ConnectionState.ERROR
+            self.stats['errors'] += 1
+            self.stats['last_error'] = str(data)
+        
+        @self.sio.event
+        async def identification_success(data):
+            logger.info(f"🔐 Client authenticated: {data}")
+            self.connection_state = ConnectionState.AUTHENTICATED
+            self.client_id = data.get('client_id')
+        
+        # AI Engine specific message handlers
+        @self.sio.on('start_stream_processing')
+        async def handle_start_stream(data):
+            if 'start_stream_processing' in self.message_handlers:
+                await self.message_handlers['start_stream_processing'](data)
+        
+        @self.sio.on('stop_stream_processing')
+        async def handle_stop_stream(data):
+            if 'stop_stream_processing' in self.message_handlers:
+                await self.message_handlers['stop_stream_processing'](data)
+        
+        @self.sio.on('change_stream_quality')
+        async def handle_quality_change(data):
+            if 'change_stream_quality' in self.message_handlers:
+                await self.message_handlers['change_stream_quality'](data)
 
     def setup_default_handlers(self):
         """Setup default message handlers for system messages"""
@@ -132,7 +199,68 @@ class EnhancedWebSocketClient:
         self.connection_state = ConnectionState.CONNECTING
         self.stats['connection_attempts'] += 1
         
+    async def connect(self) -> bool:
+        """
+        Connect to the Socket.io server with retry logic
+        """
+        logger.info(f"🔌 Connecting to {self.server_url}")
+        self.connection_state = ConnectionState.CONNECTING
+        self.stats['connection_attempts'] += 1
+        
         try:
+            # Connect using Socket.io client
+            await self.sio.connect(self.server_url)
+            
+            # Wait for authentication
+            timeout = 10  # 10 seconds timeout
+            start_time = time.time()
+            while (self.connection_state != ConnectionState.AUTHENTICATED and 
+                   time.time() - start_time < timeout):
+                await asyncio.sleep(0.1)
+            
+            if self.connection_state == ConnectionState.AUTHENTICATED:
+                logger.info("✅ Successfully connected and authenticated")
+                return True
+            else:
+                logger.error("❌ Authentication timeout")
+                return False
+                
+        except Exception as e:
+            logger.error(f"❌ Connection failed: {e}")
+            self.connection_state = ConnectionState.ERROR
+            self.stats['errors'] += 1
+            self.stats['last_error'] = str(e)
+            return False
+    
+    async def send_message(self, message_type: str, data: Dict, request_id: str = None):
+        """
+        Send a message to the server via Socket.io
+        """
+        if self.connection_state not in [ConnectionState.CONNECTED, ConnectionState.AUTHENTICATED]:
+            logger.warning(f"⚠️ Cannot send message {message_type}: not connected")
+            return False
+        
+        try:
+            message_data = {
+                'type': message_type,
+                'data': data,
+                'timestamp': time.time()
+            }
+            
+            if request_id:
+                message_data['request_id'] = request_id
+            
+            # Send via Socket.io
+            await self.sio.emit(message_type, message_data)
+            
+            self.stats['messages_sent'] += 1
+            logger.debug(f"📤 Sent {message_type} message")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to send message {message_type}: {e}")
+            self.stats['errors'] += 1
+            return False
             # Connect with timeout
             self.websocket = await asyncio.wait_for(
                 websockets.connect(
@@ -462,8 +590,8 @@ class EnhancedWebSocketClient:
         return stats
 
     async def disconnect(self):
-        """Gracefully disconnect from the server"""
-        logger.info("🔌 Disconnecting from WebSocket server")
+        """Gracefully disconnect from the Socket.io server"""
+        logger.info("🔌 Disconnecting from Socket.io server")
         
         self.connection_state = ConnectionState.DISCONNECTED
         
@@ -477,20 +605,19 @@ class EnhancedWebSocketClient:
                 except asyncio.CancelledError:
                     pass
         
-        # Close WebSocket connection
-        if self.websocket:
-            await self.websocket.close()
-            self.websocket = None
+        # Disconnect Socket.io connection
+        if self.sio.connected:
+            await self.sio.disconnect()
         
         logger.info("✅ Disconnected successfully")
 
 # Usage example and testing
 async def main():
-    """Example usage of the Enhanced WebSocket Client"""
+    """Example usage of the Enhanced Socket.io Client"""
     
     # Create client
     client = EnhancedWebSocketClient(
-        server_url="ws://localhost:5000",
+        server_url="http://localhost:5000",  # HTTP for Socket.io
         auth_token="apex_ai_engine_2024"
     )
     

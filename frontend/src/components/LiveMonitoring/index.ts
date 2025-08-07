@@ -13,6 +13,16 @@ export { CameraGrid, CameraCard, DetectionOverlay } from './CameraGrid';
 export { StatusBar } from './StatusBar';
 export { ControlsBar, GridLayoutSelector, AutoSwitchControls, FilterControls } from './ControlsBar';
 
+// Alert Panel Components
+export { 
+  AlertPanel, 
+  AlertList, 
+  AlertCard, 
+  AlertFilters, 
+  AlertSounds, 
+  AlertHistory 
+} from './AlertPanel';
+
 // Types
 export * from './types';
 

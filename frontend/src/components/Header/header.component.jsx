@@ -4,19 +4,51 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styled, { keyframes, css } from 'styled-components';
 import { useAuth } from '../../context/AuthContext';
+import { FontSelector } from '../Admin/FontSelector';
 import Logo from '../../assets/Logo.png';
 import config from '../../../config';
 
-// Color palette
+// REFINED PROFESSIONAL CYBERPUNK COLOR PALETTE - Matching homepage theme
 const colors = {
-  gold: '#D4AF37', // Primary color
-  lightGold: '#F4D160', // Lighter gold for hover effects
-  black: '#000000', // Secondary color
-  darkBlack: '#0A0A0A', // Slightly lighter black for contrast
-  silver: '#C0C0C0', // Tertiary color
-  lightSilver: '#E8E8E8', // Lighter silver for hover effects
-  white: '#FFFFFF', // For text and contrast
-  transparent: 'rgba(0, 0, 0, 0)' // For animations
+  // REFINED PRIMARY SYSTEM - More professional, less "rainbow"
+  primary: '#14B8A6',        // Main teal - professional
+  primaryLight: '#2DD4BF',   // Light teal accent
+  primaryDark: '#0D9488',    // Dark teal for depth
+  
+  // SOPHISTICATED ACCENT SYSTEM
+  accent: '#8B5CF6',         // Professional purple
+  accentSecondary: '#EC4899', // Refined pink - less intense
+  success: '#10B981',        // Professional green
+  warning: '#F59E0B',        // Professional amber
+  
+  // NEUTRAL PROFESSIONAL TONES
+  white: '#FFFFFF',
+  black: '#000000',
+  darkBg: '#0A0A0A',
+  cardBg: 'rgba(0, 0, 0, 0.95)', // Professional black
+  
+  // SUBTLE GLOW EFFECTS - Much more refined
+  primaryGlow: 'rgba(20, 184, 166, 0.3)', // Reduced intensity
+  accentGlow: 'rgba(139, 92, 246, 0.25)', // More subtle
+  textGlow: 'rgba(20, 184, 166, 0.4)',   // Refined text glow
+  
+  // PROFESSIONAL GRAYS
+  gray100: '#F8FAFC',
+  gray200: '#E2E8F0',
+  gray300: '#CBD5E1',
+  gray400: '#94A3B8',
+  gray500: '#64748B',
+  gray600: '#475569',
+  gray700: '#334155',
+  gray800: '#1E293B',
+  gray900: '#0F172A',
+  
+  // Legacy compatibility
+  gold: '#14B8A6', // Map to primary teal
+  lightGold: '#2DD4BF', // Map to light teal
+  silver: '#C0C0C0',
+  lightSilver: '#E8E8E8',
+  transparent: 'rgba(0, 0, 0, 0)'
 };
 
 // Animation keyframes
@@ -40,8 +72,11 @@ const HeaderContainer = styled.header`
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  background: linear-gradient(to right, ${colors.black}, ${colors.darkBlack});
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(135deg, ${colors.black} 0%, ${colors.gray900} 50%, ${colors.black} 100%);
+  border-bottom: 1px solid ${colors.primary};
+  box-shadow: 
+    0 2px 10px rgba(0, 0, 0, 0.5),
+    0 0 20px ${colors.primaryGlow};
   padding: 0.5rem 2rem;
   height: 70px;
   width: 100%;
@@ -49,6 +84,8 @@ const HeaderContainer = styled.header`
   top: 0;
   z-index: 999;
   animation: ${fadeIn} 0.5s ease-in-out;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
+  backdrop-filter: blur(10px);
 
   @media (max-width: 1200px) {
     padding: 0.5rem 1.5rem;
@@ -75,6 +112,7 @@ const LogoContainer = styled.div`
   display: flex;
   align-items: center;
   transition: transform 0.3s ease;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
 
   &:hover {
     transform: scale(1.05);
@@ -83,13 +121,16 @@ const LogoContainer = styled.div`
   img {
     width: 50px;
     height: 50px;
-    border-radius: 8px;
-    border: 2px solid ${colors.gold};
+    border-radius: 12px;
+    border: 2px solid ${colors.primary};
     transition: all 0.3s ease;
+    background: linear-gradient(135deg, ${colors.primary}, ${colors.primaryLight});
+    padding: 2px;
     
     &:hover {
-      border-color: ${colors.lightGold};
-      box-shadow: 0 0 15px ${colors.gold};
+      border-color: ${colors.primaryLight};
+      box-shadow: 0 0 20px ${colors.primaryGlow};
+      transform: rotate(5deg);
     }
   }
 
@@ -115,6 +156,7 @@ const NavLinks = styled.nav`
   gap: 0.5rem;
   justify-content: center;
   margin: 0 1rem;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
 
   @media (max-width: 768px) {
     display: none;
@@ -130,8 +172,9 @@ const NavLink = styled(Link)`
   font-weight: 500;
   text-align: center;
   transition: all 0.3s ease;
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
   
   &::before {
     content: '';
@@ -140,13 +183,16 @@ const NavLink = styled(Link)`
     left: 50%;
     width: 0;
     height: 2px;
-    background-color: ${colors.gold};
+    background: linear-gradient(90deg, ${colors.primary}, ${colors.primaryLight});
     transition: all 0.3s ease;
     transform: translateX(-50%);
+    box-shadow: 0 0 10px ${colors.primaryGlow};
   }
   
   &:hover {
-    color: ${colors.gold};
+    color: ${colors.primary};
+    text-shadow: 0 0 8px ${colors.textGlow};
+    background: rgba(20, 184, 166, 0.05);
     
     &::before {
       width: 100%;
@@ -154,8 +200,9 @@ const NavLink = styled(Link)`
   }
   
   &.active {
-    color: ${colors.gold};
-    background-color: rgba(212, 175, 55, 0.1);
+    color: ${colors.primary};
+    background: rgba(20, 184, 166, 0.1);
+    text-shadow: 0 0 8px ${colors.textGlow};
     
     &::before {
       width: 100%;
@@ -183,12 +230,13 @@ const HamburgerMenu = styled.button`
     position: absolute;
     height: 3px;
     width: 100%;
-    background: ${colors.gold};
+    background: ${colors.primary};
     border-radius: 3px;
     opacity: 1;
     left: 0;
     transform: rotate(0deg);
     transition: 0.25s ease-in-out;
+    box-shadow: 0 0 8px ${colors.primaryGlow};
     
     &:nth-child(1) {
       top: 0px;
@@ -246,6 +294,7 @@ const MobileMenu = styled.div`
   padding: 1rem;
   transform: translateX(100%);
   transition: transform 0.3s ease-in-out;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
 
   ${props => props.$isOpen && css`
     transform: translateX(0);
@@ -273,16 +322,20 @@ const MobileNavLink = styled(Link)`
   transition: all 0.3s ease;
   animation: ${slideIn} 0.3s ease-out forwards;
   animation-delay: calc(0.05s * var(--index, 0));
+  font-family: ${props => props.theme.typography.fontFamily.primary};
+  border-radius: 0 8px 8px 0;
   
   &:hover, &.active {
-    color: ${colors.gold};
-    border-left: 3px solid ${colors.gold};
-    background-color: rgba(212, 175, 55, 0.1);
+    color: ${colors.primary};
+    border-left: 3px solid ${colors.primary};
+    background: linear-gradient(90deg, rgba(20, 184, 166, 0.1), transparent);
     padding-left: 1.5rem;
+    text-shadow: 0 0 8px ${colors.textGlow};
+    box-shadow: inset 0 0 20px rgba(20, 184, 166, 0.05);
   }
   
   &:active {
-    background-color: rgba(212, 175, 55, 0.2);
+    background: linear-gradient(90deg, rgba(20, 184, 166, 0.2), transparent);
   }
 `;
 
@@ -291,9 +344,62 @@ const AuthButtonsContainer = styled.div`
   display: flex;
   align-items: center;
   justify-self: end;
+  gap: 1rem;
   
   @media (max-width: 768px) {
     display: none;
+  }
+`;
+
+// Settings button for font selector
+const SettingsButton = styled.button`
+  background: none;
+  border: 2px solid ${colors.primary};
+  border-radius: 8px;
+  color: ${colors.primary};
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  position: relative;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
+  
+  &:hover {
+    background: linear-gradient(135deg, ${colors.primary}, ${colors.primaryLight});
+    color: ${colors.white};
+    transform: rotate(90deg) scale(1.1);
+    box-shadow: 0 0 20px ${colors.primaryGlow};
+    border-color: ${colors.primaryLight};
+  }
+  
+  &:active {
+    transform: rotate(90deg) scale(0.95);
+  }
+`;
+
+// Font selector popover
+const FontSelectorPopover = styled.div`
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  z-index: ${props => props.theme?.zIndex?.popover || 1060};
+  display: ${props => props.$isOpen ? 'block' : 'none'};
+  animation: ${props => props.$isOpen ? 'fadeInDown' : 'none'} 0.2s ease-out;
+
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 `;
 
@@ -303,49 +409,62 @@ const UserInfo = styled.div`
   align-items: center;
   margin-right: 1rem;
   animation: ${fadeIn} 0.5s ease-in-out;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
   
   .user-name {
     margin-right: 0.75rem;
     font-weight: 600;
     color: ${colors.white};
+    text-shadow: 0 0 6px ${colors.textGlow};
   }
   
   .user-role {
     font-size: 0.8rem;
-    background: linear-gradient(135deg, ${colors.gold} 0%, ${colors.lightGold} 100%);
+    background: linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 100%);
     background-size: 200% 100%;
-    animation: ${shimmer} 2s infinite linear;
+    animation: ${shimmer} 3s infinite linear;
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
-    color: ${colors.black};
+    color: ${colors.white};
     font-weight: 600;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.3),
+      0 0 15px ${colors.primaryGlow};
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 `;
 
 // Login/Logout button
 const AuthButton = styled(Link)`
   display: inline-block;
-  background: linear-gradient(135deg, ${colors.gold} 0%, ${colors.lightGold} 100%);
-  color: ${colors.black};
+  background: linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 100%);
+  color: ${colors.white};
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   padding: 0.5rem 1.25rem;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 0 15px ${colors.primaryGlow};
+  font-family: ${props => props.theme.typography.fontFamily.primary};
+  border: 1px solid rgba(255, 255, 255, 0.1);
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    background: linear-gradient(135deg, ${colors.lightGold} 0%, ${colors.gold} 100%);
+    box-shadow: 
+      0 4px 15px rgba(0, 0, 0, 0.4),
+      0 0 25px ${colors.primaryGlow};
+    background: linear-gradient(135deg, ${colors.primaryLight} 0%, ${colors.primary} 100%);
   }
   
   &:active {
     transform: translateY(0);
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.3),
+      0 0 15px ${colors.primaryGlow};
   }
 `;
 
@@ -353,18 +472,23 @@ const AuthButton = styled(Link)`
 const LogoutButton = styled.button`
   display: inline-block;
   background: transparent;
-  color: ${colors.gold};
-  border: 2px solid ${colors.gold};
-  border-radius: 4px;
+  color: ${colors.primary};
+  border: 2px solid ${colors.primary};
+  border-radius: 8px;
   padding: 0.45rem 1.25rem;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
+  text-shadow: 0 0 6px ${colors.textGlow};
   
   &:hover {
-    background-color: ${colors.gold};
-    color: ${colors.black};
+    background: linear-gradient(135deg, ${colors.primary}, ${colors.primaryLight});
+    color: ${colors.white};
+    box-shadow: 0 0 20px ${colors.primaryGlow};
+    transform: translateY(-1px);
+    text-shadow: none;
   }
   
   &:active {
@@ -385,16 +509,19 @@ const DropdownButton = styled.button`
   font-weight: 500;
   text-align: center;
   transition: all 0.3s ease;
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
   background: none;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
   
   &:hover {
-    color: ${colors.gold};
+    color: ${colors.primary};
+    text-shadow: 0 0 8px ${colors.textGlow};
+    background: rgba(20, 184, 166, 0.05);
   }
   
   &::after {
@@ -402,10 +529,13 @@ const DropdownButton = styled.button`
     font-size: 0.7em;
     margin-left: 0.5rem;
     transition: transform 0.3s ease;
+    color: ${colors.primary};
   }
   
   ${props => props.$isOpen && css`
-    color: ${colors.gold};
+    color: ${colors.primary};
+    text-shadow: 0 0 8px ${colors.textGlow};
+    background: rgba(20, 184, 166, 0.1);
     
     &::after {
       transform: rotate(180deg);
@@ -416,24 +546,32 @@ const DropdownButton = styled.button`
 const DropdownContent = styled.div`
   display: ${props => (props.$isOpen ? 'block' : 'none')};
   position: absolute;
-  background-color: ${colors.black};
-  min-width: 160px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, ${colors.black} 0%, ${colors.gray900} 100%);
+  min-width: 180px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 20px ${colors.primaryGlow};
   z-index: 1;
-  border-radius: 4px;
-  border: 1px solid ${colors.gold};
+  border-radius: 8px;
+  border: 1px solid ${colors.primary};
   animation: ${fadeIn} 0.2s ease-in-out;
+  font-family: ${props => props.theme.typography.fontFamily.primary};
+  backdrop-filter: blur(10px);
   
   a {
     color: ${colors.white};
     padding: 0.75rem 1rem;
     text-decoration: none;
     display: block;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    margin: 0.25rem;
     
     &:hover {
-      background-color: rgba(212, 175, 55, 0.1);
-      color: ${colors.gold};
+      background: linear-gradient(90deg, rgba(20, 184, 166, 0.1), rgba(20, 184, 166, 0.05));
+      color: ${colors.primary};
+      text-shadow: 0 0 8px ${colors.textGlow};
+      box-shadow: inset 0 0 20px rgba(20, 184, 166, 0.05);
     }
   }
 `;
@@ -442,6 +580,7 @@ const DropdownContent = styled.div`
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [isFontSelectorOpen, setIsFontSelectorOpen] = useState(false);
   const { user, logout, isAdmin, isManager, isGuard, isClient } = useAuth();
   const location = useLocation();
 
@@ -454,6 +593,7 @@ const Header = () => {
   useEffect(() => {
     const handleClickOutside = () => {
       setActiveDropdown(null);
+      setIsFontSelectorOpen(false);
     };
 
     document.addEventListener('click', handleClickOutside);
@@ -474,6 +614,13 @@ const Header = () => {
   const toggleDropdown = (e, dropdown) => {
     e.stopPropagation();
     setActiveDropdown(activeDropdown === dropdown ? null : dropdown);
+  };
+
+  const toggleFontSelector = (e) => {
+    e.stopPropagation();
+    setIsFontSelectorOpen(!isFontSelectorOpen);
+    // Close other dropdowns when opening font selector
+    setActiveDropdown(null);
   };
 
   // Format role for display
@@ -613,6 +760,14 @@ const Header = () => {
           Reports
         </NavLink>
         
+        <NavLink 
+          to="/face-management" 
+          className={location.pathname === '/face-management' ? 'active' : ''} 
+          style={{ '--index': 4 }}
+        >
+          🧠 Face Recognition
+        </NavLink>
+        
         {/* Admin Dropdown */}
         <NavDropdown>
           <DropdownButton 
@@ -640,6 +795,18 @@ const Header = () => {
             >
               AI Console
             </Link>
+            <Link 
+              to="/visual-alerts"
+              onClick={() => setActiveDropdown(null)}
+            >
+              Visual Alerts Demo
+            </Link>
+            <Link 
+              to="/dispatcher"
+              onClick={() => setActiveDropdown(null)}
+            >
+              Camera Dispatcher
+            </Link>
           </DropdownContent>
         </NavDropdown>
         
@@ -660,24 +827,29 @@ const Header = () => {
         <MobileNavLink to="/live-monitoring" style={{ '--index': 1 }}>Live Monitoring</MobileNavLink>
         <MobileNavLink to="/guard-operations" style={{ '--index': 2 }}>Guard Operations</MobileNavLink>
         <MobileNavLink to="/reports/new" style={{ '--index': 3 }}>Reports</MobileNavLink>
+        <MobileNavLink to="/face-management" style={{ '--index': 4 }}>🧠 Face Recognition</MobileNavLink>
         
         {/* Admin Section */}
         <div style={{ 
           padding: '1rem', 
-          borderBottom: `1px solid ${colors.gold}`, 
-          color: colors.gold,
-          marginTop: '1rem'
+          borderBottom: `1px solid ${colors.primary}`,
+          color: colors.primary,
+          marginTop: '1rem',
+          textShadow: `0 0 8px ${colors.textGlow}`,
+          fontWeight: '600'
         }}>
           Admin
         </div>
         <MobileNavLink to="/admin" style={{ '--index': 4 }}>Admin Dashboard</MobileNavLink>
         <MobileNavLink to="/guard-mobile" style={{ '--index': 5 }}>Guard Mobile</MobileNavLink>
         <MobileNavLink to="/ai-console" style={{ '--index': 6 }}>AI Console</MobileNavLink>
+        <MobileNavLink to="/visual-alerts" style={{ '--index': 7 }}>Visual Alerts Demo</MobileNavLink>
+        <MobileNavLink to="/dispatcher" style={{ '--index': 8 }}>Camera Dispatcher</MobileNavLink>
         
         {/* Auth Links for Mobile */}
         <div style={{ 
           marginTop: 'auto', 
-          borderTop: `1px solid ${colors.gold}`, 
+          borderTop: `1px solid ${colors.primary}`, 
           paddingTop: '1rem',
           display: 'flex',
           justifyContent: 'center'
@@ -686,38 +858,44 @@ const Header = () => {
             <>
               <div style={{ 
                 padding: '0.5rem 1rem', 
-                borderRadius: '4px',
-                backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(20, 184, 166, 0.05))',
+                border: `1px solid ${colors.primary}`,
                 marginBottom: '1rem',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                width: '100%'
+                width: '100%',
+                backdropFilter: 'blur(10px)'
               }}>
                 <span style={{ color: colors.white, marginBottom: '0.5rem' }}>
                   {user.first_name || user.username}
                 </span>
                 <span style={{ 
                   fontSize: '0.8rem',
-                  backgroundColor: colors.gold,
-                  color: colors.black,
+                  background: `linear-gradient(135deg, ${colors.primary}, ${colors.primaryLight})`,
+                  color: colors.white,
                   padding: '0.25rem 0.75rem',
-                  borderRadius: '20px'
+                  borderRadius: '20px',
+                  boxShadow: `0 0 15px ${colors.primaryGlow}`,
+                  border: '1px solid rgba(255, 255, 255, 0.1)'
                 }}>
                   {formatRole(user.role)}
                 </span>
               </div>
               <button 
                 style={{ 
-                  backgroundColor: 'transparent',
-                  border: `2px solid ${colors.gold}`,
-                  borderRadius: '4px',
-                  color: colors.gold,
+                  background: 'transparent',
+                  border: `2px solid ${colors.primary}`,
+                  borderRadius: '8px',
+                  color: colors.primary,
                   padding: '0.75rem 1.5rem',
                   fontWeight: 'bold',
                   marginTop: '1rem',
                   cursor: 'pointer',
-                  width: '100%'
+                  width: '100%',
+                  textShadow: `0 0 8px ${colors.textGlow}`,
+                  transition: 'all 0.3s ease'
                 }} 
                 onClick={() => { 
                   handleLogout(); 
@@ -731,14 +909,17 @@ const Header = () => {
             <Link 
               to="/login" 
               style={{ 
-                backgroundColor: colors.gold,
-                color: colors.black,
+                background: `linear-gradient(135deg, ${colors.primary}, ${colors.primaryLight})`,
+                color: colors.white,
                 padding: '0.75rem 1.5rem',
-                borderRadius: '4px',
+                borderRadius: '8px',
                 fontWeight: 'bold',
                 textDecoration: 'none',
                 width: '100%',
-                textAlign: 'center'
+                textAlign: 'center',
+                boxShadow: `0 0 20px ${colors.primaryGlow}`,
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                transition: 'all 0.3s ease'
               }}
               onClick={() => setIsMobileMenuOpen(false)}
             >
@@ -750,6 +931,25 @@ const Header = () => {
       
       {/* Auth buttons for desktop view */}
       <AuthButtonsContainer>
+        {/* Font Selector Settings */}
+        <div style={{ position: 'relative' }}>
+          <SettingsButton
+            onClick={toggleFontSelector}
+            title="Font Settings"
+            type="button"
+          >
+            ⚙️
+          </SettingsButton>
+          <FontSelectorPopover $isOpen={isFontSelectorOpen}>
+            <FontSelector
+              onFontChange={() => {
+                // Optional: Close popover after font change
+                setTimeout(() => setIsFontSelectorOpen(false), 500);
+              }}
+            />
+          </FontSelectorPopover>
+        </div>
+
         {user ? (
           <>
             <UserInfo>

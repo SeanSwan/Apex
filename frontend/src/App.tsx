@@ -4,8 +4,7 @@
 
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from 'styled-components';
-import { theme } from './theme';
+import { FontProvider } from './contexts/FontContext';
 import './App.scss';
 
 // Enhanced Report Builder (Phase 1 - COMPLETED)
@@ -17,6 +16,15 @@ import DetailedReportPage from './pages/DetailedReportPage';
 const LiveMonitoringDashboard = lazy(() => import('./components/LiveMonitoring/LiveMonitoringDashboard'));
 const EnhancedLiveMonitoring = lazy(() => import('./components/LiveMonitoring/EnhancedLiveMonitoring'));
 const LiveMonitoringContainer = lazy(() => import('./components/LiveMonitoring/LiveMonitoringContainer'));
+
+// TIER 2 Visual Alerts System (Phase 3 - LAZY LOADED)
+const Tier2VisualAlertsPage = lazy(() => import('./pages/Tier2VisualAlertsPage'));
+
+// Dispatcher Dashboard - Real Camera Integration (Phase 3B - LAZY LOADED)
+const DispatcherDashboard = lazy(() => import('./components/CameraFeeds/DispatcherDashboard'));
+
+// Face Recognition Management System (Phase 2C - LAZY LOADED)
+const FaceManagementPage = lazy(() => import('./pages/FaceManagementPage'));
 
 // Guard Operations & Dispatch (Phase 2B)  
 import { GuardOperationsDashboard } from './components';
@@ -46,7 +54,7 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <ThemeProvider theme={theme}>
+      <FontProvider>
         <AuthProvider>
         <Router>
           <div className="app-container">
@@ -86,6 +94,13 @@ const App: React.FC = () => {
                 {/* Phase 2C: Guard Mobile App */}
                 <Route path="/guard-mobile" element={<GuardMobileApp />} />
                 
+                {/* Face Recognition Management System */}
+                <Route path="/face-management" element={
+                  <Suspense fallback={<div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', fontFamily: 'Segoe UI', fontSize: '18px', fontWeight: '600'}}>🧠 Loading Face Recognition System...</div>}>
+                    <FaceManagementPage />
+                  </Suspense>
+                } />
+                
                 {/* === REPORT BUILDER ROUTES (Phase 1 - COMPLETED) === */}
                 
                 {/* Enhanced Report Builder - Primary */}
@@ -114,6 +129,20 @@ const App: React.FC = () => {
                 {/* === AI CONSOLE - ELITE SECURITY OPERATIONS === */}
                 <Route path="/ai-console" element={<AIConsoleDashboard />} />
                 
+                {/* === TIER 2 VISUAL ALERTS SYSTEM === */}
+                <Route path="/visual-alerts" element={
+                  <Suspense fallback={<div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#000', color: '#00FF88', fontFamily: 'Segoe UI', fontSize: '18px', fontWeight: '700'}}>🚨 Loading TIER 2 Visual Alerts...</div>}>
+                    <Tier2VisualAlertsPage />
+                  </Suspense>
+                } />
+                
+                {/* === DISPATCHER DASHBOARD - REAL CAMERA INTEGRATION === */}
+                <Route path="/dispatcher" element={
+                  <Suspense fallback={<div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#0a0a0a', color: '#00FF88', fontFamily: 'Segoe UI', fontSize: '18px', fontWeight: '700'}}>📹 Loading Dispatcher Dashboard...</div>}>
+                    <DispatcherDashboard />
+                  </Suspense>
+                } />
+                
                 {/* === ERROR HANDLING === */}
                 
                 {/* Unauthorized page */}
@@ -127,7 +156,7 @@ const App: React.FC = () => {
           </div>
         </Router>
         </AuthProvider>
-      </ThemeProvider>
+      </FontProvider>
     </ErrorBoundary>
   );
 };
