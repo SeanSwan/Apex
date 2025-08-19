@@ -1,0 +1,754 @@
+/* client-portal/src/styles/global.css */
+/**
+ * APEX AI - Aegis Client Portal Global Styles
+ * ===========================================
+ * 
+ * Professional design system and global styles for the Aegis Client Portal.
+ * Provides enterprise-grade styling with APEX AI branding, responsive layouts,
+ * and comprehensive component styling patterns.
+ * 
+ * Features:
+ * - APEX AI brand color palette and typography
+ * - Responsive design system with mobile-first approach
+ * - Professional component styling patterns
+ * - Loading states and transitions
+ * - Dark mode support foundations
+ * - Accessibility-compliant focus styles
+ */
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* ===========================
+   APEX AI BRAND FOUNDATIONS
+   =========================== */
+
+:root {
+  /* APEX AI Primary Brand Colors */
+  --apex-primary: #1e40af;      /* Blue 700 - Primary brand */
+  --apex-primary-dark: #1e3a8a; /* Blue 800 - Darker primary */
+  --apex-primary-light: #3b82f6; /* Blue 500 - Lighter primary */
+  --apex-primary-50: #eff6ff;   /* Blue 50 - Very light */
+  
+  /* APEX AI Iridescent Teal System (NEW) */
+  --apex-teal: #14b8a6;         /* Teal 500 - Primary iridescent */
+  --apex-teal-dark: #0f766e;    /* Teal 600 - Darker iridescent */
+  --apex-teal-light: #5eead4;   /* Teal 300 - Lighter iridescent */
+  --apex-teal-glow: #2dd4bf;    /* Teal 400 - Glow effect */
+  --apex-teal-50: #f0fdfa;      /* Teal 50 - Very light background */
+  --apex-cyan: #06b6d4;         /* Cyan 500 - Accent color */
+  --apex-cyan-glow: #22d3ee;    /* Cyan 400 - Glow accent */
+  
+  /* APEX AI Secondary Colors */
+  --apex-secondary: #64748b;     /* Slate 500 - Professional gray */
+  --apex-secondary-dark: #475569; /* Slate 600 - Darker gray */
+  --apex-secondary-light: #94a3b8; /* Slate 400 - Lighter gray */
+  
+  /* Success & Status Colors */
+  --apex-success: #059669;       /* Emerald 600 - Success states */
+  --apex-success-light: #d1fae5; /* Emerald 100 - Success backgrounds */
+  --apex-warning: #d97706;       /* Amber 600 - Warning states */
+  --apex-warning-light: #fef3c7; /* Amber 100 - Warning backgrounds */
+  --apex-error: #dc2626;         /* Red 600 - Error states */
+  --apex-error-light: #fee2e2;   /* Red 100 - Error backgrounds */
+  
+  /* Neutral Palette */
+  --apex-gray-50: #f8fafc;
+  --apex-gray-100: #f1f5f9;
+  --apex-gray-200: #e2e8f0;
+  --apex-gray-300: #cbd5e1;
+  --apex-gray-400: #94a3b8;
+  --apex-gray-500: #64748b;
+  --apex-gray-600: #475569;
+  --apex-gray-700: #334155;
+  --apex-gray-800: #1e293b;
+  --apex-gray-900: #0f172a;
+  
+  /* Glow Effect Variables */
+  --glow-size-sm: 4px;
+  --glow-size-md: 8px;
+  --glow-size-lg: 16px;
+  --glow-size-xl: 24px;
+  --glow-opacity: 0.6;
+  --glow-opacity-intense: 0.8;
+  
+  /* Layout & Spacing */
+  --apex-sidebar-width: 280px;
+  --apex-sidebar-collapsed: 80px;
+  --apex-header-height: 70px;
+  --apex-border-radius: 8px;
+  --apex-border-radius-lg: 12px;
+  
+  /* Typography */
+  --apex-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --apex-font-mono: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
+  
+  /* Shadows & Elevation */
+  --apex-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --apex-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --apex-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --apex-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --apex-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  /* Transitions */
+  --apex-transition-fast: 150ms ease-in-out;
+  --apex-transition: 250ms ease-in-out;
+  --apex-transition-slow: 350ms ease-in-out;
+}
+
+/* ===========================
+   BASE STYLES & RESETS
+   =========================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--apex-font-family);
+  line-height: 1.6;
+  color: var(--apex-gray-800);
+  background-color: var(--apex-gray-50);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Remove default button styles */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Remove default input styles */
+input, textarea, select {
+  font-family: inherit;
+}
+
+/* Improve focus visibility */
+:focus {
+  outline: 2px solid var(--apex-primary);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ===========================
+   TYPOGRAPHY SYSTEM
+   =========================== */
+
+.apex-heading-1 {
+  @apply text-4xl font-bold text-gray-900 leading-tight tracking-tight;
+}
+
+.apex-heading-2 {
+  @apply text-3xl font-bold text-gray-900 leading-tight;
+}
+
+.apex-heading-3 {
+  @apply text-2xl font-semibold text-gray-900 leading-snug;
+}
+
+.apex-heading-4 {
+  @apply text-xl font-semibold text-gray-800 leading-snug;
+}
+
+.apex-heading-5 {
+  @apply text-lg font-semibold text-gray-800;
+}
+
+.apex-body-large {
+  @apply text-lg text-gray-700 leading-relaxed;
+}
+
+.apex-body {
+  @apply text-base text-gray-700 leading-relaxed;
+}
+
+.apex-body-small {
+  @apply text-sm text-gray-600;
+}
+
+.apex-caption {
+  @apply text-xs text-gray-500 uppercase tracking-wider font-medium;
+}
+
+/* ===========================
+   LAYOUT COMPONENTS
+   =========================== */
+
+/* Main Application Layout */
+.apex-app-layout {
+  @apply min-h-screen bg-gray-50;
+  display: grid;
+  grid-template-areas: 
+    "sidebar header"
+    "sidebar main";
+  grid-template-columns: var(--apex-sidebar-width) 1fr;
+  grid-template-rows: var(--apex-header-height) 1fr;
+}
+
+.apex-app-layout.sidebar-collapsed {
+  grid-template-columns: var(--apex-sidebar-collapsed) 1fr;
+}
+
+/* Header */
+.apex-header {
+  grid-area: header;
+  @apply bg-white border-b border-gray-200;
+  box-shadow: var(--apex-shadow-sm);
+  z-index: 40;
+}
+
+.apex-header-content {
+  @apply h-full flex items-center justify-between px-6;
+}
+
+/* Sidebar */
+.apex-sidebar {
+  grid-area: sidebar;
+  @apply bg-white border-r border-gray-200 overflow-hidden;
+  box-shadow: var(--apex-shadow-sm);
+  z-index: 50;
+  transition: width var(--apex-transition);
+}
+
+/* Main Content Area */
+.apex-main {
+  grid-area: main;
+  @apply overflow-auto;
+  min-height: calc(100vh - var(--apex-header-height));
+}
+
+.apex-main-content {
+  @apply p-6 max-w-7xl mx-auto;
+}
+
+/* ===========================
+   NAVIGATION COMPONENTS
+   =========================== */
+
+.apex-nav {
+  @apply flex flex-col h-full;
+}
+
+.apex-nav-header {
+  @apply p-6 border-b border-gray-200;
+  height: var(--apex-header-height);
+  @apply flex items-center;
+}
+
+.apex-nav-logo {
+  @apply flex items-center space-x-3;
+}
+
+.apex-nav-logo-icon {
+  @apply w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center;
+  box-shadow: var(--apex-shadow-md);
+}
+
+.apex-nav-logo-text {
+  @apply text-xl font-bold text-gray-900;
+}
+
+.apex-nav-menu {
+  @apply flex-1 py-4 overflow-y-auto;
+}
+
+.apex-nav-section {
+  @apply px-4 mb-6;
+}
+
+.apex-nav-section-title {
+  @apply text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-2;
+}
+
+.apex-nav-item {
+  @apply flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 mb-1;
+  color: var(--apex-gray-600);
+}
+
+.apex-nav-item:hover {
+  @apply bg-gray-50 text-gray-900;
+}
+
+.apex-nav-item.active {
+  @apply bg-blue-50 text-blue-700 border-r-2 border-blue-600;
+  background: linear-gradient(90deg, var(--apex-primary-50) 0%, transparent 100%);
+}
+
+.apex-nav-item-icon {
+  @apply w-5 h-5 mr-3 flex-shrink-0;
+}
+
+.apex-nav-item-text {
+  @apply flex-1 truncate;
+}
+
+.apex-nav-item-badge {
+  @apply ml-2 px-2 py-0.5 text-xs font-medium rounded-full;
+}
+
+/* User Profile Section */
+.apex-nav-user {
+  @apply p-4 border-t border-gray-200;
+}
+
+.apex-nav-user-info {
+  @apply flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200;
+}
+
+.apex-nav-user-avatar {
+  @apply w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-semibold text-sm;
+}
+
+.apex-nav-user-details {
+  @apply ml-3 flex-1 min-w-0;
+}
+
+.apex-nav-user-name {
+  @apply text-sm font-medium text-gray-900 truncate;
+}
+
+.apex-nav-user-role {
+  @apply text-xs text-gray-500 truncate;
+}
+
+/* ===========================
+   BUTTON SYSTEM
+   =========================== */
+
+.apex-btn {
+  @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply transition-all duration-200;
+}
+
+.apex-btn-primary {
+  @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+  box-shadow: var(--apex-shadow);
+}
+
+.apex-btn-primary:hover {
+  box-shadow: var(--apex-shadow-md);
+  transform: translateY(-1px);
+}
+
+.apex-btn-secondary {
+  @apply bg-white text-gray-700 border-gray-300 hover:bg-gray-50 focus:ring-blue-500;
+}
+
+.apex-btn-outline {
+  @apply bg-transparent text-blue-600 border-blue-600 hover:bg-blue-50 focus:ring-blue-500;
+}
+
+.apex-btn-danger {
+  @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+}
+
+.apex-btn-sm {
+  @apply px-3 py-1.5 text-xs;
+}
+
+.apex-btn-lg {
+  @apply px-6 py-3 text-base;
+}
+
+/* ===========================
+   CARD SYSTEM
+   =========================== */
+
+.apex-card {
+  @apply bg-white rounded-lg border border-gray-200;
+  box-shadow: var(--apex-shadow-sm);
+}
+
+.apex-card-hover {
+  @apply transition-all duration-200 hover:shadow-md hover:-translate-y-1;
+}
+
+.apex-card-header {
+  @apply p-6 border-b border-gray-200;
+}
+
+.apex-card-title {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.apex-card-subtitle {
+  @apply text-sm text-gray-500 mt-1;
+}
+
+.apex-card-body {
+  @apply p-6;
+}
+
+.apex-card-footer {
+  @apply p-6 border-t border-gray-200 bg-gray-50;
+}
+
+/* ===========================
+   FORM COMPONENTS
+   =========================== */
+
+.apex-form-group {
+  @apply mb-4;
+}
+
+.apex-label {
+  @apply block text-sm font-semibold text-gray-900 mb-2;
+}
+
+.apex-input {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  @apply disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed;
+  @apply transition-colors duration-200;
+}
+
+.apex-input-error {
+  @apply border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500;
+}
+
+.apex-select {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  @apply disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed;
+  @apply transition-colors duration-200;
+}
+
+.apex-textarea {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  @apply disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed;
+  @apply transition-colors duration-200 resize-y;
+}
+
+/* ===========================
+   LOADING & STATUS STATES
+   =========================== */
+
+.apex-loading {
+  @apply inline-block animate-spin rounded-full border-2 border-gray-300 border-t-blue-600;
+}
+
+.apex-loading-sm {
+  @apply w-4 h-4;
+}
+
+.apex-loading-md {
+  @apply w-6 h-6;
+}
+
+.apex-loading-lg {
+  @apply w-8 h-8;
+}
+
+.apex-skeleton {
+  @apply animate-pulse bg-gray-200 rounded;
+}
+
+.apex-status-indicator {
+  @apply w-2 h-2 rounded-full;
+}
+
+.apex-status-online {
+  @apply bg-green-500;
+}
+
+.apex-status-offline {
+  @apply bg-gray-400;
+}
+
+.apex-status-warning {
+  @apply bg-yellow-500;
+}
+
+.apex-status-error {
+  @apply bg-red-500;
+}
+
+/* ===========================
+   BADGE SYSTEM
+   =========================== */
+
+.apex-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.apex-badge-primary {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.apex-badge-secondary {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.apex-badge-success {
+  @apply bg-green-100 text-green-800;
+}
+
+.apex-badge-warning {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.apex-badge-error {
+  @apply bg-red-100 text-red-800;
+}
+
+/* ===========================
+   RESPONSIVE DESIGN
+   =========================== */
+
+/* Mobile First Responsive Breakpoints */
+@media (max-width: 640px) {
+  .apex-app-layout {
+    grid-template-areas: 
+      "header"
+      "main";
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--apex-header-height) 1fr;
+  }
+  
+  .apex-sidebar {
+    @apply fixed left-0 top-0 h-full w-64 transform -translate-x-full z-50;
+    transition: transform var(--apex-transition);
+  }
+  
+  .apex-sidebar.mobile-open {
+    @apply transform translate-x-0;
+  }
+  
+  .apex-main-content {
+    @apply p-4;
+  }
+  
+  .apex-nav-logo-text {
+    @apply hidden;
+  }
+}
+
+@media (max-width: 768px) {
+  .apex-main-content {
+    @apply p-4;
+  }
+}
+
+/* ===========================
+   ACCESSIBILITY ENHANCEMENTS
+   =========================== */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .apex-nav-item {
+    border: 1px solid transparent;
+  }
+  
+  .apex-nav-item:hover,
+  .apex-nav-item.active {
+    border-color: currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus improvements for keyboard navigation */
+.apex-nav-item:focus,
+.apex-btn:focus,
+.apex-input:focus,
+.apex-select:focus,
+.apex-textarea:focus {
+  @apply ring-2 ring-blue-500 ring-offset-2;
+}
+
+/* ===========================
+   UTILITY CLASSES
+   =========================== */
+
+.apex-fade-in {
+  animation: apex-fadeIn 0.3s ease-in-out;
+}
+
+.apex-slide-up {
+  animation: apex-slideUp 0.3s ease-out;
+}
+
+@keyframes apex-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes apex-slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* ===========================
+   APEX AI GLOW EFFECTS SYSTEM
+   =========================== */
+
+/* Teal Glow Effects */
+.glow-teal {
+  box-shadow: 0 0 var(--glow-size-sm) var(--apex-teal-glow),
+              0 0 var(--glow-size-md) var(--apex-teal),
+              0 0 var(--glow-size-lg) rgba(45, 212, 191, var(--glow-opacity));
+}
+
+.glow-teal-intense {
+  box-shadow: 0 0 var(--glow-size-md) var(--apex-teal-glow),
+              0 0 var(--glow-size-lg) var(--apex-teal),
+              0 0 var(--glow-size-xl) rgba(45, 212, 191, var(--glow-opacity-intense));
+}
+
+.glow-cyan {
+  box-shadow: 0 0 var(--glow-size-sm) var(--apex-cyan-glow),
+              0 0 var(--glow-size-md) var(--apex-cyan),
+              0 0 var(--glow-size-lg) rgba(34, 211, 238, var(--glow-opacity));
+}
+
+/* Text Glow Effects */
+.text-glow-teal {
+  text-shadow: 0 0 var(--glow-size-sm) var(--apex-teal-glow),
+               0 0 var(--glow-size-md) var(--apex-teal),
+               0 0 var(--glow-size-lg) rgba(45, 212, 191, var(--glow-opacity));
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 var(--glow-size-sm) var(--apex-cyan-glow),
+               0 0 var(--glow-size-md) var(--apex-cyan),
+               0 0 var(--glow-size-lg) rgba(34, 211, 238, var(--glow-opacity));
+}
+
+/* Pulsating Glow Animations */
+.glow-pulse {
+  animation: glowPulse 2s ease-in-out infinite alternate;
+}
+
+.glow-pulse-fast {
+  animation: glowPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes glowPulse {
+  from {
+    box-shadow: 0 0 var(--glow-size-sm) var(--apex-teal-glow),
+                0 0 var(--glow-size-md) var(--apex-teal),
+                0 0 var(--glow-size-lg) rgba(45, 212, 191, 0.3);
+  }
+  to {
+    box-shadow: 0 0 var(--glow-size-md) var(--apex-teal-glow),
+                0 0 var(--glow-size-lg) var(--apex-teal),
+                0 0 var(--glow-size-xl) rgba(45, 212, 191, 0.8),
+                0 0 40px rgba(45, 212, 191, 0.4);
+  }
+}
+
+/* Hover Glow Effects */
+.hover-glow-teal:hover {
+  transition: box-shadow 0.3s ease-in-out;
+  box-shadow: 0 0 var(--glow-size-md) var(--apex-teal-glow),
+              0 0 var(--glow-size-lg) var(--apex-teal),
+              0 0 var(--glow-size-xl) rgba(45, 212, 191, var(--glow-opacity-intense));
+}
+
+.hover-glow-cyan:hover {
+  transition: box-shadow 0.3s ease-in-out;
+  box-shadow: 0 0 var(--glow-size-md) var(--apex-cyan-glow),
+              0 0 var(--glow-size-lg) var(--apex-cyan),
+              0 0 var(--glow-size-xl) rgba(34, 211, 238, var(--glow-opacity-intense));
+}
+
+/* Iridescent Gradient Effects */
+.bg-iridescent-teal {
+  background: linear-gradient(135deg, 
+    var(--apex-teal-light) 0%, 
+    var(--apex-teal) 25%, 
+    var(--apex-cyan) 50%, 
+    var(--apex-teal) 75%, 
+    var(--apex-teal-dark) 100%);
+  background-size: 200% 200%;
+  animation: iridescent 3s ease-in-out infinite;
+}
+
+@keyframes iridescent {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Utility Classes for Tech UI */
+.tech-border {
+  border: 1px solid var(--apex-teal);
+  border-radius: 8px;
+  position: relative;
+}
+
+.tech-border::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  border-radius: 8px;
+  background: linear-gradient(45deg, var(--apex-teal), var(--apex-cyan), var(--apex-teal));
+  background-size: 200% 200%;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: borderGlow 2s linear infinite;
+}
+
+.tech-border:hover::before {
+  opacity: 1;
+}
+
+@keyframes borderGlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Print styles */
+@media print {
+  .apex-sidebar,
+  .apex-header {
+    @apply hidden;
+  }
+  
+  .apex-app-layout {
+    grid-template-areas: "main";
+    grid-template-columns: 1fr;
+  }
+  
+  /* Hide glow effects in print */
+  .glow-teal,
+  .glow-teal-intense,
+  .glow-cyan,
+  .text-glow-teal,
+  .text-glow-cyan {
+    box-shadow: none;
+    text-shadow: none;
+  }
+}

@@ -1,1 +1,84 @@
-{\n  \"name\": \"aegis-client-portal\",\n  \"version\": \"1.0.0\",\n  \"description\": \"APEX AI Security Platform - Aegis Client Portal\",\n  \"type\": \"module\",\n  \"private\": true,\n  \"scripts\": {\n    \"dev\": \"vite\",\n    \"build\": \"tsc && vite build\",\n    \"preview\": \"vite preview\",\n    \"lint\": \"eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0\",\n    \"lint:fix\": \"eslint . --ext ts,tsx --fix\",\n    \"type-check\": \"tsc --noEmit\",\n    \"clean\": \"rm -rf dist node_modules/.vite\"\n  },\n  \"dependencies\": {\n    \"react\": \"^18.2.0\",\n    \"react-dom\": \"^18.2.0\",\n    \"react-router-dom\": \"^6.20.1\",\n    \"@tanstack/react-query\": \"^5.8.4\",\n    \"axios\": \"^1.6.2\",\n    \"date-fns\": \"^2.30.0\",\n    \"recharts\": \"^2.8.0\",\n    \"lucide-react\": \"^0.294.0\",\n    \"clsx\": \"^2.0.0\",\n    \"tailwind-merge\": \"^2.0.0\",\n    \"react-hook-form\": \"^7.48.2\",\n    \"@hookform/resolvers\": \"^3.3.2\",\n    \"zod\": \"^3.22.4\",\n    \"react-hot-toast\": \"^2.4.1\",\n    \"js-cookie\": \"^3.0.5\",\n    \"react-dropzone\": \"^14.2.3\",\n    \"file-saver\": \"^2.0.5\"\n  },\n  \"devDependencies\": {\n    \"@types/react\": \"^18.2.37\",\n    \"@types/react-dom\": \"^18.2.15\",\n    \"@types/js-cookie\": \"^3.0.6\",\n    \"@types/file-saver\": \"^2.0.7\",\n    \"@typescript-eslint/eslint-plugin\": \"^6.10.0\",\n    \"@typescript-eslint/parser\": \"^6.10.0\",\n    \"@vitejs/plugin-react\": \"^4.1.1\",\n    \"autoprefixer\": \"^10.4.16\",\n    \"eslint\": \"^8.53.0\",\n    \"eslint-plugin-react-hooks\": \"^4.6.0\",\n    \"eslint-plugin-react-refresh\": \"^0.4.4\",\n    \"postcss\": \"^8.4.31\",\n    \"tailwindcss\": \"^3.3.5\",\n    \"typescript\": \"^5.2.2\",\n    \"vite\": \"^4.5.0\"\n  },\n  \"browserslist\": {\n    \"production\": [\n      \">0.2%\",\n      \"not dead\",\n      \"not op_mini all\"\n    ],\n    \"development\": [\n      \"last 1 chrome version\",\n      \"last 1 firefox version\",\n      \"last 1 safari version\"\n    ]\n  },\n  \"engines\": {\n    \"node\": \">=18.0.0\",\n    \"npm\": \">=8.0.0\"\n  },\n  \"keywords\": [\n    \"security\",\n    \"client-portal\",\n    \"react\",\n    \"typescript\",\n    \"aegis\",\n    \"apex-ai\"\n  ],\n  \"author\": \"APEX AI Security Platform\",\n  \"license\": \"PROPRIETARY\",\n  \"homepage\": \".\",\n  \"repository\": {\n    \"type\": \"git\",\n    \"url\": \"private\"\n  }\n}
+{
+  "name": "aegis-client-portal",
+  "version": "1.0.0",
+  "description": "APEX AI Security Platform - Aegis Client Portal",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules/.vite"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.1",
+    "@heroicons/react": "^2.0.18",
+    "@tanstack/react-query": "^5.8.4",
+    "axios": "^1.6.2",
+    "date-fns": "^2.30.0",
+    "recharts": "^2.8.0",
+    "lucide-react": "^0.294.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0",
+    "react-hook-form": "^7.48.2",
+    "@hookform/resolvers": "^3.3.2",
+    "zod": "^3.22.4",
+    "react-hot-toast": "^2.4.1",
+    "js-cookie": "^3.0.5",
+    "react-dropzone": "^14.2.3",
+    "file-saver": "^2.0.5"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@types/js-cookie": "^3.0.6",
+    "@types/file-saver": "^2.0.7",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "@vitejs/plugin-react": "^4.1.1",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.53.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.4",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.2.2",
+    "vite": "^4.5.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "security",
+    "client-portal",
+    "react",
+    "typescript",
+    "aegis",
+    "apex-ai"
+  ],
+  "author": "APEX AI Security Platform",
+  "license": "PROPRIETARY",
+  "homepage": ".",
+  "repository": {
+    "type": "git",
+    "url": "private"
+  }
+}

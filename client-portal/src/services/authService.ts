@@ -1,1 +1,390 @@
-// client-portal/src/services/authService.ts\n/**\n * Client Portal Authentication Service\n * ====================================\n * Handles all authentication-related operations for the Aegis Client Portal\n * including login, logout, session management, and user profile operations\n */\n\nimport axios, { AxiosResponse } from 'axios';\nimport Cookies from 'js-cookie';\nimport toast from 'react-hot-toast';\nimport {\n  User,\n  LoginCredentials,\n  AuthResponse,\n  ApiResponse,\n  ClientSession\n} from '@/types/client.types';\n\n// ===========================\n// CONFIGURATION & CONSTANTS\n// ===========================\n\nconst API_BASE_URL = import.meta.env.VITE_API_URL || '/api';\nconst CLIENT_API_BASE = `${API_BASE_URL}/client/v1`;\n\n// Cookie configuration\nconst COOKIE_OPTIONS = {\n  expires: 1/24, // 1 hour in days\n  secure: import.meta.env.PROD,\n  sameSite: 'strict' as const,\n  path: '/'\n};\n\n// Storage keys\nconst STORAGE_KEYS = {\n  ACCESS_TOKEN: 'aegis_access_token',\n  USER_DATA: 'aegis_user_data',\n  LAST_ACTIVITY: 'aegis_last_activity',\n  REMEMBER_EMAIL: 'aegis_remember_email'\n} as const;\n\n// ===========================\n// AXIOS CONFIGURATION\n// ===========================\n\n// Create axios instance for auth requests\nconst authApi = axios.create({\n  baseURL: CLIENT_API_BASE,\n  timeout: 30000,\n  withCredentials: true,\n  headers: {\n    'Content-Type': 'application/json'\n  }\n});\n\n// Request interceptor to add auth token\nauthApi.interceptors.request.use(\n  (config) => {\n    const token = getAccessToken();\n    if (token && config.headers) {\n      config.headers.Authorization = `Bearer ${token}`;\n    }\n    return config;\n  },\n  (error) => {\n    return Promise.reject(error);\n  }\n);\n\n// Response interceptor to handle auth errors\nauthApi.interceptors.response.use(\n  (response) => response,\n  async (error) => {\n    if (error.response?.status === 401) {\n      // Token expired or invalid\n      await handleAuthError('Session expired. Please log in again.');\n    }\n    return Promise.reject(error);\n  }\n);\n\n// ===========================\n// UTILITY FUNCTIONS\n// ===========================\n\n/**\n * Get access token from localStorage\n */\nconst getAccessToken = (): string | null => {\n  return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);\n};\n\n/**\n * Set access token in localStorage\n */\nconst setAccessToken = (token: string): void => {\n  localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);\n};\n\n/**\n * Remove access token from localStorage\n */\nconst removeAccessToken = (): void => {\n  localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);\n};\n\n/**\n * Get user data from localStorage\n */\nconst getUserData = (): User | null => {\n  const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA);\n  if (!userData) return null;\n  \n  try {\n    return JSON.parse(userData) as User;\n  } catch (error) {\n    console.error('Error parsing user data from localStorage:', error);\n    localStorage.removeItem(STORAGE_KEYS.USER_DATA);\n    return null;\n  }\n};\n\n/**\n * Set user data in localStorage\n */\nconst setUserData = (user: User): void => {\n  localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));\n};\n\n/**\n * Remove user data from localStorage\n */\nconst removeUserData = (): void => {\n  localStorage.removeItem(STORAGE_KEYS.USER_DATA);\n};\n\n/**\n * Update last activity timestamp\n */\nconst updateLastActivity = (): void => {\n  localStorage.setItem(STORAGE_KEYS.LAST_ACTIVITY, Date.now().toString());\n};\n\n/**\n * Handle authentication errors\n */\nconst handleAuthError = async (message: string): Promise<void> => {\n  clearAuthData();\n  toast.error(message);\n  \n  // Redirect to login page\n  if (window.location.pathname !== '/login') {\n    window.location.href = '/login';\n  }\n};\n\n/**\n * Clear all authentication data\n */\nconst clearAuthData = (): void => {\n  removeAccessToken();\n  removeUserData();\n  localStorage.removeItem(STORAGE_KEYS.LAST_ACTIVITY);\n  \n  // Clear session cookie\n  Cookies.remove('client_session_token', { \n    path: '/', \n    secure: import.meta.env.PROD \n  });\n};\n\n// ===========================\n// MAIN AUTHENTICATION SERVICE\n// ===========================\n\nexport class AuthService {\n  /**\n   * Login with email and password\n   */\n  static async login(credentials: LoginCredentials, rememberMe: boolean = false): Promise<User> {\n    try {\n      const response: AxiosResponse<AuthResponse> = await authApi.post('/auth/login', {\n        email: credentials.email.toLowerCase().trim(),\n        password: credentials.password\n      });\n\n      if (!response.data.success || !response.data.data) {\n        throw new Error(response.data.message || 'Login failed');\n      }\n\n      const { user, accessToken, expiresAt } = response.data.data;\n\n      // Store auth data\n      setAccessToken(accessToken);\n      setUserData(user);\n      updateLastActivity();\n\n      // Handle remember me\n      if (rememberMe) {\n        localStorage.setItem(STORAGE_KEYS.REMEMBER_EMAIL, credentials.email.toLowerCase().trim());\n      } else {\n        localStorage.removeItem(STORAGE_KEYS.REMEMBER_EMAIL);\n      }\n\n      toast.success(`Welcome back, ${user.firstName}!`);\n      return user;\n\n    } catch (error: any) {\n      const errorMessage = error.response?.data?.message || error.message || 'Login failed. Please try again.';\n      toast.error(errorMessage);\n      throw new Error(errorMessage);\n    }\n  }\n\n  /**\n   * Logout current user\n   */\n  static async logout(): Promise<void> {\n    try {\n      // Call backend logout endpoint\n      await authApi.post('/auth/logout');\n    } catch (error) {\n      // Continue with logout even if backend call fails\n      console.warn('Backend logout failed, proceeding with local cleanup:', error);\n    } finally {\n      clearAuthData();\n      toast.success('Logged out successfully');\n      \n      // Redirect to login page\n      if (window.location.pathname !== '/login') {\n        window.location.href = '/login';\n      }\n    }\n  }\n\n  /**\n   * Get current user profile\n   */\n  static async getCurrentUser(): Promise<User | null> {\n    try {\n      // First check localStorage for existing user data\n      const cachedUser = getUserData();\n      const token = getAccessToken();\n      \n      if (!token) {\n        return null;\n      }\n\n      // Validate token with backend\n      const response: AxiosResponse<ApiResponse<{ user: User }>> = await authApi.get('/auth/profile');\n      \n      if (!response.data.success || !response.data.data) {\n        await handleAuthError('Invalid session');\n        return null;\n      }\n\n      const user = response.data.data.user;\n      \n      // Update cached user data if different\n      if (!cachedUser || JSON.stringify(cachedUser) !== JSON.stringify(user)) {\n        setUserData(user);\n      }\n      \n      updateLastActivity();\n      return user;\n\n    } catch (error: any) {\n      if (error.response?.status === 401) {\n        await handleAuthError('Session expired');\n      } else {\n        console.error('Error fetching current user:', error);\n      }\n      return null;\n    }\n  }\n\n  /**\n   * Change user password\n   */\n  static async changePassword(currentPassword: string, newPassword: string): Promise<void> {\n    try {\n      const response = await authApi.post('/auth/change-password', {\n        currentPassword,\n        newPassword\n      });\n\n      if (!response.data.success) {\n        throw new Error(response.data.message || 'Password change failed');\n      }\n\n      toast.success('Password changed successfully');\n      \n    } catch (error: any) {\n      const errorMessage = error.response?.data?.message || error.message || 'Failed to change password';\n      toast.error(errorMessage);\n      throw new Error(errorMessage);\n    }\n  }\n\n  /**\n   * Get active sessions for current user\n   */\n  static async getActiveSessions(): Promise<ClientSession[]> {\n    try {\n      const response: AxiosResponse<ApiResponse<{ sessions: ClientSession[] }>> = await authApi.get('/auth/sessions');\n      \n      if (!response.data.success || !response.data.data) {\n        throw new Error('Failed to fetch sessions');\n      }\n\n      return response.data.data.sessions;\n      \n    } catch (error: any) {\n      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch sessions';\n      console.error('Error fetching sessions:', errorMessage);\n      throw new Error(errorMessage);\n    }\n  }\n\n  /**\n   * Refresh access token\n   */\n  static async refreshToken(): Promise<boolean> {\n    try {\n      // Try to refresh token using the session cookie\n      const response = await authApi.post('/auth/refresh');\n      \n      if (response.data.success && response.data.data.accessToken) {\n        setAccessToken(response.data.data.accessToken);\n        updateLastActivity();\n        return true;\n      }\n      \n      return false;\n      \n    } catch (error) {\n      console.error('Token refresh failed:', error);\n      return false;\n    }\n  }\n\n  // ===========================\n  // UTILITY METHODS\n  // ===========================\n\n  /**\n   * Check if user is currently authenticated\n   */\n  static isAuthenticated(): boolean {\n    const token = getAccessToken();\n    const userData = getUserData();\n    return !!(token && userData);\n  }\n\n  /**\n   * Get cached user data without API call\n   */\n  static getCachedUser(): User | null {\n    return getUserData();\n  }\n\n  /**\n   * Check if user has specific permission\n   */\n  static hasPermission(permission: keyof User['permissions']): boolean {\n    const user = getUserData();\n    return user?.permissions[permission] ?? false;\n  }\n\n  /**\n   * Check if current user is admin\n   */\n  static isAdmin(): boolean {\n    const user = getUserData();\n    return user?.role === 'client_admin';\n  }\n\n  /**\n   * Get remembered email from previous login\n   */\n  static getRememberedEmail(): string | null {\n    return localStorage.getItem(STORAGE_KEYS.REMEMBER_EMAIL);\n  }\n\n  /**\n   * Clear remembered email\n   */\n  static clearRememberedEmail(): void {\n    localStorage.removeItem(STORAGE_KEYS.REMEMBER_EMAIL);\n  }\n\n  /**\n   * Check session validity (client-side)\n   */\n  static isSessionValid(): boolean {\n    const lastActivity = localStorage.getItem(STORAGE_KEYS.LAST_ACTIVITY);\n    if (!lastActivity) return false;\n    \n    const lastActivityTime = parseInt(lastActivity, 10);\n    const now = Date.now();\n    const twoHours = 2 * 60 * 60 * 1000; // 2 hours in milliseconds\n    \n    return (now - lastActivityTime) < twoHours;\n  }\n\n  /**\n   * Get user's full name\n   */\n  static getUserDisplayName(): string {\n    const user = getUserData();\n    if (!user) return 'Unknown User';\n    return `${user.firstName} ${user.lastName}`.trim();\n  }\n\n  /**\n   * Get user's initials for avatar\n   */\n  static getUserInitials(): string {\n    const user = getUserData();\n    if (!user) return 'U';\n    return `${user.firstName[0] || ''}${user.lastName[0] || ''}`.toUpperCase();\n  }\n\n  /**\n   * Force logout and clear all data\n   */\n  static forceLogout(reason?: string): void {\n    clearAuthData();\n    if (reason) {\n      toast.error(reason);\n    }\n    window.location.href = '/login';\n  }\n}\n\n// ===========================\n// AUTO SESSION MANAGEMENT\n// ===========================\n\n// Update last activity on user interaction\nif (typeof window !== 'undefined') {\n  const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];\n  \n  const throttleActivity = (() => {\n    let timeout: NodeJS.Timeout | null = null;\n    return () => {\n      if (timeout) return;\n      \n      timeout = setTimeout(() => {\n        if (AuthService.isAuthenticated()) {\n          updateLastActivity();\n        }\n        timeout = null;\n      }, 60000); // Update every minute at most\n    };\n  })();\n  \n  activityEvents.forEach(event => {\n    document.addEventListener(event, throttleActivity, true);\n  });\n  \n  // Check session validity on page focus\n  window.addEventListener('focus', () => {\n    if (AuthService.isAuthenticated() && !AuthService.isSessionValid()) {\n      AuthService.forceLogout('Session expired due to inactivity');\n    }\n  });\n}\n\nexport default AuthService;"
+// client-portal/src/services/authService.ts
+/**
+ * Client Portal Authentication Service
+ * ====================================
+ * Handles all authentication-related operations for the Aegis Client Portal
+ * including login, logout, session management, and user profile operations
+ */
+
+import axios, { AxiosResponse } from 'axios';
+import Cookies from 'js-cookie';
+import toast from 'react-hot-toast';
+import {
+  User,
+  LoginCredentials,
+  AuthResponse,
+  ApiResponse,
+  ClientSession
+} from '../types/client.types';
+
+// ===========================
+// CONFIGURATION & CONSTANTS
+// ===========================
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const CLIENT_API_BASE = `${API_BASE_URL}/client/v1`;
+
+// Storage keys
+const STORAGE_KEYS = {
+  ACCESS_TOKEN: 'aegis_access_token',
+  USER_DATA: 'aegis_user_data',
+  LAST_ACTIVITY: 'aegis_last_activity',
+  REMEMBER_EMAIL: 'aegis_remember_email'
+} as const;
+
+// ===========================
+// AXIOS CONFIGURATION
+// ===========================
+
+const authApi = axios.create({
+  baseURL: CLIENT_API_BASE,
+  timeout: 30000,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+// ===========================
+// UTILITY FUNCTIONS
+// ===========================
+
+const getAccessToken = (): string | null => {
+  return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+};
+
+const setAccessToken = (token: string): void => {
+  localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+};
+
+const removeAccessToken = (): void => {
+  localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+};
+
+const getUserData = (): User | null => {
+  const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
+  if (!userData) return null;
+  
+  try {
+    return JSON.parse(userData) as User;
+  } catch (error) {
+    console.error('Error parsing user data from localStorage:', error);
+    localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+    return null;
+  }
+};
+
+const setUserData = (user: User): void => {
+  localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+};
+
+const removeUserData = (): void => {
+  localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+};
+
+const updateLastActivity = (): void => {
+  localStorage.setItem(STORAGE_KEYS.LAST_ACTIVITY, Date.now().toString());
+};
+
+const clearAuthData = (): void => {
+  removeAccessToken();
+  removeUserData();
+  localStorage.removeItem(STORAGE_KEYS.LAST_ACTIVITY);
+  
+  Cookies.remove('client_session_token', { 
+    path: '/', 
+    secure: import.meta.env.PROD 
+  });
+};
+
+const handleAuthError = async (message: string): Promise<void> => {
+  clearAuthData();
+  toast.error(message);
+  
+  // Redirect to landing page instead of /login since /login redirects to /
+  if (window.location.pathname !== '/') {
+    window.location.href = '/';
+  }
+};
+
+// ===========================
+// MAIN AUTHENTICATION SERVICE
+// ===========================
+
+export class AuthService {
+  static async login(credentials: LoginCredentials, rememberMe: boolean = false): Promise<User> {
+    try {
+      console.log('🔑 AuthService: Attempting login for:', credentials.email);
+      
+      const response: AxiosResponse<AuthResponse> = await authApi.post('/auth/login', {
+        email: credentials.email.toLowerCase().trim(),
+        password: credentials.password
+      });
+
+      console.log('🔑 AuthService: Login response received:', response.status, response.data.success);
+
+      if (!response.data.success || !response.data.data) {
+        throw new Error(response.data.message || 'Login failed');
+      }
+
+      const { user, accessToken } = response.data.data;
+      console.log('🔑 AuthService: Login data extracted - User:', user.email, 'Token length:', accessToken?.length);
+
+      // Store authentication data
+      setAccessToken(accessToken);
+      setUserData(user);
+      updateLastActivity();
+      
+      console.log('🔑 AuthService: Authentication data stored successfully');
+
+      if (rememberMe) {
+        localStorage.setItem(STORAGE_KEYS.REMEMBER_EMAIL, credentials.email.toLowerCase().trim());
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.REMEMBER_EMAIL);
+      }
+
+      toast.success(`Welcome back, ${user.firstName}!`);
+      
+      // Verify data was stored correctly
+      const storedToken = getAccessToken();
+      const storedUser = getUserData();
+      console.log('🔑 AuthService: Verification - Token stored:', !!storedToken, 'User stored:', !!storedUser);
+      
+      return user;
+
+    } catch (error: any) {
+      console.error('🔑 AuthService: Login failed:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Login failed. Please try again.';
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }
+
+  static async logout(): Promise<void> {
+    try {
+      await authApi.post('/auth/logout');
+    } catch (error) {
+      console.warn('Backend logout failed, proceeding with local cleanup:', error);
+    } finally {
+      clearAuthData();
+      toast.success('Logged out successfully');
+      
+      // Redirect to landing page instead of /login
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+    }
+  }
+
+  static async getCurrentUser(): Promise<User | null> {
+    try {
+      const cachedUser = getUserData();
+      const token = getAccessToken();
+      
+      if (!token) {
+        return null;
+      }
+
+      const response: AxiosResponse<ApiResponse<{ user: User }>> = await authApi.get('/auth/profile');
+      
+      if (!response.data.success || !response.data.data) {
+        await handleAuthError('Invalid session');
+        return null;
+      }
+
+      const user = response.data.data.user;
+      
+      if (!cachedUser || JSON.stringify(cachedUser) !== JSON.stringify(user)) {
+        setUserData(user);
+      }
+      
+      updateLastActivity();
+      return user;
+
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        await handleAuthError('Session expired');
+      } else {
+        console.error('Error fetching current user:', error);
+      }
+      return null;
+    }
+  }
+
+  static async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    try {
+      const response = await authApi.post('/auth/change-password', {
+        currentPassword,
+        newPassword
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Password change failed');
+      }
+
+      toast.success('Password changed successfully');
+      
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to change password';
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }
+
+  static async getActiveSessions(): Promise<ClientSession[]> {
+    try {
+      const response: AxiosResponse<ApiResponse<{ sessions: ClientSession[] }>> = await authApi.get('/auth/sessions');
+      
+      if (!response.data.success || !response.data.data) {
+        throw new Error('Failed to fetch sessions');
+      }
+
+      return response.data.data.sessions;
+      
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch sessions';
+      console.error('Error fetching sessions:', errorMessage);
+      throw new Error(errorMessage);
+    }
+  }
+
+  static async refreshToken(): Promise<boolean> {
+    try {
+      const response = await authApi.post('/auth/refresh');
+      
+      if (response.data.success && response.data.data.accessToken) {
+        setAccessToken(response.data.data.accessToken);
+        updateLastActivity();
+        return true;
+      }
+      
+      return false;
+      
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      return false;
+    }
+  }
+
+  // ===========================
+  // UTILITY METHODS
+  // ===========================
+
+  static isAuthenticated(): boolean {
+    const token = getAccessToken();
+    const userData = getUserData();
+    const isAuth = !!(token && userData);
+    console.log('🔍 AuthService: isAuthenticated check - Token:', !!token, 'UserData:', !!userData, 'Result:', isAuth);
+    return isAuth;
+  }
+
+  static getCachedUser(): User | null {
+    return getUserData();
+  }
+
+  static hasPermission(permission: keyof User['permissions']): boolean {
+    const user = getUserData();
+    return user?.permissions[permission] ?? false;
+  }
+
+  static isAdmin(): boolean {
+    const user = getUserData();
+    return user?.role === 'client_admin';
+  }
+
+  static getRememberedEmail(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.REMEMBER_EMAIL);
+  }
+
+  static clearRememberedEmail(): void {
+    localStorage.removeItem(STORAGE_KEYS.REMEMBER_EMAIL);
+  }
+
+  static isSessionValid(): boolean {
+    const lastActivity = localStorage.getItem(STORAGE_KEYS.LAST_ACTIVITY);
+    if (!lastActivity) return false;
+    
+    const lastActivityTime = parseInt(lastActivity, 10);
+    const now = Date.now();
+    const twoHours = 2 * 60 * 60 * 1000;
+    
+    return (now - lastActivityTime) < twoHours;
+  }
+
+  static getUserDisplayName(): string {
+    const user = getUserData();
+    if (!user) return 'Unknown User';
+    return `${user.firstName} ${user.lastName}`.trim();
+  }
+
+  static getUserInitials(): string {
+    const user = getUserData();
+    if (!user) return 'U';
+    return `${user.firstName[0] || ''}${user.lastName[0] || ''}`.toUpperCase();
+  }
+
+  static forceLogout(reason?: string): void {
+    clearAuthData();
+    if (reason) {
+      toast.error(reason);
+    }
+    // Redirect to landing page instead of /login
+    window.location.href = '/';
+  }
+}
+
+// Request interceptor
+authApi.interceptors.request.use(
+  (config) => {
+    const token = getAccessToken();
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor
+authApi.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      await handleAuthError('Session expired. Please log in again.');
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Auto session management
+if (typeof window !== 'undefined') {
+  const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+  
+  const throttleActivity = (() => {
+    let timeout: NodeJS.Timeout | null = null;
+    return () => {
+      if (timeout) return;
+      
+      timeout = setTimeout(() => {
+        if (AuthService.isAuthenticated()) {
+          updateLastActivity();
+        }
+        timeout = null;
+      }, 60000);
+    };
+  })();
+  
+  activityEvents.forEach(event => {
+    document.addEventListener(event, throttleActivity, true);
+  });
+  
+  window.addEventListener('focus', () => {
+    if (AuthService.isAuthenticated() && !AuthService.isSessionValid()) {
+      AuthService.forceLogout('Session expired due to inactivity');
+    }
+  });
+}
+
+export { AuthService as default };

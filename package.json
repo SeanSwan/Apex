@@ -6,7 +6,7 @@
   "scripts": {
     "start": "concurrently --prefix-colors \"cyan,yellow\" --prefix \"[{name}]\" --names \"FRONTEND,BACKEND\" --kill-others-on-fail \"npm run start-frontend\" \"npm run start-backend\"",
     "dev": "npm run start",
-    "start-frontend": "cd frontend && npm run dev",
+    "start-frontend": "cd client-portal && npm run dev",
     "start-backend": "cd backend && npm run dev",
     "start-fe": "cd frontend && npm run dev",
     "start-be": "cd backend && npm run dev",

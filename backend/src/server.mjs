@@ -46,12 +46,13 @@ const startServer = async () => {
   try {
     const app = express();
     const server = http.createServer(app);
-    const port = process.env.PORT || process.env.BACKEND_PORT || 5000;
+    const port = process.env.PORT || process.env.BACKEND_PORT || 5001;
 
     // Define allowed origins for CORS
     const allowedOrigins = [
       'http://localhost:5173',  // Vite default
       'http://localhost:3000',  // Alternative port (your Vite config)
+      'http://localhost:3001',  // Client portal backup port (auto-increment)
       process.env.FRONTEND_ORIGIN, // From .env if specified
     ].filter(Boolean); // Remove undefined/null values
     
@@ -217,7 +218,80 @@ const startServer = async () => {
       }
     });
 
+    // ===========================================
+    // CLIENT PORTAL ROUTES (INDEPENDENT LOADING)
+    // ===========================================
+    
+    // Load client portal routes independently of protect middleware
     try {
+      console.log('Importing Client Portal Authentication routes...');
+      const { default: clientAuthRoutes } = await import('../routes/client/v1/auth.mjs');
+      app.use('/api/client/v1/auth', clientAuthRoutes);
+      console.log('✅ Client Portal Auth routes loaded successfully');
+    } catch (clientAuthError) {
+      console.log('⚠️ Client Portal Auth routes not available:', clientAuthError.message);
+      console.error('Full error:', clientAuthError);
+    }
+    
+    // Load additional client portal routes
+    try {
+      console.log('Importing Client Portal Dashboard routes...');
+      const { default: clientDashboardRoutes } = await import('../routes/client/v1/dashboard_simple.mjs');
+      app.use('/api/client/v1/dashboard', clientDashboardRoutes);
+      console.log('✅ Client Portal Dashboard routes loaded successfully');
+    } catch (clientDashboardError) {
+      console.log('⚠️ Client Portal Dashboard routes not available:', clientDashboardError.message);
+    }
+    
+    try {
+      console.log('Importing Client Portal Incidents routes...');
+      const { default: clientIncidentsRoutes } = await import('../routes/client/v1/incidents_simple.mjs');
+      app.use('/api/client/v1/incidents', clientIncidentsRoutes);
+      console.log('✅ Client Portal Incidents routes loaded successfully');
+    } catch (clientIncidentsError) {
+      console.log('⚠️ Client Portal Incidents routes not available:', clientIncidentsError.message);
+    }
+    
+    try {
+      console.log('Importing Client Portal Evidence routes...');
+      const { default: clientEvidenceRoutes } = await import('../routes/client/v1/evidence_simple.mjs');
+      app.use('/api/client/v1/evidence', clientEvidenceRoutes);
+      console.log('✅ Client Portal Evidence routes loaded successfully');
+    } catch (clientEvidenceError) {
+      console.log('⚠️ Client Portal Evidence routes not available:', clientEvidenceError.message);
+    }
+    
+    try {
+      console.log('Importing Client Portal Analytics routes...');
+      const { default: clientAnalyticsRoutes } = await import('../routes/client/v1/analytics.mjs');
+      app.use('/api/client/v1/analytics', clientAnalyticsRoutes);
+      console.log('✅ Client Portal Analytics routes loaded successfully');
+    } catch (clientAnalyticsError) {
+      console.log('⚠️ Client Portal Analytics routes not available:', clientAnalyticsError.message);
+    }
+    
+    try {
+      console.log('Importing Client Portal Settings routes...');
+      const { default: clientSettingsRoutes } = await import('../routes/client/v1/settings.mjs');
+      app.use('/api/client/v1/settings', clientSettingsRoutes);
+      console.log('✅ Client Portal Settings routes loaded successfully');
+    } catch (clientSettingsError) {
+      console.log('⚠️ Client Portal Settings routes not available:', clientSettingsError.message);
+    }
+    
+    try {
+      console.log('Importing Client Portal Hotspots routes...');
+      const { default: clientHotspotsRoutes } = await import('../routes/client/v1/hotspots.mjs');
+      app.use('/api/client/v1/hotspots', clientHotspotsRoutes);
+      console.log('✅ Client Portal Hotspots routes loaded successfully');
+    } catch (clientHotspotsError) {
+      console.log('⚠️ Client Portal Hotspots routes not available:', clientHotspotsError.message);
+    }
+    
+    try {
+      // Import the protect middleware
+      console.log('Importing auth middleware...');
+      
       // Import routes dynamically with enhanced security
       console.log('Importing auth routes with rate limiting...');
       const { default: authRoutes } = await import('../routes/authRoutes.mjs');
@@ -225,9 +299,6 @@ const startServer = async () => {
       // Apply strict rate limiting to authentication routes
       app.use('/api/auth', authLimiter, authRoutes);
       console.log('✅ Auth routes loaded with security enhancements');
-      
-      // Import the protect middleware
-      console.log('Importing auth middleware...');
       const { protect } = await import('../middleware/authMiddleware.mjs');
       
       // Only import these routes if the protect middleware was loaded successfully
@@ -310,46 +381,6 @@ const startServer = async () => {
         }
         
         // ===========================================
-        // CLIENT PORTAL ROUTES (NEW SPRINT 4)
-        // ===========================================
-        
-        try {
-          console.log('Importing Client Portal Authentication routes...');
-          const { default: clientAuthRoutes } = await import('../routes/client/v1/auth.mjs');
-          app.use('/api/client/v1/auth', clientAuthRoutes);
-          console.log('✅ Client Portal Auth routes loaded successfully');
-        } catch (clientAuthError) {
-          console.log('⚠️ Client Portal Auth routes not available:', clientAuthError.message);
-        }
-        
-        try {
-          console.log('Importing Client Portal Dashboard routes...');
-          const { default: clientDashboardRoutes } = await import('../routes/client/v1/dashboard.mjs');
-          app.use('/api/client/v1/dashboard', clientDashboardRoutes);
-          console.log('✅ Client Portal Dashboard routes loaded successfully');
-        } catch (clientDashboardError) {
-          console.log('⚠️ Client Portal Dashboard routes not available:', clientDashboardError.message);
-        }
-        
-        try {
-          console.log('Importing Client Portal Incidents routes...');
-          const { default: clientIncidentsRoutes } = await import('../routes/client/v1/incidents.mjs');
-          app.use('/api/client/v1/incidents', clientIncidentsRoutes);
-          console.log('✅ Client Portal Incidents routes loaded successfully');
-        } catch (clientIncidentsError) {
-          console.log('⚠️ Client Portal Incidents routes not available:', clientIncidentsError.message);
-        }
-        
-        try {
-          console.log('Importing Client Portal Evidence routes...');
-          const { default: clientEvidenceRoutes } = await import('../routes/client/v1/evidence.mjs');
-          app.use('/api/client/v1/evidence', clientEvidenceRoutes);
-          console.log('✅ Client Portal Evidence routes loaded successfully');
-        } catch (clientEvidenceError) {
-          console.log('⚠️ Client Portal Evidence routes not available:', clientEvidenceError.message);
-        }
-        
-        // ===========================================
         // VOICE AI DISPATCHER ROUTES (NEW SPRINT 3)
         // ===========================================
         
@@ -366,6 +397,24 @@ const startServer = async () => {
           
         } catch (voiceAiError) {
           console.log('⚠️ Voice AI routes not available:', voiceAiError.message);
+        }
+        
+        // ===========================================
+        // INTERNAL DESKTOP APP ROUTES (NEW UNIFIED)
+        // ===========================================
+        
+        try {
+          console.log('Importing Internal Desktop App routes...');
+          const { default: internalRoutes } = await import('../routes/internal/index.mjs');
+          app.use('/api/internal', internalRoutes);
+          console.log('✅ Internal Desktop App routes loaded successfully');
+          console.log('   📋 SOPs management API ready');
+          console.log('   📞 Contact lists management API ready');
+          console.log('   🏠 Properties management API ready');
+          console.log('   👮 Guards & dispatch management API ready');
+          
+        } catch (internalError) {
+          console.log('⚠️ Internal Desktop App routes not available:', internalError.message);
         }
         
         console.log('🚀 APEX AI Platform routes integration complete with PRODUCTION SECURITY!');

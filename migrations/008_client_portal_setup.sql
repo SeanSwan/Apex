@@ -214,10 +214,11 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO swanadmin;
 -- =================================================
 
 -- Add client portal roles (these users can access the Aegis portal)
+-- Password for all demo users is 'Demo123!' (hashed with bcrypt)
 INSERT INTO "Users" ("firstName", "lastName", email, password, role, "phoneNumber", "clientId", "clientPermissions") VALUES
-('Sarah', 'Johnson', 'sarah.johnson@acme.com', '$2b$10$hash_placeholder', 'client_admin', '555-0301', 1, '{"dashboard": true, "incidents": true, "evidence": true, "analytics": true, "settings": true}'),
-('David', 'Smith', 'david.smith@acme.com', '$2b$10$hash_placeholder', 'client_user', '555-0302', 1, '{"dashboard": true, "incidents": true, "evidence": false, "analytics": false, "settings": false}'),
-('Lisa', 'Chen', 'lisa.chen@securebuildings.com', '$2b$10$hash_placeholder', 'client_admin', '555-0303', 2, '{"dashboard": true, "incidents": true, "evidence": true, "analytics": true, "settings": true}')
+('Sarah', 'Johnson', 'sarah.johnson@luxeapartments.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'client_admin', '555-0301', 1, '{"dashboard": true, "incidents": true, "evidence": true, "analytics": true, "settings": true}'),
+('David', 'Smith', 'david.smith@luxeapartments.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'client_user', '555-0302', 1, '{"dashboard": true, "incidents": true, "evidence": false, "analytics": false, "settings": false}'),
+('Lisa', 'Chen', 'lisa.chen@securebuildings.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'client_admin', '555-0303', 2, '{"dashboard": true, "incidents": true, "evidence": true, "analytics": true, "settings": true}')
 ON CONFLICT (email) DO NOTHING;
 
 -- Add sample incidents for demonstration
@@ -229,8 +230,8 @@ ON CONFLICT ("incidentNumber") DO NOTHING;
 
 -- Add sample contact lists
 INSERT INTO "ContactLists" ("propertyId", "clientId", "contactType", "contactName", "contactEmail", "contactPhone", "notificationTypes", "priority") VALUES
-(1, 1, 'property_manager', 'Sarah Johnson', 'sarah.johnson@acme.com', '555-0301', '["all"]', 1),
-(1, 1, 'security_supervisor', 'Mike Security', 'security@acme.com', '555-0401', '["trespassing", "weapon_detected", "violence"]', 2),
+(1, 1, 'property_manager', 'Sarah Johnson', 'sarah.johnson@luxeapartments.com', '555-0301', '["all"]', 1),
+(1, 1, 'security_supervisor', 'Mike Security', 'security@luxeapartments.com', '555-0401', '["trespassing", "weapon_detected", "violence"]', 2),
 (3, 2, 'property_manager', 'Lisa Chen', 'lisa.chen@securebuildings.com', '555-0303', '["all"]', 1)
 ON CONFLICT DO NOTHING;
 

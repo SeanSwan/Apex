@@ -1,1 +1,174 @@
-<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/favicon.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <meta name=\"description\" content=\"APEX AI Security Platform - Aegis Client Portal for property managers and security stakeholders\" />\n    <meta name=\"theme-color\" content=\"#1e40af\" />\n    \n    <!-- Security Meta Tags -->\n    <meta http-equiv=\"X-Content-Type-Options\" content=\"nosniff\" />\n    <meta http-equiv=\"X-Frame-Options\" content=\"DENY\" />\n    <meta name=\"referrer\" content=\"strict-origin-when-cross-origin\" />\n    \n    <!-- Open Graph / Social Media Meta -->\n    <meta property=\"og:type\" content=\"website\" />\n    <meta property=\"og:title\" content=\"Aegis Client Portal - APEX AI Security\" />\n    <meta property=\"og:description\" content=\"Professional security management portal for property managers\" />\n    <meta property=\"og:image\" content=\"/og-image.png\" />\n    \n    <!-- Preconnect to Backend API for Faster Loading -->\n    <link rel=\"preconnect\" href=\"http://localhost:5000\" />\n    <link rel=\"dns-prefetch\" href=\"http://localhost:5000\" />\n    \n    <!-- Favicon and App Icons -->\n    <link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/apple-touch-icon.png\">\n    <link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/favicon-32x32.png\">\n    <link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/favicon-16x16.png\">\n    <link rel=\"manifest\" href=\"/site.webmanifest\">\n    \n    <title>Aegis Client Portal - APEX AI Security Platform</title>\n    \n    <!-- Inline Critical CSS for Faster Loading -->\n    <style>\n      /* Critical loading styles */\n      * {\n        margin: 0;\n        padding: 0;\n        box-sizing: border-box;\n      }\n      \n      html, body {\n        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n        background-color: #f8fafc;\n        color: #1e293b;\n        line-height: 1.6;\n        scroll-behavior: smooth;\n      }\n      \n      /* Loading spinner styles */\n      .loading-container {\n        position: fixed;\n        top: 0;\n        left: 0;\n        width: 100%;\n        height: 100%;\n        background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        flex-direction: column;\n        z-index: 9999;\n      }\n      \n      .loading-spinner {\n        width: 50px;\n        height: 50px;\n        border: 3px solid rgba(255, 255, 255, 0.3);\n        border-radius: 50%;\n        border-top-color: white;\n        animation: spin 1s ease-in-out infinite;\n      }\n      \n      .loading-text {\n        color: white;\n        font-size: 18px;\n        font-weight: 500;\n        margin-top: 20px;\n        text-align: center;\n      }\n      \n      .loading-subtitle {\n        color: rgba(255, 255, 255, 0.8);\n        font-size: 14px;\n        margin-top: 8px;\n      }\n      \n      @keyframes spin {\n        to { transform: rotate(360deg); }\n      }\n      \n      /* Hide loading when React loads */\n      .loaded .loading-container {\n        display: none;\n      }\n      \n      /* Prevent flash of unstyled content */\n      #root {\n        opacity: 0;\n        transition: opacity 0.3s ease-in-out;\n      }\n      \n      .loaded #root {\n        opacity: 1;\n      }\n      \n      /* Responsive base styles */\n      @media (max-width: 768px) {\n        .loading-text {\n          font-size: 16px;\n        }\n        .loading-subtitle {\n          font-size: 13px;\n        }\n      }\n    </style>\n  </head>\n  \n  <body>\n    <!-- Loading Screen -->\n    <div class=\"loading-container\" id=\"loading\">\n      <div class=\"loading-spinner\"></div>\n      <div class=\"loading-text\">Aegis Client Portal</div>\n      <div class=\"loading-subtitle\">Loading your security dashboard...</div>\n    </div>\n    \n    <!-- React App Root -->\n    <div id=\"root\"></div>\n    \n    <!-- Error Fallback -->\n    <noscript>\n      <div style=\"\n        position: fixed;\n        top: 0;\n        left: 0;\n        width: 100%;\n        height: 100%;\n        background: #fee2e2;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        flex-direction: column;\n        font-family: system-ui, sans-serif;\n        color: #991b1b;\n        text-align: center;\n        padding: 20px;\n      \">\n        <h1 style=\"font-size: 24px; margin-bottom: 16px;\">JavaScript Required</h1>\n        <p style=\"font-size: 16px; margin-bottom: 8px;\">The Aegis Client Portal requires JavaScript to function.</p>\n        <p style=\"font-size: 14px; color: #7f1d1d;\">Please enable JavaScript in your browser settings and refresh the page.</p>\n      </div>\n    </noscript>\n    \n    <!-- Main Application Script -->\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n    \n    <!-- Loading State Management -->\n    <script>\n      // Remove loading screen when page is fully loaded\n      window.addEventListener('load', function() {\n        setTimeout(function() {\n          document.body.classList.add('loaded');\n        }, 500); // Small delay for smoother transition\n      });\n      \n      // Fallback: Remove loading screen after timeout\n      setTimeout(function() {\n        if (!document.body.classList.contains('loaded')) {\n          document.body.classList.add('loaded');\n          console.warn('Loading screen removed via timeout fallback');\n        }\n      }, 10000); // 10 second timeout\n    </script>\n  </body>\n</html>"
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="APEX AI Security Platform - Aegis Client Portal for property managers and security stakeholders" />
+    <meta name="theme-color" content="#1e40af" />
+    
+    <!-- Security Meta Tags -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    
+    <!-- Open Graph / Social Media Meta -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Aegis Client Portal - APEX AI Security" />
+    <meta property="og:description" content="Professional security management portal for property managers" />
+    <meta property="og:image" content="/og-image.png" />
+    
+    <!-- Preconnect to Backend API for Faster Loading -->
+    <link rel="preconnect" href="http://localhost:5001" />
+    <link rel="dns-prefetch" href="http://localhost:5001" />
+    
+    <!-- Favicon and App Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    
+    <title>Aegis Client Portal - APEX AI Security Platform</title>
+    
+    <!-- Inline Critical CSS for Faster Loading -->
+    <style>
+      /* Critical loading styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      html, body {
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background-color: #f8fafc;
+        color: #1e293b;
+        line-height: 1.6;
+        scroll-behavior: smooth;
+      }
+      
+      /* Loading spinner styles */
+      .loading-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        z-index: 9999;
+      }
+      
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+      }
+      
+      .loading-text {
+        color: white;
+        font-size: 18px;
+        font-weight: 500;
+        margin-top: 20px;
+        text-align: center;
+      }
+      
+      .loading-subtitle {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 14px;
+        margin-top: 8px;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      /* Hide loading when React loads */
+      .loaded .loading-container {
+        display: none;
+      }
+      
+      /* Prevent flash of unstyled content */
+      #root {
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+      }
+      
+      .loaded #root {
+        opacity: 1;
+      }
+      
+      /* Responsive base styles */
+      @media (max-width: 768px) {
+        .loading-text {
+          font-size: 16px;
+        }
+        .loading-subtitle {
+          font-size: 13px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <!-- Loading Screen -->
+    <div class="loading-container" id="loading">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Aegis Client Portal</div>
+      <div class="loading-subtitle">Loading your security dashboard...</div>
+    </div>
+    
+    <!-- React App Root -->
+    <div id="root"></div>
+    
+    <!-- Error Fallback -->
+    <noscript>
+      <div style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #fee2e2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        font-family: system-ui, sans-serif;
+        color: #991b1b;
+        text-align: center;
+        padding: 20px;
+      ">
+        <h1 style="font-size: 24px; margin-bottom: 16px;">JavaScript Required</h1>
+        <p style="font-size: 16px; margin-bottom: 8px;">The Aegis Client Portal requires JavaScript to function.</p>
+        <p style="font-size: 14px; color: #7f1d1d;">Please enable JavaScript in your browser settings and refresh the page.</p>
+      </div>
+    </noscript>
+    
+    <!-- Main Application Script -->
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Loading State Management -->
+    <script>
+      // Remove loading screen when page is fully loaded
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          document.body.classList.add('loaded');
+        }, 500); // Small delay for smoother transition
+      });
+      
+      // Fallback: Remove loading screen after timeout
+      setTimeout(function() {
+        if (!document.body.classList.contains('loaded')) {
+          document.body.classList.add('loaded');
+          console.warn('Loading screen removed via timeout fallback');
+        }
+      }, 10000); // 10 second timeout
+    </script>
+  </body>
+</html>

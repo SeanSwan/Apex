@@ -121,17 +121,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setError(null);
 
     try {
+      console.log('🔐 AuthProvider: Starting login process for:', credentials.email);
       const loggedInUser = await AuthService.login(credentials, rememberMe);
-      setUser(loggedInUser);
+      console.log('🔐 AuthProvider: Login successful, setting user state:', loggedInUser);
       
-      // Success notification is handled by AuthService
-      console.log('Authentication successful:', loggedInUser.email);
+      // CRITICAL FIX: Use React 18 flushSync for immediate state updates
+      const { flushSync } = await import('react-dom');
+      
+      // Synchronously update all authentication state
+      flushSync(() => {
+        setUser(loggedInUser);
+        setIsLoading(false);
+        setError(null);
+      });
+      
+      // Additional verification that state is updated
+      console.log('🔐 AuthProvider: State update complete, auth status:', !!loggedInUser);
       
     } catch (error: any) {
+      console.error('🔐 AuthProvider: Login failed:', error);
+      setIsLoading(false);
       handleError(error, 'Login failed. Please check your credentials and try again.');
       throw error; // Re-throw to allow form handling
-    } finally {
-      setIsLoading(false);
     }
   }, [handleError]);
 
@@ -255,10 +266,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsInitializing(true);
       
       try {
-        // Check if user is already authenticated
-        if (AuthService.isAuthenticated() && AuthService.isSessionValid()) {
-          const currentUser = await AuthService.getCurrentUser();
-          setUser(currentUser);
+        // ENHANCED: Check localStorage first for immediate state setting
+        const cachedUser = AuthService.getCachedUser();
+        const hasValidToken = AuthService.isAuthenticated() && AuthService.isSessionValid();
+        
+        if (cachedUser && hasValidToken) {
+          console.log('🔄 AuthProvider: Found valid cached session, setting user immediately');
+          
+          // Use flushSync for immediate state update
+          const { flushSync } = await import('react-dom');
+          flushSync(() => {
+            setUser(cachedUser); // Set user immediately from cache
+          });
+          
+          // Then verify with server in background
+          try {
+            const currentUser = await AuthService.getCurrentUser();
+            if (currentUser && JSON.stringify(currentUser) !== JSON.stringify(cachedUser)) {
+              flushSync(() => {
+                setUser(currentUser); // Update if server data differs
+              });
+            }
+          } catch (error) {
+            console.warn('Server verification failed, keeping cached user:', error);
+          }
         } else if (AuthService.isAuthenticated()) {
           // Try to refresh the session
           const refreshSuccess = await refreshSession();
@@ -317,30 +348,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // CONTEXT VALUE MEMOIZATION
   // ===========================
 
-  const contextValue = useMemo<AuthContextValue>(() => ({
-    // Authentication State
-    user,
-    isAuthenticated: !!user,
-    isLoading,
-    isInitializing,
-    error,
+  const contextValue = useMemo<AuthContextValue>(() => {
+    // ENHANCED: More robust authentication state calculation
+    const computedIsAuthenticated = (
+      !!user && 
+      AuthService.isAuthenticated() && 
+      AuthService.isSessionValid()
+    );
     
-    // Authentication Operations
-    login,
-    logout,
-    refreshSession,
-    getCurrentUser,
-    changePassword,
-    getActiveSessions,
-    
-    // Utility Functions
-    hasPermission,
-    isAdmin,
-    getUserDisplayName,
-    getUserInitials,
-    forceLogout,
-    clearError
-  }), [
+    return {
+      // Authentication State
+      user,
+      isAuthenticated: computedIsAuthenticated,
+      isLoading,
+      isInitializing,
+      error,
+      
+      // Authentication Operations
+      login,
+      logout,
+      refreshSession,
+      getCurrentUser,
+      changePassword,
+      getActiveSessions,
+      
+      // Utility Functions
+      hasPermission,
+      isAdmin,
+      getUserDisplayName,
+      getUserInitials,
+      forceLogout,
+      clearError
+    };
+  }, [
     user,
     isLoading,
     isInitializing,
