@@ -81,7 +81,7 @@ export const LandingPage: React.FC = () => {
             }
             
             // Check AuthService state
-            const { AuthService } = await import('../../services/authService');
+            const { AuthService } = await import('@/services/authService');
             const serviceAuthenticated = AuthService.isAuthenticated();
             const serviceSessionValid = AuthService.isSessionValid();
             

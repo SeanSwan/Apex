@@ -169,7 +169,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     // Wait for AuthService state to stabilize
     const checkAuthState = async () => {
       try {
-        const { AuthService } = await import('../../services/authService');
+        const { AuthService } = await import('@/services/authService');
         const serviceAuthenticated = AuthService.isAuthenticated();
         const serviceSessionValid = AuthService.isSessionValid();
         

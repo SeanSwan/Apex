@@ -221,27 +221,43 @@ export const Navigation: React.FC<NavigationProps> = ({
   const { isAdmin } = useAuth();
   const { displayName, initials, clientName } = useUserDisplay();
 
+  // Get all permissions at the top level (React hooks rules)
+  const hasIncidentsPermission = usePermission('incidents');
+  const hasEvidencePermission = usePermission('evidence');
+  const hasAnalyticsPermission = usePermission('analytics');
+  const hasSettingsPermission = usePermission('settings');
+  const hasDashboardPermission = usePermission('dashboard');
+
   // ===========================
   // PERMISSION FILTERING
   // ===========================
 
   const hasPermission = (permission: keyof ClientPermissions | undefined): boolean => {
     if (!permission) return true;
-    return usePermission(permission);
+    
+    // Use the pre-fetched permission values instead of calling hook
+    switch (permission) {
+      case 'incidents': return hasIncidentsPermission;
+      case 'evidence': return hasEvidencePermission;
+      case 'analytics': return hasAnalyticsPermission;
+      case 'settings': return hasSettingsPermission;
+      case 'dashboard': return hasDashboardPermission;
+      default: return true;
+    }
   };
 
   const filteredMainMenu = useMemo(() => {
     return NAVIGATION_MENU.filter(item => hasPermission(item.permission));
-  }, []);
+  }, [hasIncidentsPermission, hasEvidencePermission, hasAnalyticsPermission, hasDashboardPermission]);
 
   const filteredSettingsMenu = useMemo(() => {
     return SETTINGS_MENU.filter(item => hasPermission(item.permission));
-  }, []);
+  }, [hasSettingsPermission]);
 
   const filteredAdminMenu = useMemo(() => {
     if (!isAdmin()) return [];
     return ADMIN_MENU.filter(item => hasPermission(item.permission));
-  }, [isAdmin]);
+  }, [isAdmin, hasSettingsPermission, hasAnalyticsPermission]);
 
   // ===========================
   // EVENT HANDLERS
@@ -427,10 +443,11 @@ export const getActiveMenuItem = (pathname: string): MenuItem | undefined => {
 
 /**
  * Utility function to check if user has access to specific menu item
+ * Note: This should be used inside a component that already has permission hooks
  */
-export const canAccessMenuItem = (item: MenuItem): boolean => {
+export const canAccessMenuItem = (item: MenuItem, permissions: Partial<ClientPermissions>): boolean => {
   if (!item.permission) return true;
-  return usePermission(item.permission);
+  return permissions[item.permission] || false;
 };
 
 export default Navigation;

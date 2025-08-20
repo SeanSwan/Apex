@@ -19,6 +19,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Eye, EyeOff, Shield, Lock, Mail, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { AuthService } from '../../services/authService';
+import { useAuth } from '../auth/AuthProvider';
 import type { User, LoginCredentials } from '../../types/client.types';
 
 // ===========================
@@ -96,6 +97,8 @@ export const ClientLoginModal: React.FC<ClientLoginModalProps> = ({
   onLoginSuccess,
   backgroundVideoRef
 }) => {
+  // Get AuthProvider login method for React state synchronization
+  const { login: authProviderLogin } = useAuth();
   const [formState, setFormState] = useState<FormState>({
     data: {
       email: '',
@@ -195,13 +198,20 @@ export const ClientLoginModal: React.FC<ClientLoginModalProps> = ({
     }
     
     try {
-      // Attempt login
+      // FIXED: Use AuthProvider login for React state synchronization
       const credentials: LoginCredentials = {
         email: formState.data.email.trim(),
         password: formState.data.password
       };
       
-      const user = await AuthService.login(credentials, formState.data.rememberMe);
+      // Call AuthProvider login method to ensure React state updates immediately
+      await authProviderLogin(credentials, formState.data.rememberMe);
+      
+      // Get updated user from AuthService (now synchronized)
+      const user = AuthService.getCachedUser();
+      if (!user) {
+        throw new Error('Login successful but user data not available');
+      }
       
       // Success - trigger callback and close modal
       onLoginSuccess(user);

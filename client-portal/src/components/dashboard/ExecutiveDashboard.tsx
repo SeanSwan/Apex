@@ -396,19 +396,6 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
   });
   const { device, screen, network } = useMobileDetection();
   
-  // Performance-aware configuration
-  const performanceConfig = useMemo((): PerformanceConfig => {
-    const isSlowDevice = device.type === 'mobile' && performanceScore < 70;
-    const isSlowNetwork = network.effectiveType === 'slow-2g' || network.effectiveType === '2g';
-    
-    return {
-      enableVirtualization: isSlowDevice || state.recentCriticalIncidents.length > 20,
-      batchSize: isSlowNetwork ? 5 : BATCH_SIZE,
-      cacheStrategy: isSlowNetwork ? 'aggressive' : 'normal',
-      prioritizeSpeed: isSlowDevice || isSlowNetwork
-    };
-  }, [device.type, performanceScore, network.effectiveType]);
-  
   // Data cache for performance optimization
   const dataCache = useMemo(() => new Map<string, CachedData>(), []);
   
@@ -433,6 +420,19 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       dataSize: 0
     }
   });
+
+  // Performance-aware configuration (MOVED AFTER STATE DECLARATION)
+  const performanceConfig = useMemo((): PerformanceConfig => {
+    const isSlowDevice = device.type === 'mobile' && performanceScore < 70;
+    const isSlowNetwork = network.effectiveType === 'slow-2g' || network.effectiveType === '2g';
+    
+    return {
+      enableVirtualization: isSlowDevice || state.recentCriticalIncidents.length > 20,
+      batchSize: isSlowNetwork ? 5 : BATCH_SIZE,
+      cacheStrategy: isSlowNetwork ? 'aggressive' : 'normal',
+      prioritizeSpeed: isSlowDevice || isSlowNetwork
+    };
+  }, [device.type, performanceScore, network.effectiveType, state.recentCriticalIncidents.length]);
 
   // =================================
   // ENHANCED DATA FETCHING WITH CACHING
