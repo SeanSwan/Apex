@@ -101,10 +101,8 @@ const handleAuthError = async (message: string): Promise<void> => {
   clearAuthData();
   toast.error(message);
   
-  // Redirect to landing page instead of /login since /login redirects to /
-  if (window.location.pathname !== '/') {
-    window.location.href = '/';
-  }
+  // Let React Router handle navigation in most cases
+  // Only force redirect if we're in a critical auth failure scenario
 };
 
 // ===========================
@@ -169,10 +167,8 @@ export class AuthService {
       clearAuthData();
       toast.success('Logged out successfully');
       
-      // Redirect to landing page instead of /login
-      if (window.location.pathname !== '/') {
-        window.location.href = '/';
-      }
+      // Let React Router handle navigation - don't force redirect here
+      // The calling component will handle navigation properly
     }
   }
 
@@ -328,8 +324,11 @@ export class AuthService {
     if (reason) {
       toast.error(reason);
     }
-    // Redirect to landing page instead of /login
-    window.location.href = '/';
+    // Force redirect only for critical auth failures
+    // In most cases, let React Router handle navigation
+    if (window.location.pathname.includes('/client-portal/')) {
+      window.location.href = '/';
+    }
   }
 }
 

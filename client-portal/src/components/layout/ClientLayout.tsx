@@ -189,6 +189,7 @@ const Header: React.FC<HeaderProps> = ({
           <div className="border-t border-gray-200">
             <button
               onClick={() => {
+                console.log('🔴 LOGOUT BUTTON CLICKED - Starting emergency logout');
                 onUserMenuToggle();
                 onLogout();
               }}
@@ -308,14 +309,36 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   }, []);
 
   const handleLogout = useCallback(async () => {
+    console.log('🚨 EMERGENCY LOGOUT: Starting direct logout process');
+    
+    // EMERGENCY DIRECT LOGOUT - Clear everything and redirect immediately
     try {
-      await logout();
-      navigate('/login');
+      // Clear all localStorage
+      console.log('🚨 EMERGENCY LOGOUT: Clearing localStorage');
+      localStorage.removeItem('aegis_access_token');
+      localStorage.removeItem('aegis_user_data');
+      localStorage.removeItem('aegis_last_activity');
+      localStorage.clear(); // Nuclear option - clear everything
+      
+      // Clear sessionStorage
+      sessionStorage.clear();
+      
+      // Show success message
+      toast.success('Logged out successfully');
+      
+      // IMMEDIATE BROWSER REDIRECT - No React Router, no auth service
+      console.log('🚨 EMERGENCY LOGOUT: Forcing browser redirect to landing page');
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100); // Small delay to ensure storage is cleared
+      
     } catch (error) {
-      console.error('Logout error:', error);
-      toast.error('Error during logout');
+      console.error('🚨 EMERGENCY LOGOUT: Error during logout:', error);
+      // Even on error, force redirect
+      toast.error('Logout error, but redirecting anyway');
+      window.location.href = '/';
     }
-  }, [logout, navigate]);
+  }, []);
 
   // ===========================
   // EFFECTS

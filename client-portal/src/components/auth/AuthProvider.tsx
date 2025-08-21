@@ -153,10 +153,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await AuthService.logout();
       clearAuthState();
       
+      // FORCE BROWSER NAVIGATION - Don't rely on React Router
+      // This ensures user gets back to landing page immediately
+      console.log('🔄 AuthProvider: Forcing browser navigation to landing page');
+      window.location.href = '/';
+      
     } catch (error: any) {
       // Still clear auth state even if backend logout fails
       clearAuthState();
       console.warn('Logout warning:', error);
+      
+      // Force navigation even on error
+      window.location.href = '/';
     }
   }, [clearAuthState]);
 

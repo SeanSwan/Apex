@@ -32,6 +32,7 @@ import {
 // Import existing components
 import { useToast } from '../../hooks/use-toast';
 import { Button } from '../ui/button';
+import PropertyManagement from '../PropertyManagement/PropertyManagement';
 
 // Types for Admin Dashboard
 interface User {
@@ -1120,6 +1121,9 @@ const CompanyAdminDashboard: React.FC = () => {
             </DataTable>
           </div>
         );
+
+      case 'properties':
+        return <PropertyManagement />;
 
       case 'guards':
         return (

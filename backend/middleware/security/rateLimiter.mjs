@@ -5,16 +5,15 @@
  */
 
 import rateLimit from 'express-rate-limit';
-// Note: install express-slow-down with: npm install express-slow-down
-// import slowDown from 'express-slow-down';
 
 /**
  * General API Rate Limiter
  * Protects against DDoS and API abuse
+ * UPDATED: Increased for normal dashboard operation
  */
 export const apiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute window for testing
-  max: 10, // Lower limit for testing - 10 requests per minute
+  windowMs: 1 * 60 * 1000, // 1 minute window
+  max: 100, // Increased for dashboard operation - 100 requests per minute
   message: {
     error: 'Too many requests from this IP',
     retryAfter: '1 minute',
@@ -38,7 +37,7 @@ export const apiLimiter = rateLimit({
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit auth attempts
+  max: 10, // Reasonable limit for auth attempts
   message: {
     error: 'Too many authentication attempts',
     retryAfter: '15 minutes',
@@ -60,8 +59,8 @@ export const authLimiter = rateLimit({
  * Prevents AI alert spam
  */
 export const aiAlertLimiter = rateLimit({
-  windowMs: 30 * 1000, // 30 seconds for testing
-  max: 3, // Max 3 alerts per 30 seconds for testing
+  windowMs: 30 * 1000, // 30 seconds
+  max: 10, // Increased for normal operation
   message: {
     error: 'Too many AI alerts created',
     retryAfter: '30 seconds',
@@ -75,7 +74,7 @@ export const aiAlertLimiter = rateLimit({
  */
 export const dispatchLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 20, // Max 20 dispatches per 5 minutes
+  max: 50, // Increased for normal operation
   message: {
     error: 'Too many dispatch requests',
     retryAfter: '5 minutes',
@@ -84,24 +83,12 @@ export const dispatchLimiter = rateLimit({
 });
 
 /**
- * Progressive Delay for Suspicious Activity
- * Gradually slows down repeated requests
- * Note: Requires express-slow-down package
- */
-// export const progressiveDelay = slowDown({
-//   windowMs: 15 * 60 * 1000, // 15 minutes
-//   delayAfter: 50, // Allow 50 requests at full speed
-//   delayMs: 500, // Add 500ms delay per request after threshold
-//   maxDelayMs: 20000, // Maximum delay of 20 seconds
-// });
-
-/**
  * Critical Operations Rate Limiter
  * For sensitive operations like user management
  */
 export const criticalOpsLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // Very strict limit
+  max: 25, // Slightly increased for normal admin operations
   message: {
     error: 'Critical operation rate limit exceeded',
     retryAfter: '1 hour',
@@ -163,7 +150,6 @@ export default {
   authLimiter,
   aiAlertLimiter,
   dispatchLimiter,
-  // progressiveDelay, // Commented out - requires express-slow-down
   criticalOpsLimiter,
   createRoleBasedLimiter,
   createWhitelistBypass

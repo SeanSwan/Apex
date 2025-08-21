@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Logout Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #dc2626;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background: #b91c1c;
+        }
+        .debug-output {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .success { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #991b1b; }
+        .info { background: #dbeafe; color: #1e40af; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🚨 Emergency Logout Test</h1>
+        
+        <div class="status info">
+            <strong>Purpose:</strong> Test if the basic logout functionality works outside of React.
+        </div>
+        
+        <h3>🧪 Test Buttons:</h3>
+        
+        <button class="test-button" onclick="emergencyLogout()">
+            🚨 Emergency Logout (Nuclear Option)
+        </button>
+        
+        <button class="test-button" onclick="gentleLogout()">
+            🔄 Gentle Logout (Standard Clear)
+        </button>
+        
+        <button class="test-button" onclick="checkStorage()">
+            🔍 Check Current Storage
+        </button>
+        
+        <button class="test-button" onclick="setTestData()">
+            📝 Set Test Auth Data
+        </button>
+        
+        <div id="output" class="debug-output">
+            Ready for testing...<br>
+            Click buttons above to test logout functionality.<br>
+        </div>
+    </div>
+
+    <script>
+        function log(message) {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `[${timestamp}] ${message}<br>`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function emergencyLogout() {
+            log('🚨 EMERGENCY LOGOUT: Starting nuclear option...');
+            
+            try {
+                // Clear specific auth tokens
+                log('🧹 Clearing specific auth tokens...');
+                localStorage.removeItem('aegis_access_token');
+                localStorage.removeItem('aegis_user_data');
+                localStorage.removeItem('aegis_last_activity');
+                localStorage.removeItem('aegis_remember_email');
+                
+                // Nuclear option - clear everything
+                log('💣 Nuclear option - clearing ALL storage...');
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                log('✅ Emergency logout completed successfully!');
+                log('🌐 Would redirect to: ' + window.location.origin + '/');
+                
+                // Show success status
+                setTimeout(() => {
+                    log('🎯 Testing browser redirect...');
+                    if (confirm('Test browser redirect? This will navigate to landing page.')) {
+                        window.location.href = '/';
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                log('❌ Emergency logout error: ' + error.message);
+            }
+        }
+
+        function gentleLogout() {
+            log('🔄 GENTLE LOGOUT: Starting standard logout...');
+            
+            try {
+                log('🧹 Clearing auth-specific storage...');
+                localStorage.removeItem('aegis_access_token');
+                localStorage.removeItem('aegis_user_data');
+                localStorage.removeItem('aegis_last_activity');
+                
+                log('✅ Gentle logout completed successfully!');
+                log('🌐 Would redirect to: ' + window.location.origin + '/');
+                
+            } catch (error) {
+                log('❌ Gentle logout error: ' + error.message);
+            }
+        }
+
+        function checkStorage() {
+            log('🔍 CHECKING STORAGE: Current auth state...');
+            
+            const token = localStorage.getItem('aegis_access_token');
+            const user = localStorage.getItem('aegis_user_data');
+            const activity = localStorage.getItem('aegis_last_activity');
+            
+            log('🔑 Access Token: ' + (token ? 'EXISTS (' + token.substring(0, 20) + '...)' : 'NOT FOUND'));
+            log('👤 User Data: ' + (user ? 'EXISTS' : 'NOT FOUND'));
+            log('⏰ Last Activity: ' + (activity ? new Date(parseInt(activity)).toLocaleString() : 'NOT FOUND'));
+            
+            const totalKeys = Object.keys(localStorage).length;
+            log('📊 Total localStorage keys: ' + totalKeys);
+            
+            if (totalKeys > 0) {
+                log('🗂️ All localStorage keys: ' + Object.keys(localStorage).join(', '));
+            }
+        }
+
+        function setTestData() {
+            log('📝 SETTING TEST DATA: Creating fake auth tokens...');
+            
+            const testToken = 'demo-token-' + Date.now();
+            const testUser = JSON.stringify({
+                email: 'test@example.com',
+                firstName: 'Test',
+                lastName: 'User',
+                role: 'client_user'
+            });
+            
+            localStorage.setItem('aegis_access_token', testToken);
+            localStorage.setItem('aegis_user_data', testUser);
+            localStorage.setItem('aegis_last_activity', Date.now().toString());
+            
+            log('✅ Test auth data created successfully!');
+            log('🔑 Token: ' + testToken);
+            log('👤 User: Test User (test@example.com)');
+        }
+
+        // Initial check
+        window.onload = function() {
+            log('🚀 Emergency Logout Test initialized');
+            log('🌐 Current URL: ' + window.location.href);
+            checkStorage();
+        };
+    </script>
+</body>
+</html>
