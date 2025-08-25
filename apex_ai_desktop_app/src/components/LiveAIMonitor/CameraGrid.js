@@ -1,17 +1,28 @@
 /**
- * CAMERA GRID COMPONENT
- * ====================
+ * CAMERA GRID COMPONENT (ENHANCED FOR REAL VIDEO STREAMING)
+ * ========================================================
  * Displays multiple video streams with AI detection overlays
  * Supports grid view, focus view, and investigation modes
  * Enhanced with face detection overlays and person identification (Phase 1)
+ * 
+ * MASTER PROMPT v54.6 ENHANCEMENTS:
+ * - Real video streaming via VideoStreamBridge integration
+ * - Live AI detection with YOLO model support
+ * - WebSocket-based video frame processing
+ * - Dynamic video source configuration
+ * - Professional production-ready video handling
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 
 // Import face detection components (Phase 1 Enhancement)
 import FaceOverlayComponent from '../FaceDetection/FaceOverlayComponent';
 import PersonTypeIndicator from '../FaceDetection/PersonTypeIndicator';
+
+// Import video streaming components (Master Prompt v54.6)
+import VideoStreamBridge from '../VideoStream/VideoStreamBridge';
+import VideoSourceManager from '../VideoStream/VideoSourceManager';
 
 const GridContainer = styled.div`
   width: 100%;
@@ -62,6 +73,86 @@ const VideoElement = styled.video`
   height: 100%;
   object-fit: cover;
   background-color: #000;
+`;
+
+// Enhanced video streaming container (Master Prompt v54.6)
+const VideoStreamContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: #000;
+`;
+
+// Video source setup overlay
+const VideoSetupOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 100;
+  gap: ${props => props.theme.spacing.md};
+`;
+
+const SetupButton = styled.button`
+  padding: ${props => props.theme.spacing.md} ${props => props.theme.spacing.lg};
+  background-color: ${props => props.theme.colors.primary};
+  color: ${props => props.theme.colors.background};
+  border: none;
+  border-radius: ${props => props.theme.borderRadius.md};
+  font-size: ${props => props.theme.typography.fontSize.sm};
+  font-weight: ${props => props.theme.typography.fontWeight.medium};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: ${props => props.theme.spacing.xs};
+
+  &:hover {
+    background-color: ${props => props.theme.colors.primaryDark};
+    transform: translateY(-1px);
+  }
+`;
+
+// Live streaming status indicator
+const StreamStatus = styled.div`
+  position: absolute;
+  bottom: ${props => props.theme.spacing.sm};
+  right: ${props => props.theme.spacing.sm};
+  background: rgba(0, 0, 0, 0.8);
+  color: ${props => props.theme.colors.text};
+  padding: ${props => props.theme.spacing.xs} ${props => props.theme.spacing.sm};
+  border-radius: ${props => props.theme.borderRadius.sm};
+  font-size: ${props => props.theme.typography.fontSize.xs};
+  display: flex;
+  align-items: center;
+  gap: ${props => props.theme.spacing.xs};
+  z-index: 20;
+`;
+
+const StreamIndicator = styled.div`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: ${props => {
+    switch (props.status) {
+      case 'streaming': return '#00ff88';
+      case 'connecting': return '#ffaa00';
+      case 'error': return '#ff4444';
+      default: return '#666666';
+    }
+  }};
+  animation: ${props => props.status === 'streaming' ? 'pulse 2s ease-in-out infinite' : 'none'};
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
 `;
 
 const VideoPlaceholder = styled.div`
@@ -243,23 +334,108 @@ const EmptyGridMessage = styled.div`
   gap: ${props => props.theme.spacing.md};
 `;
 
-function CameraGrid({ cameras, viewMode, focusedCamera, detections, onCameraFocus, faceDetections = [], onFaceDetection = null }) {
+function CameraGrid({ 
+  cameras, 
+  viewMode, 
+  focusedCamera, 
+  detections, 
+  onCameraFocus, 
+  faceDetections = [], 
+  onFaceDetection = null,
+  // New props for video streaming (Master Prompt v54.6)
+  enableRealTimeStreaming = true,
+  onVideoFrameReceived = null,
+  onDetectionReceived = null 
+}) {
   const [loadedVideos, setLoadedVideos] = useState(new Set());
   const [videoErrors, setVideoErrors] = useState(new Set());
   const [faceDetectionEnabled, setFaceDetectionEnabled] = useState(true);
   const [showFaceInfo, setShowFaceInfo] = useState({});
   const videoRefs = useRef({});
+  
+  // Enhanced state for real video streaming (Master Prompt v54.6)
+  const [videoSources, setVideoSources] = useState(new Map());
+  const [streamingStatus, setStreamingStatus] = useState(new Map());
+  const [showVideoSetup, setShowVideoSetup] = useState(new Map());
+  const [liveDetections, setLiveDetections] = useState(new Map());
+  const [frameCount, setFrameCount] = useState(new Map());
 
   // Filter cameras based on view mode
   const displayCameras = viewMode === 'focus' && focusedCamera 
     ? [focusedCamera] 
     : cameras;
 
-  // Get detections for a specific camera
-  const getCameraDetections = (cameraId) => {
-    return detections
-      .filter(detection => detection.camera_id === cameraId)
+  // Enhanced video frame handler (Master Prompt v54.6)
+  const handleVideoFrame = useCallback((cameraId, frame) => {
+    // Update frame count
+    setFrameCount(prev => new Map(prev.set(cameraId, (prev.get(cameraId) || 0) + 1)));
+    
+    // Process AI detections from frame metadata
+    if (frame.metadata?.detections) {
+      const detections = frame.metadata.detections.map(detection => ({
+        ...detection,
+        camera_id: cameraId,
+        timestamp: frame.timestamp,
+        id: `${cameraId}_${frame.timestamp}_${detection.class_name}`
+      }));
+      
+      setLiveDetections(prev => new Map(prev.set(cameraId, detections)));
+      
+      // Notify parent component
+      if (onDetectionReceived) {
+        detections.forEach(detection => onDetectionReceived(detection));
+      }
+    }
+    
+    // Notify parent component of frame received
+    if (onVideoFrameReceived) {
+      onVideoFrameReceived(cameraId, frame);
+    }
+  }, [onVideoFrameReceived, onDetectionReceived]);
+
+  // Handle video source status changes
+  const handleSourceStatusChange = useCallback((cameraId, sourceId, status) => {
+    setStreamingStatus(prev => new Map(prev.set(cameraId, status)));
+    
+    // Update camera status
+    if (status === 'connected') {
+      setLoadedVideos(prev => new Set([...prev, cameraId]));
+      setVideoErrors(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(cameraId);
+        return newSet;
+      });
+    } else if (status === 'error') {
+      setVideoErrors(prev => new Set([...prev, cameraId]));
+      setLoadedVideos(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(cameraId);
+        return newSet;
+      });
+    }
+  }, []);
+
+  // Setup video source for camera
+  const setupVideoSource = useCallback((camera, videoSource) => {
+    setVideoSources(prev => new Map(prev.set(camera.id, videoSource)));
+    setShowVideoSetup(prev => new Map(prev.set(camera.id, false)));
+  }, []);
+
+  // Get combined detections (legacy + live)
+  const getCombinedDetections = useCallback((cameraId) => {
+    const legacyDetections = detections.filter(detection => detection.camera_id === cameraId);
+    const liveDetections = Array.from(liveDetections.get(cameraId) || []);
+    
+    // Combine and deduplicate
+    const allDetections = [...legacyDetections, ...liveDetections];
+    return allDetections
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
       .slice(0, 10); // Show only recent detections
+  }, [detections, liveDetections]);
+
+  // Get detections for a specific camera (Enhanced)
+  const getCameraDetections = (cameraId) => {
+    return getCombinedDetections(cameraId);
   };
 
   // Get face detections for a specific camera (Phase 1 Enhancement)
@@ -359,34 +535,87 @@ function CameraGrid({ cameras, viewMode, focusedCamera, detections, onCameraFocu
             viewMode={viewMode}
             onClick={() => onCameraFocus && onCameraFocus(camera)}
           >
-            {/* Video Stream */}
-            {!hasError ? (
-              <VideoElement
-                ref={el => videoRefs.current[camera.id] = el}
-                autoPlay
-                muted
-                loop
-                playsInline
-                onLoadedData={() => handleVideoLoad(camera.id)}
-                onError={(e) => handleVideoError(camera.id, e)}
-                style={{ display: isLoaded ? 'block' : 'none' }}
-              >
-                <source src={camera.rtspUrl} type="application/x-mpegURL" />
-                <source src="/demo-videos/sample-feed.mp4" type="video/mp4" />
-              </VideoElement>
-            ) : null}
+            {/* Enhanced Video Stream with Real-Time AI (Master Prompt v54.6) */}
+            {enableRealTimeStreaming && videoSources.has(camera.id) ? (
+              <VideoStreamContainer>
+                <VideoStreamBridge
+                  key={camera.id}
+                  onFrameReceived={(frame) => handleVideoFrame(camera.id, frame)}
+                  onDetectionReceived={(detection) => {
+                    if (onDetectionReceived) {
+                      onDetectionReceived({ ...detection, camera_id: camera.id });
+                    }
+                  }}
+                  onSourceStatusChange={(sourceId, status) => 
+                    handleSourceStatusChange(camera.id, sourceId, status)
+                  }
+                  autoStart={true}
+                  enableAI={true}
+                />
+                
+                {/* Live Streaming Status */}
+                <StreamStatus>
+                  <StreamIndicator status={streamingStatus.get(camera.id) || 'disconnected'} />
+                  LIVE {streamingStatus.get(camera.id) === 'connected' ? 
+                    `• ${frameCount.get(camera.id) || 0} frames` : 
+                    `• ${streamingStatus.get(camera.id) || 'disconnected'}`.toUpperCase()
+                  }
+                </StreamStatus>
+              </VideoStreamContainer>
+            ) : (
+              <>
+                {/* Fallback: Traditional Video Element */}
+                {!hasError && camera.rtspUrl ? (
+                  <VideoElement
+                    ref={el => videoRefs.current[camera.id] = el}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    onLoadedData={() => handleVideoLoad(camera.id)}
+                    onError={(e) => handleVideoError(camera.id, e)}
+                    style={{ display: isLoaded ? 'block' : 'none' }}
+                  >
+                    <source src={camera.rtspUrl} type="application/x-mpegURL" />
+                    <source src="/demo-videos/sample-feed.mp4" type="video/mp4" />
+                  </VideoElement>
+                ) : null}
 
-            {/* Placeholder for loading/error states */}
-            {(!isLoaded || hasError) && (
-              <VideoPlaceholder>
-                <div style={{ fontSize: '24px', marginBottom: '8px' }}>
-                  {hasError ? '⚠️' : '📹'}
-                </div>
-                <div>{camera.name}</div>
-                <div style={{ fontSize: '12px', marginTop: '4px' }}>
-                  {hasError ? 'Connection Error' : 'Connecting...'}
-                </div>
-              </VideoPlaceholder>
+                {/* Video Setup Overlay */}
+                {(!videoSources.has(camera.id) && enableRealTimeStreaming) && (
+                  <VideoSetupOverlay>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>📹</div>
+                    <div style={{ color: '#fff', marginBottom: '16px', textAlign: 'center' }}>
+                      <div style={{ fontWeight: 'bold' }}>{camera.name}</div>
+                      <div style={{ fontSize: '14px', opacity: 0.8 }}>No video source configured</div>
+                    </div>
+                    <SetupButton onClick={() => setShowVideoSetup(prev => new Map(prev.set(camera.id, true)))}>
+                      🚀 Setup Video Source
+                    </SetupButton>
+                  </VideoSetupOverlay>
+                )}
+
+                {/* Traditional Placeholder for loading/error states */}
+                {(!isLoaded || hasError) && !showVideoSetup.get(camera.id) && (
+                  <VideoPlaceholder>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>
+                      {hasError ? '⚠️' : '📹'}
+                    </div>
+                    <div>{camera.name}</div>
+                    <div style={{ fontSize: '12px', marginTop: '4px' }}>
+                      {hasError ? 'Connection Error' : 'Connecting...'}
+                    </div>
+                    {enableRealTimeStreaming && (
+                      <SetupButton 
+                        style={{ marginTop: '16px', padding: '8px 16px', fontSize: '12px' }}
+                        onClick={() => setShowVideoSetup(prev => new Map(prev.set(camera.id, true)))}
+                      >
+                        🔧 Configure Video
+                      </SetupButton>
+                    )}
+                  </VideoPlaceholder>
+                )}
+              </>
             )}
 
             {/* Camera Overlay */}
@@ -477,8 +706,88 @@ function CameraGrid({ cameras, viewMode, focusedCamera, detections, onCameraFocu
           </CameraContainer>
         );
       })}
+      
+      {/* Video Source Manager Modals (Master Prompt v54.6) */}
+      {Array.from(showVideoSetup.entries()).map(([cameraId, show]) => {
+        if (!show) return null;
+        
+        const camera = cameras.find(c => c.id === cameraId);
+        if (!camera) return null;
+        
+        return (
+          <VideoSetupModal key={`setup-${cameraId}`}>
+            <VideoSetupContent>
+              <VideoSetupHeader>
+                <h3>📹 Setup Video Source for {camera.name}</h3>
+                <CloseButton onClick={() => setShowVideoSetup(prev => new Map(prev.set(cameraId, false)))}>
+                  ❌
+                </CloseButton>
+              </VideoSetupHeader>
+              
+              <VideoSourceManager
+                onSourceSelected={(source) => setupVideoSource(camera, source)}
+                onSourceTested={(source, success) => {
+                  console.log(`Video source test for ${camera.name}:`, success ? 'Success' : 'Failed');
+                }}
+              />
+            </VideoSetupContent>
+          </VideoSetupModal>
+        );
+      })}
     </GridContainer>
   );
 }
+
+// Additional styled components for video setup modal
+const VideoSetupModal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: ${props => props.theme.spacing.lg};
+`;
+
+const VideoSetupContent = styled.div`
+  background: ${props => props.theme.colors.background};
+  border-radius: ${props => props.theme.borderRadius.lg};
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: ${props => props.theme.shadows.lg};
+`;
+
+const VideoSetupHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: ${props => props.theme.spacing.lg};
+  border-bottom: 1px solid ${props => props.theme.colors.border};
+  
+  h3 {
+    margin: 0;
+    color: ${props => props.theme.colors.text};
+    font-size: ${props => props.theme.typography.fontSize.lg};
+  }
+`;
+
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  font-size: ${props => props.theme.typography.fontSize.lg};
+  cursor: pointer;
+  padding: ${props => props.theme.spacing.xs};
+  color: ${props => props.theme.colors.textMuted};
+  
+  &:hover {
+    color: ${props => props.theme.colors.text};
+  }
+`;
 
 export default CameraGrid;

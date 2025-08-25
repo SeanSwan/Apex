@@ -4,11 +4,11 @@
   "description": "APEX AI Security Platform - Unified Development Environment",
   "main": "index.js",
   "scripts": {
-    "start": "echo \"🚀 Starting APEX AI Platform Development Environment...\" && concurrently --prefix-colors \"cyan.bold,yellow.bold\" --prefix \"[{name}]\" --names \"CLIENT-PORTAL,BACKEND\" --kill-others-on-fail \"npm run start-client-portal\" \"npm run start-backend\"",
+    "start": "echo \"🚀 Starting APEX AI Platform Development Environment...\" && concurrently --prefix-colors \"cyan.bold,yellow.bold,green.bold\" --prefix \"[{name}]\" --names \"CLIENT-PORTAL,BACKEND,FRONTEND\" --kill-others-on-fail \"npm run start-client-portal\" \"npm run start-backend\" \"npm run start-frontend\"",
     "dev": "npm run start",
     "start-client-portal": "echo \"🌐 Starting Client Portal on http://localhost:5173\" && cd client-portal && npm run dev",
     "start-backend": "echo \"⚡ Starting Backend API on http://localhost:5001\" && cd backend && npm run dev",
-    "start-frontend": "cd client-portal && npm run dev",
+    "start-frontend": "echo \"🛡️ Starting Frontend Live Monitoring on http://localhost:3000\" && cd frontend && npm run dev",
     "start-fe": "cd frontend && npm run dev",
     "start-be": "cd backend && npm run dev",
     "restart": "npm run stop && npm run start",
@@ -30,7 +30,7 @@
     "health-check": "curl -s http://localhost:5001/api/health || echo 'Backend not running on port 5001'",
     "ports-check": "echo \"🔍 Checking ports...\" && netstat -an | findstr :5001 && netstat -an | findstr :5173 || echo 'Ports available'",
     "setup": "npm run install-all && echo \"✅ Setup complete! Run 'npm start' to begin development.\"",
-    "info": "echo \"📋 APEX AI Platform Info:\" && echo \"   🌐 Client Portal: http://localhost:5173\" && echo \"   ⚡ Backend API: http://localhost:5001\" && echo \"   📚 API Docs: http://localhost:5001/api/docs\" && echo \"   💾 Database: PostgreSQL (check .env for connection)\""
+    "info": "echo \"📋 APEX AI Platform Info:\" && echo \"   🌐 Client Portal: http://localhost:5173\" && echo \"   🛡️ Frontend Live Monitoring: http://localhost:3000\" && echo \"   ⚡ Backend API: http://localhost:5001\" && echo \"   📚 API Docs: http://localhost:5001/api/docs\" && echo \"   💾 Database: PostgreSQL (check .env for connection)\""
   },
   "keywords": [
     "apex-ai",

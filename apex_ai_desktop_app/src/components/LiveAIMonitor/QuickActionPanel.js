@@ -2,7 +2,9 @@
  * QUICK ACTION PANEL COMPONENT
  * ===========================
  * Rapid response actions for security personnel
- * Features: Voice responses, snapshots, emergency actions
+ * Features: Voice responses, snapshots, emergency actions, call monitoring controls
+ * 
+ * Enhanced with Voice AI dispatcher integration and human intervention controls
  */
 
 import React, { useState } from 'react';
@@ -169,10 +171,18 @@ const LastActionDisplay = styled.div`
   margin-top: ${props => props.theme.spacing.sm};
 `;
 
-function QuickActionPanel({ activeCameras = [], focusedCamera }) {
+function QuickActionPanel({ 
+  activeCameras = [], 
+  focusedCamera,
+  activeCalls = [],
+  interventionRequest = null,
+  onCallAction,
+  onInterventionAction
+}) {
   const [isPerformingAction, setIsPerformingAction] = useState(false);
   const [lastAction, setLastAction] = useState(null);
   const [selectedCamera, setSelectedCamera] = useState(focusedCamera?.id || '');
+  const [callMonitorExpanded, setCallMonitorExpanded] = useState(false);
 
   // Voice response options for demo
   const voiceResponses = [
@@ -259,6 +269,40 @@ function QuickActionPanel({ activeCameras = [], focusedCamera }) {
           });
           break;
           
+        case 'call_monitor_toggle':
+          setCallMonitorExpanded(!callMonitorExpanded);
+          setLastAction({
+            type: 'Call Monitor',
+            details: callMonitorExpanded ? 'Monitor collapsed' : 'Monitor expanded',
+            camera: null,
+            timestamp: new Date()
+          });
+          break;
+          
+        case 'call_intervention':
+          if (onInterventionAction) {
+            onInterventionAction(actionData.action, actionData.call);
+          }
+          setLastAction({
+            type: 'Call Intervention',
+            details: `${actionData.action}: ${actionData.call?.callerNumber || 'Unknown caller'}`,
+            camera: null,
+            timestamp: new Date()
+          });
+          break;
+          
+        case 'call_action':
+          if (onCallAction) {
+            onCallAction(actionData.action, actionData.call);
+          }
+          setLastAction({
+            type: 'Call Action',
+            details: `${actionData.action}: ${actionData.call?.callerNumber || 'Unknown caller'}`,
+            camera: null,
+            timestamp: new Date()
+          });
+          break;
+          
         default:
           console.warn('Unknown action type:', actionType);
       }
@@ -285,6 +329,20 @@ function QuickActionPanel({ activeCameras = [], focusedCamera }) {
 
   const getRandomVoiceResponse = () => {
     return voiceResponses[Math.floor(Math.random() * voiceResponses.length)];
+  };
+
+  // Call monitoring helper functions
+  const hasActiveCalls = activeCalls && activeCalls.length > 0;
+  const hasInterventionRequest = interventionRequest !== null;
+  
+  const handleCallAction = (action, call = null) => {
+    const targetCall = call || (activeCalls && activeCalls[0]);
+    performAction('call_action', { action, call: targetCall });
+  };
+  
+  const handleInterventionAction = (action, call = null) => {
+    const targetCall = call || interventionRequest;
+    performAction('call_intervention', { action, call: targetCall });
   };
 
   return (
@@ -370,6 +428,103 @@ function QuickActionPanel({ activeCameras = [], focusedCamera }) {
             Lockdown
           </ActionButton>
         </ActionGrid>
+      </PanelSection>
+
+      {/* Voice AI Call Controls */}
+      <PanelSection>
+        <SectionTitle>
+          📞 Voice AI Calls
+          {hasActiveCalls && (
+            <span style={{ 
+              fontSize: '10px', 
+              backgroundColor: '#10b981', 
+              color: 'white', 
+              padding: '2px 6px', 
+              borderRadius: '10px',
+              marginLeft: '8px'
+            }}>
+              {activeCalls.length} ACTIVE
+            </span>
+          )}
+        </SectionTitle>
+        
+        {hasActiveCalls ? (
+          <ActionGrid>
+            <ActionButton
+              onClick={() => handleCallAction('monitor')}
+              disabled={isPerformingAction}
+              variant="primary"
+            >
+              <span style={{ fontSize: '16px' }}>👁️</span>
+              Monitor Call
+            </ActionButton>
+            
+            <ActionButton
+              onClick={() => handleCallAction('transcript')}
+              disabled={isPerformingAction}
+            >
+              <span style={{ fontSize: '16px' }}>📝</span>
+              View Transcript
+            </ActionButton>
+            
+            {hasInterventionRequest ? (
+              <ActionButton
+                onClick={() => handleInterventionAction('takeover')}
+                disabled={isPerformingAction}
+                variant="warning"
+              >
+                <span style={{ fontSize: '16px' }}>🎯</span>
+                Take Over
+              </ActionButton>
+            ) : (
+              <ActionButton
+                onClick={() => handleCallAction('request_intervention')}
+                disabled={isPerformingAction}
+                variant="warning"
+              >
+                <span style={{ fontSize: '16px' }}>🆘</span>
+                Request Help
+              </ActionButton>
+            )}
+            
+            <ActionButton
+              onClick={() => handleCallAction('end_call')}
+              disabled={isPerformingAction}
+              variant="emergency"
+            >
+              <span style={{ fontSize: '16px' }}>📞</span>
+              End Call
+            </ActionButton>
+          </ActionGrid>
+        ) : (
+          <div style={{
+            textAlign: 'center',
+            padding: '20px',
+            color: '#666',
+            fontSize: '12px',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '6px',
+            border: '1px solid #e9ecef'
+          }}>
+            📞 No active Voice AI calls<br />
+            <span style={{ fontSize: '10px' }}>System ready to receive calls</span>
+          </div>
+        )}
+        
+        {hasInterventionRequest && (
+          <div style={{
+            marginTop: '8px',
+            padding: '8px',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            border: '1px solid #f59e0b',
+            borderRadius: '6px',
+            fontSize: '11px',
+            color: '#f59e0b',
+            textAlign: 'center'
+          }}>
+            ⚠️ Human intervention requested
+          </div>
+        )}
       </PanelSection>
 
       {/* Emergency Actions */}

@@ -40,6 +40,7 @@ import { AIConsoleDashboard } from './components';
 
 // Existing Pages
 import UnauthorizedPage from './pages/UnauthorizedPage.component';
+import LoginPage from './pages/LoginPage.component';
 
 // Components
 import { Header, IntegratedHomePage, TestHomePage, ErrorBoundary } from './components';
@@ -123,8 +124,8 @@ const App: React.FC = () => {
                 <Route path="/dispatch" element={<Navigate to="/guard-operations" replace />} />
                 <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
                 
-                {/* Redirect login to platform landing */}
-                <Route path="/login" element={<Navigate to="/" replace />} />
+                {/* Defense App Login */}
+                <Route path="/login" element={<LoginPage />} />
                 
                 {/* === AI CONSOLE - ELITE SECURITY OPERATIONS === */}
                 <Route path="/ai-console" element={<AIConsoleDashboard />} />

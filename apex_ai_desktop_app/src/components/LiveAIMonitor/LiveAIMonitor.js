@@ -1,6 +1,6 @@
 /**
- * LIVE AI MONITOR - MAIN COMPONENT WITH SPRINT 4 + FACE DETECTION INTEGRATION
- * ==========================================================================
+ * LIVE AI MONITOR - HELIOS UNIFIED SITUATIONAL AWARENESS CONSOLE
+ * =============================================================
  * Enhanced core component for real-time AI-powered security monitoring
  * Features: Camera grid, AI detection overlays, event feed, quick actions
  * 
@@ -16,6 +16,13 @@
  * - Person identification and classification
  * - Face-based alert generation and management
  * - Integration with video input manager
+ * 
+ * HELIOS CONSOLE ENHANCEMENTS (Master Prompt v54.6):
+ * - LiveCallMonitor: Real-time Voice AI call monitoring with transcripts
+ * - CallInterventionPanel: Human takeover controls with countdown timers
+ * - IncidentReportViewer: Comprehensive incident dossiers with evidence
+ * - Enhanced QuickActionPanel: Integrated call monitoring controls
+ * - Dynamic Layout: Adaptive panel system for multiple monitoring views
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -23,6 +30,11 @@ import styled from 'styled-components';
 import CameraGrid from './CameraGrid';
 import AIEventFeed from './AIEventFeed';
 import QuickActionPanel from './QuickActionPanel';
+
+// Enhanced Helios Components
+import LiveCallMonitor from './LiveCallMonitor';
+import CallInterventionPanel from './CallInterventionPanel';
+import IncidentReportViewer from './IncidentReportViewer';
 
 // SPRINT 4: Import Alert System Components
 import AlertManager from '../VisualAlerts/AlertManager';
@@ -37,13 +49,17 @@ const MonitorContainer = styled.div`
   width: 100%;
   height: 100%;
   display: grid;
-  grid-template-columns: 1fr 320px 320px;
+  grid-template-columns: 1fr repeat(auto-fit, minmax(320px, 320px));
   grid-template-rows: 1fr auto;
   gap: ${props => props.theme.spacing.md};
   padding: ${props => props.theme.spacing.md};
   background-color: ${props => props.theme.colors.background};
   
-  /* Sprint 4: Responsive layout for alert systems */
+  /* HELIOS ENHANCEMENT: Dynamic layout for multiple panels */
+  @media (max-width: 1600px) {
+    grid-template-columns: 1fr 320px 320px;
+  }
+  
   @media (max-width: 1400px) {
     grid-template-columns: 1fr 320px;
     grid-template-rows: 1fr auto auto;
@@ -51,7 +67,7 @@ const MonitorContainer = styled.div`
   
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto auto auto;
+    grid-template-rows: 1fr auto auto auto auto;
   }
 `;
 
@@ -233,6 +249,14 @@ function LiveAIMonitor() {
     alertsGenerated: 0
   });
   const [selectedFaceDetection, setSelectedFaceDetection] = useState(null);
+  
+  // HELIOS ENHANCEMENT: Voice AI Call Management
+  const [activeCalls, setActiveCalls] = useState([]);
+  const [interventionRequest, setInterventionRequest] = useState(null);
+  const [selectedIncident, setSelectedIncident] = useState(null);
+  const [callMonitorExpanded, setCallMonitorExpanded] = useState(false);
+  const [interventionPanelExpanded, setInterventionPanelExpanded] = useState(false);
+  const [incidentViewerExpanded, setIncidentViewerExpanded] = useState(false);
   
   // Demo cameras configuration
   const demoCameras = [
@@ -486,6 +510,99 @@ function LiveAIMonitor() {
       handleCameraFocus(camera);
     }
   };
+  
+  // HELIOS ENHANCEMENT: Voice AI Call Event Handlers
+  const handleVoiceCallStarted = (callData) => {
+    console.log('📞 Voice call started:', callData);
+    
+    const newCall = {
+      id: callData.call_id,
+      callerNumber: callData.caller_number,
+      propertyName: callData.property_name,
+      incidentType: callData.incident_type,
+      status: 'active',
+      startTime: callData.start_time || new Date().toISOString(),
+      transcript: callData.initial_transcript || [],
+      aiConfidence: callData.ai_confidence
+    };
+    
+    setActiveCalls(prev => [newCall, ...prev]);
+    setCallMonitorExpanded(true);
+    
+    // Add to alerts
+    setAlerts(prev => [{
+      id: `call_${newCall.id}`,
+      type: 'voice_call',
+      message: `Voice AI call started: ${newCall.callerNumber}`,
+      timestamp: newCall.startTime,
+      severity: 'medium',
+      camera_id: null
+    }, ...prev.slice(0, 49)]);
+  };
+  
+  const handleVoiceCallEnded = (callData) => {
+    console.log('📞 Voice call ended:', callData);
+    
+    setActiveCalls(prev => prev.filter(call => call.id !== callData.call_id));
+    
+    if (activeCalls.length <= 1) {
+      setCallMonitorExpanded(false);
+    }
+    
+    // Clear intervention if it was for this call
+    if (interventionRequest && interventionRequest.call_id === callData.call_id) {
+      setInterventionRequest(null);
+      setInterventionPanelExpanded(false);
+    }
+  };
+  
+  const handleCallTranscriptUpdate = (transcriptData) => {
+    console.log('📝 Call transcript update:', transcriptData);
+    
+    setActiveCalls(prev => prev.map(call => {
+      if (call.id === transcriptData.call_id) {
+        return {
+          ...call,
+          transcript: transcriptData.transcript,
+          aiConfidence: transcriptData.ai_confidence
+        };
+      }
+      return call;
+    }));
+  };
+  
+  const handleInterventionRequest = (requestData) => {
+    console.log('🎯 Intervention request:', requestData);
+    
+    setInterventionRequest({
+      id: requestData.request_id,
+      call_id: requestData.call_id,
+      reason: requestData.reason,
+      aiConfidence: requestData.ai_confidence,
+      situationType: requestData.situation_type,
+      priority: requestData.priority,
+      timestamp: new Date().toISOString()
+    });
+    
+    setInterventionPanelExpanded(true);
+    
+    // Add to alerts
+    setAlerts(prev => [{
+      id: `intervention_${requestData.request_id}`,
+      type: 'intervention_request',
+      message: `Human intervention requested: ${requestData.reason}`,
+      timestamp: new Date().toISOString(),
+      severity: 'high',
+      camera_id: null
+    }, ...prev.slice(0, 49)]);
+  };
+  
+  const handleInterventionResolved = (resolutionData) => {
+    console.log('✅ Intervention resolved:', resolutionData);
+    
+    setInterventionRequest(null);
+    setInterventionPanelExpanded(false);
+  };
 
   const handleAIMessage = (message) => {
     switch (message.type) {
@@ -585,6 +702,27 @@ function LiveAIMonitor() {
         
       case 'vip_detection':
         handleVIPDetection(message.data);
+        break;
+      
+      // HELIOS ENHANCEMENT: Voice AI Call Events
+      case 'voice_call_started':
+        handleVoiceCallStarted(message.data);
+        break;
+        
+      case 'voice_call_ended':
+        handleVoiceCallEnded(message.data);
+        break;
+        
+      case 'call_transcript_update':
+        handleCallTranscriptUpdate(message.data);
+        break;
+        
+      case 'intervention_request':
+        handleInterventionRequest(message.data);
+        break;
+        
+      case 'intervention_resolved':
+        handleInterventionResolved(message.data);
         break;
       
       default:
@@ -810,11 +948,109 @@ function LiveAIMonitor() {
 
   const getStatusText = () => {
     switch (aiStatus) {
-      case 'connected': return `AI Active • ${activeCameras.length} Cameras`;
+      case 'connected': return `AI Active • ${activeCameras.length} Cameras • ${activeCalls.length} Calls`;
       case 'connecting': return 'Connecting to AI Engine...';
       case 'error': return 'AI Engine Error';
       default: return 'AI Engine Offline';
     }
+  };
+  
+  // HELIOS ENHANCEMENT: Event Handlers for new components
+  const handleEventClick = (event) => {
+    console.log('📋 Event clicked:', event);
+    
+    // Set as selected incident for the incident viewer
+    setSelectedIncident({
+      id: event.id,
+      type: event.type,
+      description: event.message || event.description,
+      timestamp: event.timestamp,
+      priority: event.severity || 'medium',
+      location: event.location,
+      camera_id: event.camera_id,
+      cameraName: event.camera_id ? activeCameras.find(cam => cam.id === event.camera_id)?.name : null,
+      status: 'active',
+      evidence: event.evidence || [],
+      aiAnalysis: event.aiAnalysis || [{
+        text: `AI detected ${event.type || 'security incident'} with ${event.confidence ? Math.round(event.confidence * 100) : 'standard'}% confidence.`,
+        confidence: event.confidence || 0.75
+      }],
+      actionItems: event.actionItems || [{
+        id: 'review',
+        text: 'Review incident details and determine appropriate response',
+        completed: false
+      }]
+    });
+    
+    setIncidentViewerExpanded(true);
+    
+    // Focus camera if available
+    if (event.camera_id) {
+      const camera = activeCameras.find(cam => cam.id === event.camera_id);
+      if (camera) {
+        handleCameraFocus(camera);
+      }
+    }
+  };
+  
+  const handleCallAction = (action, call) => {
+    console.log('📞 Call action:', action, call);
+    
+    switch (action) {
+      case 'monitor':
+        setCallMonitorExpanded(true);
+        break;
+      case 'request_intervention':
+        // Simulate intervention request
+        handleInterventionRequest({
+          request_id: `req_${Date.now()}`,
+          call_id: call?.id,
+          reason: 'Manual intervention requested by operator',
+          ai_confidence: call?.aiConfidence || 0.5,
+          situation_type: 'Manual Request',
+          priority: 'high'
+        });
+        break;
+      case 'end_call':
+        // In real implementation, this would end the actual call
+        if (call) {
+          handleVoiceCallEnded({ call_id: call.id });
+        }
+        break;
+    }
+  };
+  
+  const handleInterventionAction = (action, request) => {
+    console.log('🎯 Intervention action:', action, request);
+    
+    switch (action) {
+      case 'takeover':
+        // Handle human takeover
+        handleInterventionResolved({ request_id: request?.id });
+        break;
+      case 'veto':
+        // Handle veto of intervention
+        handleInterventionResolved({ request_id: request?.id });
+        break;
+    }
+  };
+  
+  const handleActionItemToggle = (actionId) => {
+    if (selectedIncident) {
+      setSelectedIncident(prev => ({
+        ...prev,
+        actionItems: prev.actionItems.map(item => 
+          (item.id || item.text) === actionId 
+            ? { ...item, completed: !item.completed }
+            : item
+        )
+      }));
+    }
+  };
+  
+  const handleEvidenceClick = (evidence) => {
+    console.log('📎 Evidence clicked:', evidence);
+    // In real implementation, this would open the evidence viewer
   };
 
   return (
@@ -861,20 +1097,13 @@ function LiveAIMonitor() {
         </CameraGridContainer>
       </MainViewArea>
 
+      {/* HELIOS ENHANCEMENT: Expandable side panels with new components */}
       <SidePanel>
         <AIEventContainer>
           <AIEventFeed
             alerts={alerts}
             detections={detections}
-            onEventClick={(event) => {
-              // Handle event click - focus camera, show details, etc.
-              if (event.camera_id) {
-                const camera = activeCameras.find(cam => cam.id === event.camera_id);
-                if (camera) {
-                  handleCameraFocus(camera);
-                }
-              }
-            }}
+            onEventClick={handleEventClick}
           />
         </AIEventContainer>
         
@@ -882,9 +1111,61 @@ function LiveAIMonitor() {
           <QuickActionPanel
             activeCameras={activeCameras}
             focusedCamera={focusedCamera}
+            activeCalls={activeCalls}
+            interventionRequest={interventionRequest}
+            onCallAction={handleCallAction}
+            onInterventionAction={handleInterventionAction}
           />
         </QuickActionContainer>
       </SidePanel>
+      
+      {/* HELIOS ENHANCEMENT: Voice AI Call Monitor */}
+      {(callMonitorExpanded || activeCalls.length > 0) && (
+        <SidePanel>
+          <LiveCallMonitor
+            activeCalls={activeCalls}
+            onCallSelect={(call) => console.log('Call selected:', call)}
+            onTakeoverRequest={(call) => {
+              handleInterventionRequest({
+                request_id: `req_${Date.now()}`,
+                call_id: call.id,
+                reason: 'Takeover requested from call monitor',
+                ai_confidence: call.aiConfidence,
+                situation_type: 'Monitor Request',
+                priority: 'high'
+              });
+            }}
+            expanded={callMonitorExpanded}
+          />
+        </SidePanel>
+      )}
+      
+      {/* HELIOS ENHANCEMENT: Human Intervention Panel */}
+      {(interventionPanelExpanded || interventionRequest) && (
+        <SidePanel>
+          <CallInterventionPanel
+            interventionRequest={interventionRequest}
+            onVeto={(request) => handleInterventionAction('veto', request)}
+            onTakeover={(request, isAuto) => {
+              console.log('Takeover:', request, isAuto ? '(automatic)' : '(manual)');
+              handleInterventionAction('takeover', request);
+            }}
+            onStandby={() => setInterventionPanelExpanded(false)}
+            countdownDuration={15}
+          />
+        </SidePanel>
+      )}
+      
+      {/* HELIOS ENHANCEMENT: Incident Report Viewer */}
+      {(incidentViewerExpanded || selectedIncident) && (
+        <SidePanel>
+          <IncidentReportViewer
+            selectedIncident={selectedIncident}
+            onActionItemToggle={handleActionItemToggle}
+            onEvidenceClick={handleEvidenceClick}
+          />
+        </SidePanel>
+      )}
     </MonitorContainer>
   );
 }

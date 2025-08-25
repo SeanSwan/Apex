@@ -45,8 +45,8 @@ export const LandingPage: React.FC = () => {
   };
 
   const handleDefenseApexSite = () => {
-    // Redirect to main frontend application (original homepage with movies)
-    window.location.href = 'http://localhost:5173';
+    // Redirect to Frontend application login page for proper authentication flow
+    window.location.href = 'http://localhost:3000/login';
   };
 
   const handleClientLoginSuccess = async (user: User) => {

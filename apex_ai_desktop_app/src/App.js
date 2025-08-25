@@ -2,15 +2,27 @@
  * APEX AI DESKTOP MONITOR - MAIN APP COMPONENT
  * ============================================
  * Root React component for the desktop AI monitoring application
- * Features: Live AI Monitor, AI Alert Log, CTO AI Console
+ * Features: Admin Dashboard, Live AI Monitor, AI Alert Log, CTO AI Console
  */
 
 import React, { useState, useEffect } from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
+import AdminDashboard from './components/Dashboard/AdminDashboard';
 import LiveAIMonitor from './components/LiveAIMonitor/LiveAIMonitor';
 import AIAlertLog from './components/AIAlertLog/AIAlertLog';
 import CTOAIConsole from './components/CTOAIConsole/CTOAIConsole';
 import GeofenceManager from './components/RulesConfiguration/GeofenceManager';
+
+// Import HIGH PRIORITY Configuration Components (Master Prompt v54.6 Sprint 5)
+import AIModelManager from './components/AIModelManagement/AIModelManager';
+import ContactListManager from './components/ContactManagement/ContactListManager';
+import SOPEditor from './components/SOPManagement/SOP_Editor';
+import StatusBar from './components/StatusBar/StatusBar';
+
+// Import AI Conversation Panel (Master Prompt v54.6)
+import AIConversationPanel from './components/AIConversation/AIConversationPanel';
+
+// Import StatusBar
 import StatusBar from './components/StatusBar/StatusBar';
 
 // Theme for the application
@@ -29,7 +41,8 @@ const theme = {
     warning: '#ffaa00',
     error: '#ff4444',
     border: '#333333',
-    borderLight: '#444444'
+    borderLight: '#444444',
+    info: '#3b82f6'
   },
   spacing: {
     xs: '4px',
@@ -153,13 +166,60 @@ const TabContent = styled.div`
   display: ${props => props.active ? 'block' : 'none'};
 `;
 
+// AI Assistant floating panel styles (Master Prompt v54.6)
+const AIAssistantButton = styled.button`
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, ${props => props.theme.colors.primary}, ${props => props.theme.colors.secondary});
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: ${props => props.theme.shadows.lg};
+  transition: all 0.3s ease;
+  z-index: 1000;
+  
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+`;
+
+const AIAssistantContainer = styled.div`
+  position: fixed;
+  bottom: 100px;
+  right: 24px;
+  z-index: 999;
+  display: ${props => props.visible ? 'block' : 'none'};
+`;
+
 function App() {
-  const [activeTab, setActiveTab] = useState('live-monitor');
+  const [activeTab, setActiveTab] = useState('admin-dashboard');
   const [appInfo, setAppInfo] = useState(null);
   const [aiEngineStatus, setAIEngineStatus] = useState('disconnected');
+  
+  // AI Conversation Panel state (Master Prompt v54.6)
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [aiAssistantExpanded, setAIAssistantExpanded] = useState(false);
 
   // Tab definitions
   const tabs = [
+    {
+      id: 'admin-dashboard',
+      label: 'Admin Dashboard',
+      icon: '📊',
+      component: AdminDashboard
+    },
     {
       id: 'live-monitor',
       label: 'Live AI Monitor',
@@ -178,6 +238,25 @@ function App() {
       icon: '🛡️',
       component: GeofenceManager
     },
+    // HIGH PRIORITY Configuration Components (Master Prompt v54.6 Sprint 5)
+    {
+      id: 'sop-editor',
+      label: 'SOP Editor',
+      icon: '📋',
+      component: SOPEditor
+    },
+    {
+      id: 'contact-manager',
+      label: 'Contact Manager',
+      icon: '📞',
+      component: ContactListManager
+    },
+    {
+      id: 'ai-model-manager',
+      label: 'AI Model Manager',
+      icon: '🧠',
+      component: AIModelManager
+    },
     {
       id: 'cto-console',
       label: 'CTO AI Console',
@@ -185,6 +264,16 @@ function App() {
       component: CTOAIConsole
     }
   ];
+
+  // AI Assistant context (Master Prompt v54.6)
+  const getSystemContext = () => ({
+    activeAlerts: 0, // This would come from real system data
+    connectedCameras: 4,
+    recentIncidents: [],
+    systemStatus: aiEngineStatus,
+    userRole: 'admin',
+    currentProperty: 'Demo Property'
+  });
 
   // Initialize app and set up AI engine communication
   useEffect(() => {
@@ -291,6 +380,26 @@ function App() {
           appInfo={appInfo} 
           aiEngineStatus={aiEngineStatus}
         />
+        
+        {/* AI Assistant Panel (Master Prompt v54.6) */}
+        <AIAssistantContainer visible={showAIAssistant}>
+          <AIConversationPanel
+            systemContext={getSystemContext()}
+            onActionRequest={(action, params) => {
+              console.log('AI Action Request:', action, params);
+              // Handle AI action requests here
+            }}
+            isExpanded={aiAssistantExpanded}
+            onToggleExpanded={() => setAIAssistantExpanded(!aiAssistantExpanded)}
+            userId="admin_001"
+            userRole="admin"
+          />
+        </AIAssistantContainer>
+        
+        {/* AI Assistant Toggle Button */}
+        <AIAssistantButton onClick={() => setShowAIAssistant(!showAIAssistant)}>
+          🤖
+        </AIAssistantButton>
       </AppContainer>
     </ThemeProvider>
   );

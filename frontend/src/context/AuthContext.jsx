@@ -6,14 +6,35 @@ import axios from 'axios';
 // Create the AuthContext
 export const AuthContext = createContext();
 
-// Base URL for the backend API - Keep in case other parts use it
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/auth';
+// Base URL for the backend API - FIXED to correct port and path
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api/auth';
 console.log("Using API Base URL:", API_BASE_URL);
 
-// Helper functions for localStorage (keep as they are)
-const safeGetLocalStorage = (key) => { /* ... keep original implementation ... */ };
-const safeSetLocalStorage = (key, value) => { /* ... keep original implementation ... */ };
-const safeRemoveLocalStorage = (key) => { /* ... keep original implementation ... */ };
+// Helper functions for localStorage
+const safeGetLocalStorage = (key) => {
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    console.warn('Error reading from localStorage:', error);
+    return null;
+  }
+};
+
+const safeSetLocalStorage = (key, value) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch (error) {
+    console.warn('Error writing to localStorage:', error);
+  }
+};
+
+const safeRemoveLocalStorage = (key) => {
+  try {
+    localStorage.removeItem(key);
+  } catch (error) {
+    console.warn('Error removing from localStorage:', error);
+  }
+};
 
 
 export const AuthProvider = ({ children }) => {
@@ -31,64 +52,47 @@ export const AuthProvider = ({ children }) => {
     initRan.current = true;
 
     const initializeAuth = async () => {
-      console.warn("!!! AUTHENTICATION OVERRIDDEN FOR LOCAL REPORT BUILDER MODE !!!");
-      console.log("AuthContext: Initializing in forced authentication mode.");
-
-      // --- Force Fake Authentication Start ---
-      const mockUser = {
-        id: 'local-report-user-001',
-        username: 'ReportBuilderUser',
-        // Use a role that likely grants all necessary permissions within the ReportBuilder
-        // and any child components that might check roles.
-        role: 'super_admin', // Or another role that ReportBuilder expects/needs
-        email: 'report@builder.local',
-        firstName: 'Report', // Add any other fields components might display
-        lastName: 'User',
-        // Add other fields expected by your components or context consumers
-      };
-
-      // Directly set the user state to the mock user
-      setUser(mockUser);
-
-      // Set loading to false immediately, bypassing any backend checks
-      setLoading(false);
-
-      // Clear any potential errors
-      setError(null);
-
-      console.log("AuthContext: Forced mock user state set:", mockUser);
-      console.log("AuthContext: Bypassing token validation and localStorage check.");
-
-      // --- IMPORTANT: Stop execution here ---
-      return;
-      // --- Force Fake Authentication End ---
-
-      /* --- Original Initialization Logic (IS NOW UNREACHABLE) ---
+      console.log("AuthContext: Initializing authentication...");
+      
       setLoading(true);
       setError(null);
+      
       const token = safeGetLocalStorage('token');
       const storedUserJson = safeGetLocalStorage('user');
-
+      
       if (token && storedUserJson) {
         console.log('AuthContext: Found token and user in localStorage. Validating...');
         try {
+          // Parse stored user data
+          const storedUser = JSON.parse(storedUserJson);
+          
+          // Validate token with backend
           const response = await axios.get(`${API_BASE_URL}/validate-token`, {
             headers: { Authorization: `Bearer ${token}` },
           });
+          
           if (response.data && response.data.user) {
-            // ... original validation success logic ...
+            console.log('AuthContext: Token validation successful. User authenticated.');
+            setUser(response.data.user);
           } else {
-            // ... original unexpected response handling ...
+            console.warn('AuthContext: Token validation failed. Clearing stored data.');
+            safeRemoveLocalStorage('token');
+            safeRemoveLocalStorage('user');
+            setUser(null);
           }
         } catch (validationError) {
-          // ... original validation error handling ...
+          console.error('AuthContext: Token validation error:', validationError.message);
+          safeRemoveLocalStorage('token');
+          safeRemoveLocalStorage('user');
+          setUser(null);
+          setError('Session expired. Please log in again.');
         }
       } else {
         console.log('AuthContext: No token/user found in localStorage.');
         setUser(null);
       }
+      
       setLoading(false);
-      --- End of Original Logic --- */
     };
 
     // Run the modified initialization function
@@ -107,7 +111,7 @@ export const AuthProvider = ({ children }) => {
       (config) => {
         const token = safeGetLocalStorage('token'); // Might be null or fake
         // Only add if token exists and URL matches base API pattern
-        if (token && config.url && config.url.startsWith(API_BASE_URL.replace('/api/auth', '/api'))) {
+        if (token && config.url && config.url.includes('/api/')) {
           config.headers.Authorization = `Bearer ${token}`;
           // console.log("Interceptor: Added fake/null token to request for", config.url);
         }
@@ -157,21 +161,54 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (username, password) => {
-    console.warn("Login function called in bypass mode. Action skipped.");
-    setError("Login is disabled in this mode.");
-    // Simulate failure or do nothing
-    throw new Error("Login disabled");
+    console.log("AuthContext: Attempting login for:", username);
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await axios.post(`${API_BASE_URL}/login`, {
+        username,
+        password,
+      });
+      
+      if (response.data && response.data.token && response.data.user) {
+        console.log('AuthContext: Login successful');
+        
+        // Store token and user data
+        safeSetLocalStorage('token', response.data.token);
+        safeSetLocalStorage('user', JSON.stringify(response.data.user));
+        
+        // Update state
+        setUser(response.data.user);
+        setError(null);
+        
+        console.log('AuthContext: User authenticated:', response.data.user.username);
+      } else {
+        throw new Error('Invalid response from server');
+      }
+    } catch (loginError) {
+      console.error('AuthContext: Login failed:', loginError.message);
+      const errorMessage = loginError.response?.data?.message || 'Login failed. Please check your credentials.';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = () => {
-    console.warn("Logout function called in bypass mode. Clearing fake user state.");
-    // Clear the fake state if logout is somehow triggered
+    console.log("AuthContext: Logging out user");
+    
+    // Clear user state
     setUser(null);
     setError(null);
-    safeRemoveLocalStorage('user'); // Remove any potentially stored fake user
-    safeRemoveLocalStorage('token'); // Remove any potentially stored fake token
-    // Optional: Redirect to /login (which now goes back to /reports/new)
-    // window.location.href = '/login';
+    setLoading(false);
+    
+    // Clear stored data
+    safeRemoveLocalStorage('user');
+    safeRemoveLocalStorage('token');
+    
+    console.log('AuthContext: User logged out successfully');
   };
 
   const updateProfile = async (updatedData) => {

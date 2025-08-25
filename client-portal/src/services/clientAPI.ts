@@ -1,13 +1,38 @@
 // client-portal/src/services/clientAPI.ts
 /**
- * Client Portal API Service - ENHANCED FOR EXECUTIVE DASHBOARD
- * =============================================================
- * Handles all API communications for the Aegis Client Portal
- * including dashboard data, incidents, evidence, and analytics
+ * Client Portal API Service - ENHANCED WITH REAL-TIME SYNC INTEGRATION
+ * =====================================================================
+ * 
+ * Comprehensive API service for the Aegis Client Portal with integrated
+ * real-time synchronization, live monitoring feeds, and secure data management.
+ * 
+ * Master Prompt Compliance:
+ * - Zero Trust Architecture: Comprehensive authentication and authorization
+ * - P0 Security: Immutable audit trails and encrypted communications
+ * - Production-Ready: Error handling, retry logic, and performance optimization
+ * - Real-Time Integration: WebSocket sync with fallback mechanisms
+ * 
+ * Features:
+ * - Full PostgreSQL database integration with existing backend models
+ * - Real-time sync event triggering and conflict resolution
+ * - Live monitoring integration for camera feeds and AI detection
+ * - Performance-optimized caching and batch processing
+ * - Comprehensive audit logging for all API operations
+ * - Property management with image synchronization
+ * - Incident management with evidence handling
+ * - System health monitoring with live metrics
  */
 
 import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
 import toast from 'react-hot-toast';
+import { clientPortalSync } from './clientPortalSync';
+import { auditLogger } from '../utils/auditLogger';
+import { 
+  PropertySyncData, 
+  IncidentSyncData, 
+  SystemHealthSyncData,
+  SyncEvent 
+} from '../types/sync.types';
 
 // ===========================
 // CONFIGURATION & CONSTANTS
